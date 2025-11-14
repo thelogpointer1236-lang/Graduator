@@ -1,0 +1,123 @@
+﻿#include "GraduationService.h"
+#include <QMessageBox>
+#include "core/services/ServiceLocator.h"
+#include <QThread>
+bool isNearToPressureNode(const std::vector<double> &nodes, double p, double percentThreshold) {
+    if (nodes.size() < 2) return false;
+    double step = nodes[1] - nodes[0];
+    for (const auto &node: nodes) {
+        double diff = std::abs(p - node);
+        double threshold = std::abs(step * percentThreshold / 100.0);
+        if (diff <= threshold) return true;
+    }
+    return false;
+}
+GraduationService::GraduationService(QObject *parent) : QObject(parent) {
+}
+GraduationService::~GraduationService() {
+    stop();
+}
+void GraduationService::start() {
+    m_isRunning = true;
+    m_forward = true;
+    m_recording = false;
+    m_forwardGraduator.clear();
+    m_backwardGraduator.clear();
+    m_forwardGraduator.setPressureNodes(m_gaugeModel.pressureValues());
+    m_backwardGraduator.setPressureNodes(m_gaugeModel.pressureValues());
+    connectObjects();
+    ServiceLocator::instance().cameraProcessor()->startAll();
+    QMetaObject::invokeMethod(ServiceLocator::instance().pressureController(), "start", Qt::QueuedConnection);
+    m_elapsedTimer.start();
+}
+void GraduationService::stop() {
+    m_elapsedTimer.invalidate();
+    ServiceLocator::instance().cameraProcessor()->stopAll();
+    ServiceLocator::instance().pressureController()->stop();
+    disconnectObjects();
+    m_isRunning = false;
+}
+bool GraduationService::isRunning() const {
+    return m_isRunning;
+}
+bool GraduationService::isReadyToRun(QString &err) const {
+    if (this->isRunning()) return false;
+    const int gaugeIdx = ServiceLocator::instance().configManager()->get<int>("current.gaugeModel", -1);
+    if (gaugeIdx < 0 || gaugeIdx >= ServiceLocator::instance().gaugeCatalog()->all().size()) {
+        ServiceLocator::instance().logger()->error(L"Не задана модель манометра.");
+        return false;
+    }
+    m_gaugeModel = ServiceLocator::instance().gaugeCatalog()->all().at(gaugeIdx);
+    m_pressureUnit = static_cast<PressureUnit>(ServiceLocator::instance().configManager()->get<int>(
+        "current.pressureUnit", static_cast<int>(PressureUnit::Unknown)));
+    if (m_pressureUnit == PressureUnit::Unknown) {
+        ServiceLocator::instance().logger()->error(L"Не задана единица измерения.");
+        return false;
+    }
+    ServiceLocator::instance().pressureController()->setGaugePressurePoints(m_gaugeModel.pressureValues());
+    ServiceLocator::instance().pressureController()->setPressureUnit(m_pressureUnit);
+    if (!ServiceLocator::instance().pressureSensor()->isRunning()) {
+        err = QString::fromWCharArray(L"Датчик давления не запущен.");
+        return false;
+    }
+    if (!ServiceLocator::instance().pressureController()->isReadyToStart(err)) {
+        return false;
+    }
+    return true;
+}
+std::vector<std::vector<double> > GraduationService::graduateForward() {
+    return m_forwardGraduator.graduate(3, 6);
+}
+std::vector<std::vector<double> > GraduationService::graduateBackward() {
+    return m_forwardGraduator.graduate(3, 6);
+}
+void GraduationService::switchToBackward() {
+    m_forward = false;
+}
+void GraduationService::switchToForward() {
+    m_forward = true;
+}
+qreal GraduationService::getElapsedTimeSeconds() const {
+    if (!m_elapsedTimer.isValid()) return 0.0;
+    return m_elapsedTimer.elapsed() / 1000.0;
+}
+void GraduationService::onPressureMeasured(qreal t, Pressure p) {
+    if (!m_isRunning) return;
+    ServiceLocator::instance().pressureController()->updatePressure(t, p.getValue(m_pressureUnit));
+    qreal pressure = p.getValue(m_pressureUnit);
+    if (isNearToPressureNode(m_gaugeModel.pressureValues(), pressure, 5.0)) {
+        m_recording = true;
+        pushPressure(t, pressure);
+    } else m_recording = false;
+}
+void GraduationService::onAngleMeasured(qint32 i, qreal t, qreal a) {
+    if (!m_isRunning) return;
+    if (m_recording) {
+        pushAngle(i, t, a);
+    }
+}
+void GraduationService::pushPressure(qreal t, qreal p) {
+    if (m_forward) {
+        m_forwardGraduator.pushPressure(t, p);
+    } else {
+        m_backwardGraduator.pushPressure(t, p);
+    }
+}
+void GraduationService::pushAngle(qint32 i, qreal t, qreal a) {
+    if (m_forward) {
+        m_forwardGraduator.pushAngle(i, t, a);
+    } else {
+        m_backwardGraduator.pushAngle(i, t, a);
+    }
+}
+void GraduationService::connectObjects() {
+    connect(ServiceLocator::instance().cameraProcessor(), &CameraProcessor::angleMeasured,
+            this, &GraduationService::onAngleMeasured);
+    connect(ServiceLocator::instance().pressureSensor(), &PressureSensor::pressureMeasured,
+            this, &GraduationService::onPressureMeasured);
+}
+void GraduationService::disconnectObjects() {
+    disconnect(ServiceLocator::instance().cameraProcessor(), nullptr, this, nullptr);
+    disconnect(ServiceLocator::instance().pressureSensor(), nullptr, this, nullptr);
+}
+
