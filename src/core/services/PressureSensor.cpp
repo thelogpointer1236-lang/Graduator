@@ -1,4 +1,9 @@
 ﻿#include <Windows.h>
+#include <algorithm>
+#include <array>
+#include <cstdint>
+#include <cstring>
+
 #include "PressureSensor.h"
 #include "core/services/ServiceLocator.h"
 #include <QThread>
@@ -150,13 +155,30 @@ bool PressureSensor::pollOnce(QString &error) {
         return true;
     }
     // 4. Извлечение значения давления
-    qint8 tempArray[4] = {
-        m_responseBuffer[m_pressureByteIndices[0]],
-        m_responseBuffer[m_pressureByteIndices[1]],
-        m_responseBuffer[m_pressureByteIndices[2]],
-        m_responseBuffer[m_pressureByteIndices[3]]
+    std::array<std::uint8_t, sizeof(float)> sensorBytes = {
+        static_cast<std::uint8_t>(m_responseBuffer[m_pressureByteIndices[0]]),
+        static_cast<std::uint8_t>(m_responseBuffer[m_pressureByteIndices[1]]),
+        static_cast<std::uint8_t>(m_responseBuffer[m_pressureByteIndices[2]]),
+        static_cast<std::uint8_t>(m_responseBuffer[m_pressureByteIndices[3]])
     };
-    float pressureValue = *reinterpret_cast<const float *>(tempArray);
+
+    std::array<std::uint8_t, sizeof(float)> nativeBytes = sensorBytes;
+    const bool isAscendingIndices = std::is_sorted(m_pressureByteIndices.cbegin(), m_pressureByteIndices.cend());
+    const bool isDescendingIndices = std::is_sorted(m_pressureByteIndices.crbegin(), m_pressureByteIndices.crend());
+    const bool isHostLittleEndian = [] {
+        const quint16 value = 0x0102;
+        return *(reinterpret_cast<const quint8 *>(&value)) == 0x02;
+    }();
+
+    if (isAscendingIndices != isDescendingIndices) {
+        const bool isDeviceLittleEndian = isDescendingIndices;
+        if ((isDeviceLittleEndian && !isHostLittleEndian) || (!isDeviceLittleEndian && isHostLittleEndian)) {
+            std::reverse_copy(sensorBytes.cbegin(), sensorBytes.cend(), nativeBytes.begin());
+        }
+    }
+
+    float pressureValue = 0.0F;
+    std::memcpy(&pressureValue, nativeBytes.data(), sizeof(float));
     if (!qIsFinite(pressureValue)) {
         ServiceLocator::instance().logger()->warn(
             QString::fromWCharArray(L"Получено некорректное значение давления с порта %1").arg(m_comPort));
