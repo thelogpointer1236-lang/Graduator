@@ -282,9 +282,7 @@ inline void safeReleaseDirectShow(T **v) {
 }
 void VideoCaptureProcessor::cleanup() {
     // Остановка графа
-    if (m_pMediaControl) {
-        m_pMediaControl->Release();
-    }
+    safeReleaseDirectShow(&m_pMediaControl);
     // Очистка видео окна
     if (m_pVideoWindow) {
         m_pVideoWindow->Release();
@@ -305,4 +303,9 @@ void VideoCaptureProcessor::cleanup() {
     safeReleaseDirectShow(&m_pEnum);
     safeReleaseDirectShow(&m_pMoniker);
     safeReleaseDirectShow(&m_pDevEnum);
+
+    if (m_comInitialized) {
+        CoUninitialize();
+        m_comInitialized = false;
+    }
 }
