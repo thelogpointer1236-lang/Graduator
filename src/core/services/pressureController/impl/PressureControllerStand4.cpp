@@ -113,14 +113,22 @@ void PressureControllerStand4::backwardPressure() {
         const qreal p_cur = currentPressure();
         m_dP_target = getMaxPressureVelocity();
         int freq = calculateFrequency(f_max, p_cur, p_target);
+        if (p_cur <= getPreloadPressure()) {
+            g540Driver()->setFlapsState(G540FlapsState::OpenOutput);
+        } else {
+            g540Driver()->setFlapsState(G540FlapsState::CloseBoth);
+        }
         if (isNearToPressureNode(gaugePressureValues(), p_cur, 7.5)) {
             m_dP_target = getMinPressureVelocity();
             freq = freq / 3;
         }
+        g540Driver()->setFrequency(freq);
         QThread::msleep(90);
     }
     if (currentPressure() < getPreloadPressure()) {
         g540Driver()->setFlapsState(G540FlapsState::OpenOutput);
+    } else {
+        g540Driver()->setFlapsState(G540FlapsState::CloseBoth);
     }
 }
 void PressureControllerStand4::start() {
