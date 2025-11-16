@@ -142,10 +142,30 @@ void PressureControllerBase::startGoToStart() {
     m_isRunning = true;
     g540Driver()->setDirection(G540Direction::Backward);
     QMetaObject::invokeMethod(g540Driver(), "start", Qt::QueuedConnection);
-    while (!g540Driver()->isEndLimitTriggered()) {
+    const auto emergencyStopIfBothLimitsTriggered = [this]() -> bool {
+        if (isStartLimitTriggered() && isEndLimitTriggered()) {
+            ServiceLocator::instance().logger()->error(
+                QString::fromWCharArray(L"Обнаружено одновременное срабатывание концевых выключателей. Выполнена экстренная остановка."));
+            g540Driver()->stop();
+            m_isRunning = false;
+            emit stopped();
+            return true;
+        }
+        return false;
+    };
+    if (emergencyStopIfBothLimitsTriggered()) {
+        return;
+    }
+    while (!isStartLimitTriggered()) {
         if (shouldStop()) break;
+        if (emergencyStopIfBothLimitsTriggered()) {
+            return;
+        }
         g540Driver()->setFrequency(g540Driver()->maxFrequency());
         QThread::msleep(90);
+    }
+    if (emergencyStopIfBothLimitsTriggered()) {
+        return;
     }
     g540Driver()->stop();
     m_isRunning = false;
