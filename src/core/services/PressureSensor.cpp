@@ -102,10 +102,12 @@ void PressureSensor::start() {
     // Проверка, что индексы данных находятся в пределах ответа
     if (const bool isNotValidIndices = std::any_of(m_pressureByteIndices.begin(), m_pressureByteIndices.end(),
                                                    [&](const int index) { return index >= m_responseLength; });
-        m_unitByteIndex >= m_responseLength || isNotValidIndices) ServiceLocator::instance().logger()->error(
-        QString::fromWCharArray(
+        m_unitByteIndex >= m_responseLength || isNotValidIndices) {
+        ServiceLocator::instance().logger()->error(QString::fromWCharArray(
             L"Индексы давления или единиц измерения вне диапазона ответа на порту %1, требуется проверка настроек").
-        arg(m_comPort));
+            arg(m_comPort));
+        return;
+    }
     m_isRunning = true;
     ServiceLocator::instance().logger()->debug(
         QString::fromWCharArray(L"Опрос датчика на порту %1 запущен").arg(m_comPort));
