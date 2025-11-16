@@ -8,6 +8,28 @@ PressureControllerBase::PressureControllerBase(QObject *parent) : QObject(parent
     m_G540DriverThread->start();
 }
 PressureControllerBase::~PressureControllerBase() {
+    if (m_isRunning) {
+        stop();
+    }
+
+    if (m_G540Driver) {
+        if (m_G540Driver->isRunning()) {
+            m_G540Driver->stop();
+        }
+    }
+
+    if (m_G540DriverThread) {
+        m_G540DriverThread->quit();
+        m_G540DriverThread->wait();
+    }
+
+    if (m_G540Driver) {
+        m_G540Driver->moveToThread(QThread::currentThread());
+        m_G540Driver.reset();
+    }
+
+    delete m_G540DriverThread;
+    m_G540DriverThread = nullptr;
 }
 void PressureControllerBase::setGaugePressurePoints(const std::vector<qreal> &pressureValues) {
     m_gaugePressureValues = pressureValues;
