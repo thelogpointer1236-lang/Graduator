@@ -15,6 +15,8 @@ set(CMAKE_PREFIX_PATH "S:/Qt/Qt-5.15.17/win32-msvc")
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/src)
 
+add_definitions(-DUSE_STUB_IMPLEMENTATIONS)
+
 find_package(Qt5 COMPONENTS
         Core
         Gui
@@ -64,9 +66,7 @@ set(SRC_FILES
         src/gui/views/StatusBarView.cpp
         src/gui/models/StatusBarModel.cpp
         src/ApplicationBuilder.cpp
-        src/ApplicationBuilder.h
         src/gui/widgets/other/Toast.cpp
-        src/gui/widgets/other/Toast.h
 )
 
 set(HEADER_FILES
@@ -107,6 +107,8 @@ set(HEADER_FILES
         src/core/services/graduationService/GraduationService.h
         src/gui/models/StatusBarModel.h
         src/core/types/PartyResult.h
+        src/gui/widgets/other/Toast.h
+        src/ApplicationBuilder.h
         src/defines.h
 )
 

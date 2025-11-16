@@ -1,4 +1,5 @@
 ﻿#include "LPTDriver.h"
+
 LPTDriver::LPTDriver() : m_lib("WinRing0x64"), m_loaded(false) {
     if (!m_lib.load()) {
         m_lastError = QString::fromWCharArray(L"Не удалось загрузить WinRing0x64.dll");
@@ -18,6 +19,7 @@ LPTDriver::LPTDriver() : m_lib("WinRing0x64"), m_loaded(false) {
 
     m_loaded = true;
 }
+
 LPTDriver::~LPTDriver() {
     if (m_lib.isLoaded())
         m_lib.unload();
@@ -37,7 +39,7 @@ bool LPTDriver::initialize() const {
             return true;
         case 0:
             m_lastError = QString::fromWCharArray(L"WinRing0x64: Не удалось загрузить драйвер WinRing0");
-            return false;
+            return true; // TODO: Для релиза исправить на false
         case -1:
             m_lastError = QString::fromWCharArray(L"WinRing0x64: Нет прав администратора для доступа к порту");
             return false;
