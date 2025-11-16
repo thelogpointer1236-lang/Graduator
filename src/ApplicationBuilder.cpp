@@ -12,6 +12,33 @@ ApplicationBuilder::ApplicationBuilder(QApplication* app)
 {
 }
 
+ApplicationBuilder::~ApplicationBuilder()
+{
+    auto &locator = ServiceLocator::instance();
+
+    if (auto *graduationService = locator.graduationService(); graduationService) {
+        if (graduationService->isRunning()) {
+            graduationService->stop();
+        }
+    }
+
+    if (auto *sensor = locator.pressureSensor(); sensor) {
+        QMetaObject::invokeMethod(sensor, "stop", Qt::BlockingQueuedConnection);
+        sensor->deleteLater();
+    }
+    pressureSensorThread_.requestInterruption();
+    pressureSensorThread_.quit();
+    pressureSensorThread_.wait();
+
+    if (auto *controller = locator.pressureController(); controller) {
+        QMetaObject::invokeMethod(controller, "stop", Qt::BlockingQueuedConnection);
+        controller->deleteLater();
+    }
+    pressureControllerThread_.requestInterruption();
+    pressureControllerThread_.quit();
+    pressureControllerThread_.wait();
+}
+
 MainWindow* ApplicationBuilder::build()
 {
     loadStyle();

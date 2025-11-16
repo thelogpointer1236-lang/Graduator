@@ -53,6 +53,9 @@ set(SRC_FILES
         src/gui/widgets/GraduationTableWidget.cpp
         src/gui/models/GraduationTableModel.cpp
         src/gui/widgets/control/PartyWidget.cpp
+        src/gui/models/PartyHistoryModel.cpp
+        src/gui/widgets/history/PartyHistoryWidget.cpp
+        src/gui/dialogs/PartyResultDialog.cpp
         src/core/services/PartyManager.cpp
         src/core/services/PressureSensor.cpp
         src/core/services/graduationService/GraduationService.cpp
@@ -95,11 +98,15 @@ set(HEADER_FILES
         src/gui/widgets/GraduationTableWidget.h
         src/gui/models/GraduationTableModel.h
         src/gui/widgets/control/PartyWidget.h
+        src/gui/models/PartyHistoryModel.h
+        src/gui/widgets/history/PartyHistoryWidget.h
+        src/gui/dialogs/PartyResultDialog.h
         src/core/services/PartyManager.h
         src/core/services/PressureSensor.h
         src/core/services/graduationService/Graduator.h
         src/core/services/graduationService/GraduationService.h
         src/gui/models/StatusBarModel.h
+        src/core/types/PartyResult.h
         src/defines.h
 )
 

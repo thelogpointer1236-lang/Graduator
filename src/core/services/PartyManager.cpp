@@ -33,6 +33,8 @@ bool PartyManager::initDatabase(const QString &path)
            "marks BLOB,"
            "FOREIGN KEY(party_id) REFERENCES parties(id))");
 
+    ensureResultColumns();
+
     updatePartyNumberIfNewDay();
     loadOrCreateCurrentParty();
 
@@ -59,6 +61,7 @@ void PartyManager::loadOrCreateCurrentParty()
     q.addBindValue(partyNumber);
     q.exec();
     currentPartyId = q.lastInsertId().toInt();
+    emit historyChanged();
 }
 
 void PartyManager::startNewMeasurement()
@@ -79,6 +82,7 @@ void PartyManager::createNewParty()
 
     currentPartyId = q.lastInsertId().toInt();
     emit partyNumberChanged(partyNumber);
+    emit historyChanged();
 }
 
 int PartyManager::currentPartyNumber() const
@@ -170,4 +174,124 @@ void PartyManager::finalizeCurrentParty()
     q.addBindValue(currentPartyId);
 
     q.exec();
+    emit historyChanged();
+}
+
+void PartyManager::ensureResultColumns()
+{
+    QSqlQuery pragma("PRAGMA table_info(parties)");
+    bool hasForward = false;
+    bool hasBackward = false;
+    while (pragma.next()) {
+        const auto columnName = pragma.value("name").toString();
+        if (columnName == "result_forward") {
+            hasForward = true;
+        } else if (columnName == "result_backward") {
+            hasBackward = true;
+        }
+    }
+    if (!hasForward) {
+        QSqlQuery q;
+        q.exec("ALTER TABLE parties ADD COLUMN result_forward BLOB");
+    }
+    if (!hasBackward) {
+        QSqlQuery q;
+        q.exec("ALTER TABLE parties ADD COLUMN result_backward BLOB");
+    }
+}
+
+QByteArray PartyManager::serializeResult(const std::vector<std::vector<double>> &result) const
+{
+    QByteArray blob;
+    if (result.empty()) {
+        return blob;
+    }
+    QDataStream out(&blob, QIODevice::WriteOnly);
+    out.setVersion(QDataStream::Qt_5_0);
+    out << static_cast<quint32>(result.size());
+    for (const auto &row : result) {
+        out << static_cast<quint32>(row.size());
+        for (double value : row) {
+            out << value;
+        }
+    }
+    return blob;
+}
+
+std::vector<std::vector<double>> PartyManager::deserializeResult(const QByteArray &blob) const
+{
+    std::vector<std::vector<double>> result;
+    if (blob.isEmpty()) {
+        return result;
+    }
+    QDataStream in(blob);
+    in.setVersion(QDataStream::Qt_5_0);
+    quint32 rows = 0;
+    in >> rows;
+    result.resize(rows);
+    for (quint32 row = 0; row < rows; ++row) {
+        quint32 columns = 0;
+        in >> columns;
+        result[row].resize(columns);
+        for (quint32 column = 0; column < columns; ++column) {
+            double value = 0.0;
+            in >> value;
+            result[row][column] = value;
+        }
+    }
+    return result;
+}
+
+QVector<PartyHistoryRecord> PartyManager::partyHistory() const
+{
+    QVector<PartyHistoryRecord> records;
+    QSqlQuery q;
+    q.prepare("SELECT id, party_number, start_time, end_time, result_forward, result_backward "
+              "FROM parties ORDER BY id DESC");
+    if (!q.exec()) {
+        return records;
+    }
+    while (q.next()) {
+        PartyHistoryRecord record;
+        record.id = q.value(0).toInt();
+        record.partyNumber = q.value(1).toInt();
+        record.startTime = QDateTime::fromString(q.value(2).toString(), Qt::ISODate);
+        record.endTime = QDateTime::fromString(q.value(3).toString(), Qt::ISODate);
+        record.hasResult = !q.value(4).toByteArray().isEmpty() || !q.value(5).toByteArray().isEmpty();
+        records.push_back(record);
+    }
+    return records;
+}
+
+PartyResult PartyManager::loadPartyResult(int partyId) const
+{
+    PartyResult result;
+    QSqlQuery q;
+    q.prepare("SELECT result_forward, result_backward FROM parties WHERE id = ?");
+    q.addBindValue(partyId);
+    if (!q.exec()) {
+        return result;
+    }
+    if (q.next()) {
+        result.forward = deserializeResult(q.value(0).toByteArray());
+        result.backward = deserializeResult(q.value(1).toByteArray());
+    }
+    return result;
+}
+
+bool PartyManager::saveCurrentPartyResult(const PartyResult &result)
+{
+    if (currentPartyId < 0 || !result.isValid()) {
+        return false;
+    }
+    QSqlQuery q;
+    q.prepare("UPDATE parties SET result_forward = ?, result_backward = ? WHERE id = ?");
+    q.addBindValue(serializeResult(result.forward));
+    q.addBindValue(serializeResult(result.backward));
+    q.addBindValue(currentPartyId);
+    const bool ok = q.exec();
+    if (ok) {
+        emit historyChanged();
+    }
+    return ok;
 }

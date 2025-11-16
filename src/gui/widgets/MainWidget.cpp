@@ -2,6 +2,7 @@
 #include "cameraGrid/CameraGridWidget.h"
 #include "control/ControlWidget.h"
 #include "GraduationTableWidget.h"
+#include "history/PartyHistoryWidget.h"
 #include "gui/views/StatusBarView.h"
 #include "gui/models/StatusBarModel.h"
 #include "SettingsWidget.h"
@@ -59,14 +60,16 @@ void MainWidget::setupRightPanel(QVBoxLayout *rightLayout)
 
 QTabWidget* MainWidget::createTabWidget()
 {
-     auto *settingsWidget = new SettingsWidget;
-     auto *controlPage = createControlPage();
+    auto *settingsWidget = new SettingsWidget;
+    auto *controlPage = createControlPage();
+    auto *partiesPage = createPartiesPage();
 
-     auto *tabWidget = new QTabWidget;
-     tabWidget->addTab(controlPage, tr("Graduation"));
-     tabWidget->addTab(settingsWidget, tr("Settings"));
+    auto *tabWidget = new QTabWidget;
+    tabWidget->addTab(controlPage, tr("Graduation"));
+    tabWidget->addTab(partiesPage, tr("Parties"));
+    tabWidget->addTab(settingsWidget, tr("Settings"));
 
-     return tabWidget;
+    return tabWidget;
 }
 
 QWidget* MainWidget::createControlPage()
@@ -84,5 +87,10 @@ QWidget* MainWidget::createControlPage()
 
      layout->setSpacing(6);
 
-     return page;
+    return page;
+}
+
+QWidget* MainWidget::createPartiesPage()
+{
+    return new PartyHistoryWidget;
 }

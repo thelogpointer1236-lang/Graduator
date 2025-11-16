@@ -15,5 +15,6 @@ private:
     void setupRightPanel(QVBoxLayout *rightLayout);
     QTabWidget* createTabWidget();
     QWidget* createControlPage();
+    QWidget* createPartiesPage();
 };
 #endif //GRADUATOR_MAINWIDGET_H
