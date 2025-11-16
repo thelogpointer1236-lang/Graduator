@@ -16,6 +16,12 @@ PressureSensor::PressureSensor(QObject *parent)
     m_responseBuffer.resize(64);
 }
 PressureSensor::~PressureSensor() {
+    if (m_isRunning || m_aboutToStop) {
+        stop();
+    }
+    if (m_hSerial != INVALID_HANDLE_VALUE) {
+        closeCOM();
+    }
 }
 Pressure PressureSensor::getLastPressure() const {
     return m_lastPressure;
@@ -75,6 +81,9 @@ bool PressureSensor::openCOM(const QString &comPort, QString &error) {
     return true;
 }
 void PressureSensor::stop() {
+    if (!m_isRunning && !m_aboutToStop) {
+        return;
+    }
     m_aboutToStop = true;
     while (m_isRunning) {
         QThread::msleep(10);
