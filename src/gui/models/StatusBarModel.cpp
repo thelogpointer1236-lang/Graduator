@@ -36,6 +36,32 @@ QString StatusBarModel::formatTime(qint64 ms) const {
             .arg(s, 2, 10, QChar('0'));
 }
 
+namespace {
+    static QFont boldFont()
+    {
+        QFont f;
+        f.setBold(true);
+        f.setPointSize(9);
+        return f;
+    }
+
+    static QFont normalFont()
+    {
+        QFont f;
+        f.setPointSize(9);
+        return f;
+    }
+
+    static QVariant fg(const QColor &c) { return c; }
+    static QVariant bg(const QColor &c) { return c; }
+
+    static const QColor COLOR_OK("#2e7d32");        // зелёный
+    static const QColor COLOR_WARN("#f9a825");      // желтый (если понадобится)
+    static const QColor COLOR_ERR("#c62828");       // красный
+    static const QColor COLOR_TEXT(Qt::black);      // текст по умолчанию
+    static const QColor COLOR_TEXT_INV(Qt::white);  // инвертированный
+    static const QColor COLOR_NEUTRAL("#616161");   // серый
+}
 
 QVariant StatusBarModel::data(const QModelIndex &idx, int role) const {
     if (!idx.isValid()) return {};
@@ -50,36 +76,25 @@ QVariant StatusBarModel::data(const QModelIndex &idx, int role) const {
     // COLUMN 0 — SYSTEM STATE
     //
     if (col == 0) {
-        bool isRunning = service.isRunning();
-
+        bool running = service.isRunning();
         QString text;
-        bool okColor = false;
+        QColor back = COLOR_NEUTRAL;
+        QColor front = COLOR_TEXT_INV;
 
-        if (isRunning) {
-            okColor = true;
+        if (running) {
             text = "Идет градуировка";
+            back = COLOR_OK;
         } else {
             QString err;
             bool ready = service.isReadyToRun(err);
-            okColor = ready;
-            text = ready ? "Система готова к работе"
-                         : err;
+            text = ready ? "Система готова к работе" : err;
+            back = ready ? COLOR_OK : COLOR_ERR;
         }
 
         if (role == Qt::DisplayRole) return text;
-
-        if (role == Qt::BackgroundRole)
-            return okColor ? QColor("#4CAF50") : QColor("#c62828");
-
-        if (role == Qt::ForegroundRole)
-            return QColor(Qt::white);
-
-        if (role == Qt::FontRole) {
-            QFont f;
-            f.setBold(true);
-            f.setPointSize(9);
-            return f;
-        }
+        if (role == Qt::BackgroundRole) return bg(back);
+        if (role == Qt::ForegroundRole) return fg(front);
+        if (role == Qt::FontRole) return boldFont();
 
         return {};
     }
@@ -114,11 +129,10 @@ QVariant StatusBarModel::data(const QModelIndex &idx, int role) const {
                     .arg(p2, 0, 'f', 2);
 
         if (role == Qt::ForegroundRole)
-            return QColor(p1 > p2 ? "#c62828" : "#000000");
+            return fg(p1 > p2 ? COLOR_ERR : COLOR_TEXT);
 
-        if (role == Qt::FontRole) {
-            QFont f; f.setBold(true); return f;
-        }
+        if (role == Qt::FontRole)
+            return boldFont();
 
         return {};
     }
@@ -137,11 +151,10 @@ QVariant StatusBarModel::data(const QModelIndex &idx, int role) const {
                     .arg(s2, 0, 'f', 2);
 
         if (role == Qt::ForegroundRole)
-            return QColor(s1 > s2 ? "#c62828" : "#000000");
+            return fg(s1 > s2 ? COLOR_ERR : COLOR_TEXT);
 
-        if (role == Qt::FontRole) {
-            QFont f; f.setBold(true); return f;
-        }
+        if (role == Qt::FontRole)
+            return boldFont();
 
         return {};
     }
@@ -171,17 +184,16 @@ QVariant StatusBarModel::data(const QModelIndex &idx, int role) const {
     // COLUMN 6 — LIMIT SWITCHES
     //
     if (col == 6) {
-        bool limit = pc.isAnyLimitTriggered();
+        bool start = pc.isStartLimitTriggered();
+        bool end = pc.isEndLimitTriggered();
 
         if (role == Qt::DisplayRole)
-            return QString("Старт / Конец");
+            return QString("Старт: %1 / Конец: %2")
+                    .arg(start ? "да" : "нет")
+                    .arg(end ? "да" : "нет");
 
         if (role == Qt::ForegroundRole)
-            return QColor(limit ? "#c62828" : "#2e7d32");
-
-        if (role == Qt::FontRole) {
-            QFont f; f.setBold(true); return f;
-        }
+            return fg(start || end ? COLOR_ERR : COLOR_OK);
 
         return {};
     }
@@ -191,42 +203,29 @@ QVariant StatusBarModel::data(const QModelIndex &idx, int role) const {
     // COLUMN 7 — VALVES
     //
     if (col == 7) {
-        auto s = pc.g540Driver()->flapsState();
-
+        auto st = pc.g540Driver()->flapsState();
         QString text;
-        QString color;
+        QColor color = COLOR_NEUTRAL;
 
-        switch (s) {
+        switch (st) {
             case G540FlapsState::Unknown:
                 text = "Неизв. сост. клапанов";
-                color = "#616161";
+                color = COLOR_NEUTRAL;
                 break;
-
             case G540FlapsState::CloseBoth:
                 text = "Оба закрыты";
-                color = "#c62828";
+                color = COLOR_ERR;
                 break;
-
             case G540FlapsState::OpenInput:
-                text = "Открыт входной";
-                color = "#2e7d32";
-                break;
-
             case G540FlapsState::OpenOutput:
-                text = "Открыт выходной";
-                color = "#2e7d32";
+                text = "Клапан открыт";
+                color = COLOR_OK;
                 break;
         }
 
-        if (role == Qt::DisplayRole)
-            return text;
-
-        if (role == Qt::ForegroundRole)
-            return QColor(color);
-
-        if (role == Qt::FontRole) {
-            QFont f; f.setBold(true); return f;
-        }
+        if (role == Qt::DisplayRole) return text;
+        if (role == Qt::ForegroundRole) return fg(color);
+        if (role == Qt::FontRole) return boldFont();
 
         return {};
     }

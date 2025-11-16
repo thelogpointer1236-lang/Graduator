@@ -97,13 +97,7 @@ void StatusBarView::updateCell(int col) {
 
     QLabel *lbl = labels_[col];
     QModelIndex idx = model()->index(0, col);
-
     if (!idx.isValid()) return;
-
-    QFont f = lbl->font();
-    if (f.pointSize() > 5)
-        f.setPointSize(f.pointSize() - 2);   // уменьшить на 2
-    lbl->setFont(f);
 
     QString style;
 
@@ -133,15 +127,15 @@ void StatusBarView::updateCell(int col) {
         }
     }
 
-    // APPLY STYLE ONCE
+    // APPLY STYLE
     lbl->setStyleSheet(style);
 
-    // FONT (with reduced size)
+    // FONT — используем только то, что даёт модель
     {
         QVariant v = idx.data(Qt::FontRole);
-        QFont f = v.isValid() ? v.value<QFont>() : QFont();
-        f.setPointSize(10);      // уменьшаем шрифт
-        lbl->setFont(f);
+        if (v.isValid()) {
+            lbl->setFont(v.value<QFont>());
+        }
     }
 
     // ALIGNMENT
@@ -160,3 +154,4 @@ void StatusBarView::updateCell(int col) {
         }
     }
 }
+

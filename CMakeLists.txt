@@ -60,6 +60,10 @@ set(SRC_FILES
         src/core/services/cameraProcessor/anglemeters/scan_anglemeter.cpp
         src/gui/views/StatusBarView.cpp
         src/gui/models/StatusBarModel.cpp
+        src/ApplicationBuilder.cpp
+        src/ApplicationBuilder.h
+        src/gui/widgets/other/Toast.cpp
+        src/gui/widgets/other/Toast.h
 )
 
 set(HEADER_FILES

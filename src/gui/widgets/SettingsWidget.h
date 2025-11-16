@@ -17,6 +17,7 @@ class SettingsWidget final : public QWidget {
 public:
     explicit SettingsWidget(QWidget *parent = nullptr);
 
+
 private slots:
     void onOpenCameraClicked();
     void onOpenAllCamerasClicked();
@@ -29,7 +30,11 @@ private slots:
     void onConnectComPortClicked();
     void onDrawCrosshairChanged(bool checked);
 
+protected:
+    bool eventFilter(QObject *obj, QEvent *event);
+
 private:
+    void installEventFilters();
     void setupUi();
     QVBoxLayout *createMainLayout();
     QGroupBox *createCamerasGroup();

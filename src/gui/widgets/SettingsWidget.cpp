@@ -14,6 +14,7 @@
 #include <QGridLayout>
 #include <QFormLayout>
 #include <QMessageBox>
+#include <QEvent>
 #include <vector>
 
 namespace {
@@ -36,13 +37,14 @@ void SettingsWidget::setupUi()
     mainLayout->addWidget(createMiscGroup());
     mainLayout->addStretch();
     setLayout(mainLayout);
+    installEventFilters();
     applyStyles();
 }
 
 QVBoxLayout *SettingsWidget::createMainLayout()
 {
     auto *layout = new QVBoxLayout(this);
-    layout->setContentsMargins(0, 0, 0, 0);
+    layout->setContentsMargins(12, 12, 12, 12);
     layout->setSpacing(SectionSpacing);
     return layout;
 }
@@ -169,6 +171,8 @@ void SettingsWidget::connectSignals()
             });
 }
 
+
+
 void SettingsWidget::onOpenCameraClicked() {
     const QString cameraString = editCameras_->text();
     ServiceLocator::instance().cameraProcessor()->setCameraString(cameraString);
@@ -223,4 +227,23 @@ void SettingsWidget::onConnectComPortClicked() {
 void SettingsWidget::onDrawCrosshairChanged(bool checked) {
     ServiceLocator::instance().configManager()->setValue(CFG_KEY_DRAW_CROSSHAIR, checked);
     ServiceLocator::instance().cameraProcessor()->enableDrawingCrosshair(checked);
+}
+
+void SettingsWidget::installEventFilters() {
+    comboDeviceType_->installEventFilter(this);
+    comboUnit_->installEventFilter(this);
+    comboAccuracy_->installEventFilter(this);
+    comboPrinter_->installEventFilter(this);
+    comboDialLayout_->installEventFilter(this);
+}
+
+bool SettingsWidget::eventFilter(QObject *obj, QEvent *event)
+{
+    if (event->type() == QEvent::Wheel) {
+        if (qobject_cast<QComboBox*>(obj)) {
+            event->ignore();
+            return true; // блокируем
+        }
+    }
+    return QWidget::eventFilter(obj, event);
 }

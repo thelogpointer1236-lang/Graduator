@@ -69,7 +69,7 @@ std::vector<std::vector<double> > GraduationService::graduateForward() {
     return m_forwardGraduator.graduate(3, 6);
 }
 std::vector<std::vector<double> > GraduationService::graduateBackward() {
-    return m_forwardGraduator.graduate(3, 6);
+    return m_backwardGraduator.graduate(3, 6);
 }
 void GraduationService::switchToBackward() {
     m_forward = false;

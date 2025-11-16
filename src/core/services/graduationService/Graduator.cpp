@@ -114,7 +114,7 @@ void Graduator::pushPressure(double t, double pressure) {
     m_pressureData.emplace_back(t, pressure);
 }
 void Graduator::pushAngle(int i, double t, double angle) {
-    if (i < 0 || i >= 8) return;
+    if (i <= 1 || i >= 8) return;
     m_angleData[i - 1].emplace_back(t, angle);
 }
 std::vector<std::vector<double> > Graduator::graduate(int p_window, int a_window) {
