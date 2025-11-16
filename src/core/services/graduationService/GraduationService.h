@@ -6,6 +6,7 @@
 #include "Graduator.h"
 #include "core/types/GaugeModel.h"
 #include "core/types/Pressure.h"
+#include "core/types/PartyResult.h"
 class GraduationService final : public QObject {
     Q_OBJECT
 public:
@@ -20,6 +21,11 @@ public:
     void switchToBackward();
     void switchToForward();
     qreal getElapsedTimeSeconds() const;
+    PartyResult currentResult() const;
+    bool hasResult() const;
+    void setResult(const PartyResult &result);
+signals:
+    void currentResultChanged(bool hasResult);
 private slots:
     void onPressureMeasured(qreal t, Pressure p);
     void onAngleMeasured(qint32 i, qreal t, qreal a);
@@ -28,6 +34,8 @@ private:
     void pushAngle(qint32 i, qreal t, qreal a);
     void connectObjects();
     void disconnectObjects();
+    void clearCurrentResult();
+    void emitResultChangedIfNeeded();
 private:
     std::atomic<bool> m_isRunning = false;
     QElapsedTimer m_elapsedTimer;
@@ -37,5 +45,7 @@ private:
     mutable PressureUnit m_pressureUnit = PressureUnit::Kgf;
     std::atomic<bool> m_recording = false;
     std::atomic<bool> m_forward = true;
+    PartyResult m_currentResult;
+    bool m_lastResultState = false;
 };
 #endif //GRADUATOR_GRADUATIONSERVICE_H

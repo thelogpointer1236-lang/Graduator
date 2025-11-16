@@ -21,6 +21,7 @@ void GraduationService::start() {
     m_isRunning = true;
     m_forward = true;
     m_recording = false;
+    clearCurrentResult();
     m_forwardGraduator.clear();
     m_backwardGraduator.clear();
     m_forwardGraduator.setPressureNodes(m_gaugeModel.pressureValues());
@@ -66,10 +67,14 @@ bool GraduationService::isReadyToRun(QString &err) const {
     return true;
 }
 std::vector<std::vector<double> > GraduationService::graduateForward() {
-    return m_forwardGraduator.graduate(3, 6);
+    m_currentResult.forward = m_forwardGraduator.graduate(3, 6);
+    emitResultChangedIfNeeded();
+    return m_currentResult.forward;
 }
 std::vector<std::vector<double> > GraduationService::graduateBackward() {
-    return m_backwardGraduator.graduate(3, 6);
+    m_currentResult.backward = m_backwardGraduator.graduate(3, 6);
+    emitResultChangedIfNeeded();
+    return m_currentResult.backward;
 }
 void GraduationService::switchToBackward() {
     m_forward = false;
@@ -80,6 +85,18 @@ void GraduationService::switchToForward() {
 qreal GraduationService::getElapsedTimeSeconds() const {
     if (!m_elapsedTimer.isValid()) return 0.0;
     return m_elapsedTimer.elapsed() / 1000.0;
+}
+PartyResult GraduationService::currentResult() const {
+    return m_currentResult;
+}
+
+bool GraduationService::hasResult() const {
+    return m_currentResult.isValid();
+}
+
+void GraduationService::setResult(const PartyResult &result) {
+    m_currentResult = result;
+    emitResultChangedIfNeeded();
 }
 void GraduationService::onPressureMeasured(qreal t, Pressure p) {
     if (!m_isRunning) return;
@@ -119,5 +136,18 @@ void GraduationService::connectObjects() {
 void GraduationService::disconnectObjects() {
     disconnect(ServiceLocator::instance().cameraProcessor(), nullptr, this, nullptr);
     disconnect(ServiceLocator::instance().pressureSensor(), nullptr, this, nullptr);
+}
+
+void GraduationService::clearCurrentResult() {
+    m_currentResult.clear();
+    emitResultChangedIfNeeded();
+}
+
+void GraduationService::emitResultChangedIfNeeded() {
+    const bool state = hasResult();
+    if (state != m_lastResultState) {
+        m_lastResultState = state;
+        emit currentResultChanged(state);
+    }
 }
 

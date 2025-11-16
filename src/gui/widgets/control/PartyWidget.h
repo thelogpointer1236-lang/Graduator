@@ -20,6 +20,7 @@ private slots:
     void onSaveClicked();
     void onAlignTopNodeToggled(bool checked);
     void onStrongNodeToggled(bool checked);
+    void onResultAvailabilityChanged(bool available);
 
 private:
     class QHBoxLayout *createPartyHeader();

@@ -1,6 +1,7 @@
 #include "PartyWidget.h"
 
 #include "core/services/ServiceLocator.h"
+#include "core/types/PartyResult.h"
 
 #include <QVBoxLayout>
 #include <QHBoxLayout>
@@ -9,6 +10,7 @@
 #include <QFont>
 #include <QCheckBox>
 #include <QPushButton>
+#include <QMessageBox>
 
 PartyWidget::PartyWidget(QWidget *parent)
     : QWidget(parent)
@@ -48,6 +50,13 @@ void PartyWidget::setupConnections()
     connect(strongKnotCheck_, &QCheckBox::toggled, this, &PartyWidget::onStrongNodeToggled);
     connect(ServiceLocator::instance().partyManager(), &PartyManager::partyNumberChanged,
             this, &PartyWidget::setPartyNumber);
+    if (auto *graduationService = ServiceLocator::instance().graduationService()) {
+        saveButton_->setEnabled(graduationService->hasResult());
+        connect(graduationService, &GraduationService::currentResultChanged,
+                this, &PartyWidget::onResultAvailabilityChanged);
+    } else if (saveButton_) {
+        saveButton_->setEnabled(false);
+    }
 }
 
 QHBoxLayout *PartyWidget::createPartyHeader()
@@ -87,6 +96,18 @@ QPushButton *PartyWidget::createSaveButton()
 
 void PartyWidget::onSaveClicked()
 {
+    auto *graduationService = ServiceLocator::instance().graduationService();
+    if (!graduationService || !graduationService->hasResult()) {
+        QMessageBox::warning(this, tr("Saving"), tr("No valid graduation result is available for saving."));
+        return;
+    }
+    auto *partyManager = ServiceLocator::instance().partyManager();
+    const PartyResult result = graduationService->currentResult();
+    if (!partyManager->saveCurrentPartyResult(result)) {
+        QMessageBox::critical(this, tr("Saving"), tr("Failed to store the graduation result for the current party."));
+        return;
+    }
+    QMessageBox::information(this, tr("Saving"), tr("The graduation result has been saved."));
 }
 
 void PartyWidget::onAlignTopNodeToggled(bool checked)
@@ -101,5 +122,12 @@ void PartyWidget::setPartyNumber(int number)
 {
     if (partyNumberLabel_) {
         partyNumberLabel_->setText(QString::number(number));
+    }
+}
+
+void PartyWidget::onResultAvailabilityChanged(bool available)
+{
+    if (saveButton_) {
+        saveButton_->setEnabled(available);
     }
 }

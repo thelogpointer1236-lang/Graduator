@@ -36,7 +36,7 @@ public:
     void closeBothFlaps();
     virtual bool isReadyToStart(QString &err) const;
     bool isRunning() const;
-    void stop();
+    Q_INVOKABLE void stop();
 public
     slots:
     Q_INVOKABLE

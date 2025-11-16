@@ -4,9 +4,21 @@
 #include <QObject>
 #include <QSqlDatabase>
 #include <QDate>
+#include <QDateTime>
 #include <QVector>
 #include <QMap>
 #include <QPair>
+#include "core/types/PartyResult.h"
+
+struct PartyHistoryRecord {
+    int id = -1;
+    int partyNumber = 0;
+    QDateTime startTime;
+    QDateTime endTime;
+    bool hasResult = false;
+
+    [[nodiscard]] bool isValid() const { return id >= 0; }
+};
 
 class PartyManager final : public QObject {
     Q_OBJECT
@@ -24,18 +36,26 @@ public:
     void addPressureSample(double timestamp, double pressure);
     void addCameraPressureSample(int camera, double timestamp, double pressure);
 
-    signals:
-        void partyNumberChanged(int newPartyNumber);
+    QVector<PartyHistoryRecord> partyHistory() const;
+    PartyResult loadPartyResult(int partyId) const;
+    bool saveCurrentPartyResult(const PartyResult &result);
+
+signals:
+    void partyNumberChanged(int newPartyNumber);
+    void historyChanged();
 
 private:
     void loadOrCreateCurrentParty();
     void createNewParty();
     void updatePartyNumberIfNewDay();
+    void ensureResultColumns();
 
     QByteArray serializeMarks(const QVector<QPair<double,double>> &marks) const;
 
     QByteArray serializePressure() const;
     QByteArray serializeCameraPressure() const;
+    QByteArray serializeResult(const std::vector<std::vector<double>> &result) const;
+    std::vector<std::vector<double>> deserializeResult(const QByteArray &blob) const;
 
     QVector<QPair<double,double>> pressureHistory;
     QMap<int, QVector<QPair<double,double>>> cameraPressureHistory;

@@ -8,6 +8,7 @@ class ApplicationBuilder final
 {
 public:
     ApplicationBuilder(QApplication* app);
+    ~ApplicationBuilder();
     MainWindow* build();
 
 private:

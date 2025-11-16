@@ -11,11 +11,9 @@ public:
     Pressure getLastPressure() const;
     bool openCOM(const QString &comPort, QString &error);
     bool isRunning() const;
-    void stop();
-public
-    slots:
-    Q_INVOKABLE
-    void start();
+    Q_INVOKABLE void stop();
+public slots:
+    Q_INVOKABLE void start();
     signals:
     
     void pressureMeasured(qreal t, Pressure p);
