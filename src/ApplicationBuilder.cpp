@@ -23,7 +23,7 @@ ApplicationBuilder::~ApplicationBuilder()
     }
 
     if (auto *sensor = locator.pressureSensor(); sensor) {
-        QMetaObject::invokeMethod(sensor, "stop", Qt::BlockingQueuedConnection);
+        sensor->stop();
         sensor->deleteLater();
     }
     pressureSensorThread_.requestInterruption();
