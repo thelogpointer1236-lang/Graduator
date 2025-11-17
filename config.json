@@ -1,0 +1,43 @@
+{
+    "G540Driver": {
+        "bitEndLimitSwitch": 1,
+        "bitStartLimitSwitch": 0,
+        "byteCloseBothFlaps": 255,
+        "byteEndLimitSwitch": 3,
+        "byteOpenInputFlap": 1,
+        "byteOpenOutputFlap": 2,
+        "byteStartLimitSwitch": 3,
+        "maxFrequency": 3000,
+        "minFrequency": 100,
+        "portAddress": "0x378"
+    },
+    "cameraProcessor": {
+        "autoopen": true,
+        "drawCrosshair": true,
+        "sysCameraStr": "12345678"
+    },
+    "current": {
+        "cameraStr": "12",
+        "dialLayout": 3,
+        "gaugeModel": 23,
+        "precisionClass": 0,
+        "pressureUnit": 4,
+        "printer": 0
+    },
+    "pressureController": {
+        "maxVelocityFactor": 4,
+        "minVelocityFactor": 0.4,
+        "nominalDurationSec": 100,
+        "preloadFactor": 0.9
+    },
+    "pressureSensor": {
+        "comPort": "COM1",
+        "pressureByteIndices": null,
+        "requestBytes": "01",
+        "responseLength": 5,
+        "unitByteIndex": 0
+    },
+    "stand": {
+        "number": 4
+    }
+}

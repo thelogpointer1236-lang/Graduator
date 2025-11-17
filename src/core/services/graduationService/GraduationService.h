@@ -29,6 +29,8 @@ signals:
 private slots:
     void onPressureMeasured(qreal t, Pressure p);
     void onAngleMeasured(qint32 i, qreal t, qreal a);
+    void onSuccessfullyStopped();
+    void onInterrupted();
 private:
     void pushPressure(qreal t, qreal p);
     void pushAngle(qint32 i, qreal t, qreal a);
@@ -43,7 +45,7 @@ private:
     Graduator m_backwardGraduator;
     mutable GaugeModel m_gaugeModel;
     mutable PressureUnit m_pressureUnit = PressureUnit::Kgf;
-    std::atomic<bool> m_recording = false;
+    std::atomic<bool> m_isNearToPressurePoint = false;
     std::atomic<bool> m_forward = true;
     PartyResult m_currentResult;
     bool m_lastResultState = false;

@@ -9,9 +9,9 @@
 // Работать с единицей измерения кгс/см2 и секундами
 class PressureControllerBase : public QObject {
     Q_OBJECT
-    signals:
-    
-    void stopped();
+signals:
+    void interrupted();
+    void successfullyStopped();
     void started();
 public:
     explicit PressureControllerBase(QObject *parent = nullptr);
@@ -36,11 +36,9 @@ public:
     void closeBothFlaps();
     virtual bool isReadyToStart(QString &err) const;
     bool isRunning() const;
-    Q_INVOKABLE void stop();
-public
-    slots:
-    Q_INVOKABLE
-    virtual void setMode(int modeIdx) = 0;
+    Q_INVOKABLE void interrupt();
+public slots:
+    Q_INVOKABLE virtual void setMode(int modeIdx) = 0;
     Q_INVOKABLE virtual void startGoToEnd();
     Q_INVOKABLE virtual void startGoToStart();
     Q_INVOKABLE virtual void start() = 0;

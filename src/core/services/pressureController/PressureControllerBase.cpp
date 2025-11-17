@@ -9,7 +9,7 @@ PressureControllerBase::PressureControllerBase(QObject *parent) : QObject(parent
 }
 PressureControllerBase::~PressureControllerBase() {
     if (m_isRunning) {
-        stop();
+        interrupt();
     }
 
     if (m_G540Driver) {
@@ -101,13 +101,13 @@ bool PressureControllerBase::isReadyToStart(QString &err) const {
 bool PressureControllerBase::isRunning() const {
     return m_isRunning;
 }
-void PressureControllerBase::stop() {
+void PressureControllerBase::interrupt() {
     m_aboutToStop = true;
     while (m_isRunning) {
         QThread::msleep(10);
     }
     m_aboutToStop = false;
-    emit stopped();
+    emit interrupted();
 }
 const std::vector<qreal> &PressureControllerBase::gaugePressureValues() const {
     return m_gaugePressureValues;
@@ -136,7 +136,7 @@ void PressureControllerBase::startGoToEnd() {
     }
     g540Driver()->stop();
     m_isRunning = false;
-    emit stopped();
+    emit interrupted();
 }
 void PressureControllerBase::startGoToStart() {
     m_isRunning = true;
@@ -148,7 +148,7 @@ void PressureControllerBase::startGoToStart() {
                 QString::fromWCharArray(L"Обнаружено одновременное срабатывание концевых выключателей. Выполнена экстренная остановка."));
             g540Driver()->stop();
             m_isRunning = false;
-            emit stopped();
+            emit interrupted();
             return true;
         }
         return false;
@@ -169,5 +169,5 @@ void PressureControllerBase::startGoToStart() {
     }
     g540Driver()->stop();
     m_isRunning = false;
-    emit stopped();
+    emit interrupted();
 }

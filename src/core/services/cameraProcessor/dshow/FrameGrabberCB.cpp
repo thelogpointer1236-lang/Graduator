@@ -32,22 +32,23 @@ HRESULT FrameGrabberCB::SampleCB(double SampleTime, IMediaSample *pSample) {
 }
 HRESULT FrameGrabberCB::BufferCB(double SampleTime, BYTE *pBuffer, const long BufferLen) {
     if (!pBuffer) return E_POINTER;
-//    static int cadr = 0;
-//    std::cout << "cadr: " << cadr << std::endl;
-//    cadr++;
 
     RGBImage image(pBuffer, BufferLen); // no copy - just a wrapper
     if (s_isPolling) {
         const BYTE *pixelData = pBuffer;
         const qreal timestampSec = ServiceLocator::instance().graduationService()->getElapsedTimeSeconds();
-        qreal angleDeg; {
+        float angleDeg; {
             angleDeg = scanArrowAngle(pixelData, image.getWidth(), image.getHeight());
-            std::cout << "angle = " << angleDeg << std::endl;
+            if (angleDeg <= 0.0) return S_OK;
+            angleDeg = std::fmodf(180.f - angleDeg, 360.0f);
+            if (angleDeg < 0.0f) {
+                angleDeg += 360.0f;
+            }
             if (s_isDrawAngle) {
-                image.drawFloatNumber(100, 100 + 0, angleDeg, 2, s_aimColor, 2);
+                image.drawFloatNumber(40, 40 + 0, angleDeg, 2, RGBPixel(255, 0, 0), 2);
             }
         }
-        emit angleReady(m_camIdx, timestampSec, angleDeg);
+        emit angleReady(m_camIdx + 1, timestampSec, static_cast<qreal>(angleDeg));
     }
     if (s_isDrawAim) {
         constexpr int r = 50;

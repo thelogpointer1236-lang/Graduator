@@ -106,10 +106,7 @@ void CameraGridWidget::rebuildVideoProcessors(int camCount,
 {
     auto *cameraProcessor = ServiceLocator::instance().cameraProcessor();
     if (!cameraProcessor) return;
-    clearVideoProcessors();
-
-    auto &videoProcessors = cameraProcessor->videoProcessors;
-    videoProcessors.reserve(camCount);
+    cameraProcessor->clearVideoProcessors();
 
     if (cameraLabels.empty() || sysIndices.empty()) return;
 
@@ -121,29 +118,19 @@ void CameraGridWidget::rebuildVideoProcessors(int camCount,
         }
         auto *label = cameraLabels[userIdx - 1];
         if (!label) continue;
-        auto *vp = new(std::nothrow) VideoCaptureProcessor(this);
+        auto *vp = cameraProcessor->createVideoProcessor(this);
         if (!vp) continue;
         const HWND hwnd = reinterpret_cast<HWND>(label->winId());
         const int sysIdx = sysIndices[userIdx - 1] - 1;
         vp->init(hwnd, sysIdx);
         vp->resizeVideoWindow(getCameraWindowSize());
-        videoProcessors.push_back(vp);
     }
-}
-
-void CameraGridWidget::clearVideoProcessors()
-{
-    auto *cameraProcessor = ServiceLocator::instance().cameraProcessor();
-    if (!cameraProcessor) return;
-    auto &videoProcessors = cameraProcessor->videoProcessors;
-    for (auto *vp : videoProcessors) delete vp;
-    videoProcessors.clear();
 }
 
 void CameraGridWidget::resizeEvent(QResizeEvent *event)
 {
     QWidget::resizeEvent(event);
-    for (auto *vp : ServiceLocator::instance().cameraProcessor()->videoProcessors)
+    for (auto *vp : ServiceLocator::instance().cameraProcessor()->videoProcessors())
         if (vp) vp->resizeVideoWindow(getCameraWindowSize());
 }
 

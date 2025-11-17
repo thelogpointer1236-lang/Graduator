@@ -273,9 +273,9 @@ void PressureSensor::start() {
     m_aboutToStop = false;
     ServiceLocator::instance().logger()->debug(QString::fromWCharArray(L"Заглушка: опрос датчика запущен"));
 
-    const qreal totalUpTime = 100.0;    // сек
-    const qreal totalDownTime = 100.0;  // сек
-    const qreal maxPressure = 250.0;   // кгс
+    const qreal totalUpTime = 50.0;    // сек
+    const qreal totalDownTime = 50.0;  // сек
+    const qreal maxPressure = 260.0;   // кгс
     const qreal period = totalUpTime + totalDownTime; // полный цикл = 40 сек
 
     QElapsedTimer timer;

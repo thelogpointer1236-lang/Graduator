@@ -1,5 +1,5 @@
 .idea/
-gauges/
+.copy/
 cmake-build-*/
 *.user
 *.o

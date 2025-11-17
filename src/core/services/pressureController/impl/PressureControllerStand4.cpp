@@ -2,6 +2,15 @@
 #include <QThread>
 #include "core/services/ServiceLocator.h"
 #include "utils.h"
+
+#define interrupt   m_isRunning = false; \
+emit interrupted(); \
+return;
+
+#define MODE_INFERENCE 0
+#define MODE_FORWARD 1
+#define MODE_FORWARD_AND_BACKWARD 2
+
 double calculateFrequency(double maxFrequency, double currentPressure, double limitPressure) {
     if (currentPressure >= limitPressure)
         return maxFrequency / 4.0;
@@ -11,11 +20,15 @@ double calculateFrequency(double maxFrequency, double currentPressure, double li
     double frequency = maxFrequency - (maxFrequency * 3.0 / 4.0) * ratio; // линейное уменьшение
     return frequency;
 }
+
 bool isNearToPressureNode(const std::vector<double> &nodes, double p, double percentThreshold);
+
 PressureControllerStand4::PressureControllerStand4(QObject *parent) : PressureControllerBase(parent) {
 }
+
 PressureControllerStand4::~PressureControllerStand4() {
 }
+
 void PressureControllerStand4::setMode(int modeIdx) {
     m_currentMode = modeIdx;
 }
@@ -26,13 +39,16 @@ QStringList PressureControllerStand4::getModes() const {
         QString::fromWCharArray(L"Прямой и обратный ход"),
     };
 }
+
 qreal PressureControllerStand4::getTargetPressure() const {
     if (gaugePressureValues().size() < 2) { return 0.0; }
     return gaugePressureValues().back() * 1.01; // Целевое давление — последнее значение из шкалы + 2%
 }
+
 qreal PressureControllerStand4::getTargetPressureVelocity() const {
     return m_dP_target;
 }
+
 bool PressureControllerStand4::isReadyToStart(QString &err) const {
     if (!PressureControllerBase::isReadyToStart(err)) return false;
     if (gaugePressureValues().size() < 2) {
@@ -45,24 +61,30 @@ bool PressureControllerStand4::isReadyToStart(QString &err) const {
     }
     return true;
 }
+
 qreal PressureControllerStand4::getPreloadPressure() const {
     if (gaugePressureValues().size() < 2) { return 0.0; }
     return gaugePressureValues()[1] * getPreloadFactor();
 }
+
 qreal PressureControllerStand4::getNominalPressureVelocity() const {
     if (gaugePressureValues().size() < 2) { return 0.0; }
     return gaugePressureValues().back() / getNominalDurationSec();
 }
+
 qreal PressureControllerStand4::getMaxPressureVelocity() const {
     return getNominalPressureVelocity() * getMaxVelocityFactor();
 }
+
 qreal PressureControllerStand4::getMinPressureVelocity() const {
     return getNominalPressureVelocity() * getMinVelocityFactor();
 }
+
 void PressureControllerStand4::onPressureUpdated(qreal time, qreal pressure) {
     Q_UNUSED(time);
     Q_UNUSED(pressure);
 }
+
 // Набор предварительного давления
 void PressureControllerStand4::preloadPressure() {
     const qreal p_preload = getPreloadPressure();
@@ -70,13 +92,13 @@ void PressureControllerStand4::preloadPressure() {
     while (currentPressure() < p_preload) {
         if (shouldStop()) {
             g540Driver()->setFlapsState(G540FlapsState::OpenOutput);
-            m_isRunning = false;
-            return;
+            interrupt;
         }
         QThread::msleep(15);
     }
     g540Driver()->setFlapsState(G540FlapsState::CloseBoth);
 }
+
 void PressureControllerStand4::forwardPressure() {
     // Движение поршня вперед до целевого давления
     const qreal p_target = getTargetPressure();
@@ -85,8 +107,7 @@ void PressureControllerStand4::forwardPressure() {
     while (currentPressure() < p_target) {
         if (shouldStop()) {
             g540Driver()->stop();
-            m_isRunning = false;
-            return;
+            interrupt;
         }
         const qreal p_cur = currentPressure();
         m_dP_target = getMaxPressureVelocity();
@@ -99,6 +120,7 @@ void PressureControllerStand4::forwardPressure() {
         QThread::msleep(90);
     }
 }
+
 void PressureControllerStand4::backwardPressure() {
     // Движение поршня назад до концевика
     const qreal p_target = getTargetPressure();
@@ -107,22 +129,26 @@ void PressureControllerStand4::backwardPressure() {
     while (!isStartLimitTriggered()) {
         if (shouldStop()) {
             g540Driver()->stop();
-            m_isRunning = false;
-            return;
+            interrupt;
         }
-        const qreal p_cur = currentPressure();
-        m_dP_target = getMaxPressureVelocity();
-        int freq = calculateFrequency(f_max, p_cur, p_target);
-        if (p_cur <= getPreloadPressure()) {
-            g540Driver()->setFlapsState(G540FlapsState::OpenOutput);
-        } else {
-            g540Driver()->setFlapsState(G540FlapsState::CloseBoth);
+        if (m_currentMode == MODE_FORWARD_AND_BACKWARD) {
+            const qreal p_cur = currentPressure();
+            m_dP_target = getMaxPressureVelocity();
+            int freq = calculateFrequency(f_max, p_cur, p_target);
+            if (p_cur <= getPreloadPressure()) {
+                g540Driver()->setFlapsState(G540FlapsState::OpenOutput);
+            } else {
+                g540Driver()->setFlapsState(G540FlapsState::CloseBoth);
+            }
+            if (isNearToPressureNode(gaugePressureValues(), p_cur, 7.5)) {
+                m_dP_target = getMinPressureVelocity();
+                freq = freq / 3;
+            }
+            g540Driver()->setFrequency(freq);
         }
-        if (isNearToPressureNode(gaugePressureValues(), p_cur, 7.5)) {
-            m_dP_target = getMinPressureVelocity();
-            freq = freq / 3;
+        else {
+            g540Driver()->setFrequency(f_max);
         }
-        g540Driver()->setFrequency(freq);
         QThread::msleep(90);
     }
     if (currentPressure() < getPreloadPressure()) {
@@ -131,6 +157,7 @@ void PressureControllerStand4::backwardPressure() {
         g540Driver()->setFlapsState(G540FlapsState::CloseBoth);
     }
 }
+
 void PressureControllerStand4::start() {
     m_isRunning = true;
     emit started();
@@ -145,5 +172,5 @@ void PressureControllerStand4::start() {
     gs->stop();
     m_dP_target = 0;
     m_isRunning = false;
-    emit stopped();
+    emit successfullyStopped();
 }

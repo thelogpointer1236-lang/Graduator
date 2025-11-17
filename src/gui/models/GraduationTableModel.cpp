@@ -23,7 +23,7 @@ GraduationTableModel::GraduationTableModel(QObject *parent) : QAbstractTableMode
                     endResetModel();
                 }
             });
-    m_updateTimer.setInterval(5000);
+    m_updateTimer.setInterval(1234);
     m_updateTimer.start();
     connect(&m_updateTimer, &QTimer::timeout, this, &GraduationTableModel::onUpdateTimer);
 }
@@ -41,10 +41,6 @@ void GraduationTableModel::onUpdateTimer() {
     beginResetModel();
     m_forwardData = ServiceLocator::instance().graduationService()->graduateForward();
     m_backwardData = ServiceLocator::instance().graduationService()->graduateBackward();
-    printVector2D(m_forwardData);
-    std::cout << std::endl;
-    printVector2D(m_backwardData);
-    emit dataChanged(index(0, 0), index(rowCount() - 1, columnCount() - 1));
     endResetModel();
 }
 int GraduationTableModel::rowCount(const QModelIndex &parent) const {
@@ -60,14 +56,14 @@ QVariant GraduationTableModel::data(const QModelIndex &index, int role) const {
         return {};
     const int row = index.row();
     const int col = index.column();
-    const int camIdx = m_cameraStr[(col) / 2].digitValue();
+    const int camIdx = m_cameraStr[(col) / 2].digitValue() - 1;
     if (row < m_gaugeModel->pressureValues().size() && camIdx < 8) {
         const bool isForward = (col) % 2 == 0;
         const auto &data = isForward ? m_forwardData : m_backwardData;
         if (row >= data.size() || camIdx >= data[row].size())
             return {};
         auto &val = data[row][camIdx];
-        return QVariant::fromValue(data[row][camIdx]);
+        return qFuzzyIsNull(val) ? QVariant() : QVariant::fromValue(val);
     }
     return QVariant();
 }

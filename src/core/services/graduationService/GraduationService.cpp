@@ -1,4 +1,6 @@
 ﻿#include "GraduationService.h"
+
+#include <iostream>
 #include <QMessageBox>
 #include "core/services/ServiceLocator.h"
 #include <QThread>
@@ -18,12 +20,10 @@ GraduationService::~GraduationService() {
     stop();
 }
 void GraduationService::start() {
+    if (m_isRunning) return;
+    stop();
     m_isRunning = true;
     m_forward = true;
-    m_recording = false;
-    clearCurrentResult();
-    m_forwardGraduator.clear();
-    m_backwardGraduator.clear();
     m_forwardGraduator.setPressureNodes(m_gaugeModel.pressureValues());
     m_backwardGraduator.setPressureNodes(m_gaugeModel.pressureValues());
     connectObjects();
@@ -32,9 +32,14 @@ void GraduationService::start() {
     m_elapsedTimer.start();
 }
 void GraduationService::stop() {
+    if (!m_isRunning) return;
+    clearCurrentResult();
+    m_currentResult.clear();
+    m_forwardGraduator.clear();
+    m_backwardGraduator.clear();
     m_elapsedTimer.invalidate();
     ServiceLocator::instance().cameraProcessor()->stopAll();
-    ServiceLocator::instance().pressureController()->stop();
+    ServiceLocator::instance().pressureController()->interrupt();
     disconnectObjects();
     m_isRunning = false;
 }
@@ -98,21 +103,7 @@ void GraduationService::setResult(const PartyResult &result) {
     m_currentResult = result;
     emitResultChangedIfNeeded();
 }
-void GraduationService::onPressureMeasured(qreal t, Pressure p) {
-    if (!m_isRunning) return;
-    ServiceLocator::instance().pressureController()->updatePressure(t, p.getValue(m_pressureUnit));
-    qreal pressure = p.getValue(m_pressureUnit);
-    if (isNearToPressureNode(m_gaugeModel.pressureValues(), pressure, 5.0)) {
-        m_recording = true;
-        pushPressure(t, pressure);
-    } else m_recording = false;
-}
-void GraduationService::onAngleMeasured(qint32 i, qreal t, qreal a) {
-    if (!m_isRunning) return;
-    if (m_recording) {
-        pushAngle(i, t, a);
-    }
-}
+
 void GraduationService::pushPressure(qreal t, qreal p) {
     if (m_forward) {
         m_forwardGraduator.pushPressure(t, p);
@@ -129,9 +120,13 @@ void GraduationService::pushAngle(qint32 i, qreal t, qreal a) {
 }
 void GraduationService::connectObjects() {
     connect(ServiceLocator::instance().cameraProcessor(), &CameraProcessor::angleMeasured,
-            this, &GraduationService::onAngleMeasured);
+            this, &GraduationService::onAngleMeasured, Qt::QueuedConnection);
     connect(ServiceLocator::instance().pressureSensor(), &PressureSensor::pressureMeasured,
-            this, &GraduationService::onPressureMeasured);
+            this, &GraduationService::onPressureMeasured, Qt::QueuedConnection);
+    connect(ServiceLocator::instance().pressureController(), &PressureControllerBase::interrupted,
+            this, &GraduationService::onInterrupted, Qt::QueuedConnection);
+    connect(ServiceLocator::instance().pressureController(), &PressureControllerBase::successfullyStopped,
+            this, &GraduationService::onSuccessfullyStopped, Qt::QueuedConnection);
 }
 void GraduationService::disconnectObjects() {
     disconnect(ServiceLocator::instance().cameraProcessor(), nullptr, this, nullptr);
@@ -151,3 +146,32 @@ void GraduationService::emitResultChangedIfNeeded() {
     }
 }
 
+
+// SLOTS:
+
+void GraduationService::onPressureMeasured(qreal t, Pressure p) {
+    if (!m_isRunning) return;
+    ServiceLocator::instance().pressureController()->updatePressure(t, p.getValue(m_pressureUnit));
+    qreal pressure = p.getValue(m_pressureUnit);
+    m_isNearToPressurePoint = isNearToPressureNode(m_gaugeModel.pressureValues(), pressure, 10.0);
+    if (m_isNearToPressurePoint) {
+        pushPressure(t, pressure);
+    }
+}
+void GraduationService::onAngleMeasured(qint32 i, qreal t, qreal a) {
+    if (!m_isRunning) return;
+    if (m_isNearToPressurePoint) {
+        pushAngle(i, t, a);
+    }
+}
+
+void GraduationService::onSuccessfullyStopped() {
+    m_currentResult.forward = graduateForward();
+    if (m_backwardGraduator.isEmpty()) {
+        m_currentResult.backward = m_currentResult.forward;
+    }
+}
+
+void GraduationService::onInterrupted() {
+    stop();
+}

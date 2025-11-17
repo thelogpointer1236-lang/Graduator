@@ -2,22 +2,32 @@
 #include "core/services/ServiceLocator.h"
 #include "defines.h"
 #include <QThread>
+
+#define interrupt   m_isRunning = false; \
+                    emit interrupted(); \
+                    return;
+
 namespace {
     double preloadFactor() {
         return ServiceLocator::instance().configManager()->get<double>(CFG_KEY_PRESSURE_PRELOAD_FACTOR);
     }
 }
+
 PressureControllerStand5::PressureControllerStand5(QObject *parent) : PressureControllerBase(parent) {
 }
+
 PressureControllerStand5::~PressureControllerStand5() {
 }
+
 void PressureControllerStand5::setMode(int modeIdx) {
 }
+
 QStringList PressureControllerStand5::getModes() const {
     return {
         QString::fromWCharArray(L"Прицел")
     };
 }
+
 qreal PressureControllerStand5::getTargetPressure() const {
     if (gaugePressureValues().size() < 2) { return 0.0; }
     return gaugePressureValues().back() * 1.02; // Целевое давление — последнее значение из шкалы + 2%
@@ -36,8 +46,7 @@ void PressureControllerStand5::preloadPressure() {
     while (currentPressure() < p_preload) {
         if (shouldStop()) {
             g540Driver()->setFlapsState(G540FlapsState::OpenOutput);
-            m_isRunning = false;
-            return;
+            interrupt;
         }
         QThread::msleep(15);
     }
@@ -50,8 +59,7 @@ void PressureControllerStand5::forwardPressure() {
     while (currentPressure() < p_target) {
         if (shouldStop()) {
             g540Driver()->stop();
-            m_isRunning = false;
-            return;
+            interrupt;
         }
         g540Driver()->setFrequency(g540Driver()->maxFrequency());
         QThread::msleep(90);
@@ -63,8 +71,7 @@ void PressureControllerStand5::backwardPressure() {
     while (!isStartLimitTriggered()) {
         if (shouldStop()) {
             g540Driver()->stop();
-            m_isRunning = false;
-            return;
+            interrupt;
         }
         g540Driver()->setFrequency(g540Driver()->maxFrequency());
         QThread::msleep(90);
@@ -87,7 +94,7 @@ void PressureControllerStand5::start() {
     g540Driver()->stop();
     gs->stop();
     m_isRunning = false;
-    emit stopped();
+    emit successfullyStopped();
 }
 bool PressureControllerStand5::isReadyToStart(QString &err) const {
     if (!PressureControllerBase::isReadyToStart(err)) return false;

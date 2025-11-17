@@ -107,7 +107,7 @@ void ManualWidget::onStopMotor()
 {
     auto *pressureController = ServiceLocator::instance().pressureController();
     if (pressureController->isRunning()) {
-        pressureController->stop();
+        pressureController->interrupt();
     }
     m_radioForward->setEnabled(true);
     m_radioBackward->setEnabled(true);

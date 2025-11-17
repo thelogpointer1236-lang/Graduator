@@ -6,6 +6,7 @@
 #include <QApplication>
 #include <QMessageBox>
 #include <QMetaObject>
+#include <QMetaType>
 
 ApplicationBuilder::ApplicationBuilder(QApplication* app)
     : app_(app)
@@ -66,6 +67,10 @@ MainWindow* ApplicationBuilder::build()
     }
 
     return mainWindow;
+}
+
+void ApplicationBuilder::declareMetatypes() {
+    qRegisterMetaType<Pressure>("Pressure");
 }
 
 void ApplicationBuilder::loadStyle()

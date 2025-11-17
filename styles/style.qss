@@ -23,6 +23,13 @@ QPushButton:pressed {
     border-color: #888888;
 }
 
+QPushButton:disabled {
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                                stop:0 #e8e8e8, stop:1 #d4d4d4);
+    border: 1px solid #bbbbbb;
+    color: #9a9a9a;
+}
+
 QPushButton:focus {
     border-color: #4a90e2;
     outline: none;
@@ -206,3 +213,8 @@ QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical {
     height: 0px;
 }
 
+QTabBar::tab:disabled {
+    background: #e0e0e0;
+    color: #a0a0a0;
+    border: 1px solid #c8c8c8;
+}

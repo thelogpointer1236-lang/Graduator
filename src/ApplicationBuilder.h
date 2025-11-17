@@ -12,6 +12,7 @@ public:
     MainWindow* build();
 
 private:
+    void declareMetatypes();
     void loadStyle();
     void loadTranslations();
     void initLogger();

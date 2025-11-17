@@ -2,17 +2,21 @@
 #define GRADUATOR_G540CONTROLLER_H
 #include <QObject>
 #include <QElapsedTimer>
+#include <memory>
 #include "LPTDriver.h"
+
 enum class G540Direction {
     Forward,
     Backward
 };
+
 enum class G540FlapsState {
     Unknown,
     CloseBoth,
     OpenInput,
     OpenOutput
 };
+
 class G540Driver final : public QObject {
     Q_OBJECT
 public:
@@ -36,10 +40,12 @@ public:
     bool isReadyToStart(QString &err) const;
     void stop();
     bool isRunning() const;
+
 public
     slots:
     Q_INVOKABLE
     void start();
+
 private:
     static void delayMicroseconds(long long target);
     quint8 state() const;
@@ -49,7 +55,7 @@ private:
     quint8 readOffsetPortByte(quint16 offset) const;
     quint8 byteStartLimitSwitch() const;
     quint8 byteEndLimitSwitch() const;
-private:
+
     std::unique_ptr<LPTDriver> m_LPTDriver;
     G540Direction m_direction = G540Direction::Forward;
     G540FlapsState m_flapsState = G540FlapsState::Unknown;

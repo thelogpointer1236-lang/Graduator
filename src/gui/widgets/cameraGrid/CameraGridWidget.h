@@ -32,7 +32,6 @@ private:
     QSize getCameraWindowSize() const;
     void rebuildVideoProcessors(int camCount, const std::vector<int> &userIndices,
                                  const std::vector<int> &sysIndices);
-    void clearVideoProcessors();
 
     QGridLayout *gridLayout = nullptr;
     std::vector<AspectRatioLabel *> cameraLabels;

@@ -14,10 +14,11 @@ class Graduator {
 public:
     explicit Graduator();
     void setPressureNodes(const std::vector<double> &pressureNodes);
-    void pushPressure(double t, double pressure);
-    void pushAngle(int i, double t, double angle);
+    void pushPressure(double t, double p);
+    void pushAngle(int i, double t, double a);
     std::vector<std::vector<double> > graduate(int p_window, int a_window);
     void clear();
+    bool isEmpty() const;
 private:
     int searchIndexOfPressure(double targetPressure) const;
     int searchIndexOfAngle(int camIdx, double targetTime) const;
