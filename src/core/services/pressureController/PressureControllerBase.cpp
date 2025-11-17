@@ -102,6 +102,9 @@ bool PressureControllerBase::isRunning() const {
     return m_isRunning;
 }
 void PressureControllerBase::interrupt() {
+    if (!m_isRunning && !m_aboutToStop) {
+        return;
+    }
     m_aboutToStop = true;
     while (m_isRunning) {
         QThread::msleep(10);

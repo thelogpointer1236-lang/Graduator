@@ -11,7 +11,8 @@ set(CMAKE_AUTORCC ON)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-set(CMAKE_PREFIX_PATH "D:/Qt/Qt5.14.2/5.14.2/msvc2017_64") # S:/Qt/Qt-5.15.17/win32-msvc
+# set(CMAKE_PREFIX_PATH "D:/Qt/Qt5.14.2/5.14.2/msvc2017_64")
+set(CMAKE_PREFIX_PATH "S:/Qt/Qt-5.15.17/win32-msvc")
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/src)
 
@@ -67,6 +68,7 @@ set(SRC_FILES
         src/gui/models/StatusBarModel.cpp
         src/ApplicationBuilder.cpp
         src/gui/widgets/other/Toast.cpp
+        src/core/services/stubs/PressureSensorStub.cpp
 )
 
 set(HEADER_FILES
