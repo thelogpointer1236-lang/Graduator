@@ -4,6 +4,7 @@
 #include <QMessageBox>
 #include "core/services/ServiceLocator.h"
 #include <QThread>
+
 bool isNearToPressureNode(const std::vector<double> &nodes, double p, double percentThreshold) {
     if (nodes.size() < 2) return false;
     double step = nodes[1] - nodes[0];
@@ -14,11 +15,14 @@ bool isNearToPressureNode(const std::vector<double> &nodes, double p, double per
     }
     return false;
 }
+
 GraduationService::GraduationService(QObject *parent) : QObject(parent) {
 }
+
 GraduationService::~GraduationService() {
     stop();
 }
+
 void GraduationService::start() {
     if (m_isRunning) return;
     stop();
@@ -30,7 +34,9 @@ void GraduationService::start() {
     ServiceLocator::instance().cameraProcessor()->startAll();
     QMetaObject::invokeMethod(ServiceLocator::instance().pressureController(), "start", Qt::QueuedConnection);
     m_elapsedTimer.start();
+    emit started();
 }
+
 void GraduationService::stop() {
     if (!m_isRunning) return;
     clearCurrentResult();
@@ -42,10 +48,13 @@ void GraduationService::stop() {
     ServiceLocator::instance().pressureController()->interrupt();
     disconnectObjects();
     m_isRunning = false;
+    emit stopped();
 }
+
 bool GraduationService::isRunning() const {
     return m_isRunning;
 }
+
 bool GraduationService::isReadyToRun(QString &err) const {
     if (this->isRunning()) return false;
     const int gaugeIdx = ServiceLocator::instance().configManager()->get<int>("current.gaugeModel", -1);
@@ -71,26 +80,32 @@ bool GraduationService::isReadyToRun(QString &err) const {
     }
     return true;
 }
+
 std::vector<std::vector<double> > GraduationService::graduateForward() {
     m_currentResult.forward = m_forwardGraduator.graduate(3, 6);
     emitResultChangedIfNeeded();
     return m_currentResult.forward;
 }
+
 std::vector<std::vector<double> > GraduationService::graduateBackward() {
     m_currentResult.backward = m_backwardGraduator.graduate(3, 6);
     emitResultChangedIfNeeded();
     return m_currentResult.backward;
 }
+
 void GraduationService::switchToBackward() {
     m_forward = false;
 }
+
 void GraduationService::switchToForward() {
     m_forward = true;
 }
+
 qreal GraduationService::getElapsedTimeSeconds() const {
     if (!m_elapsedTimer.isValid()) return 0.0;
     return m_elapsedTimer.elapsed() / 1000.0;
 }
+
 PartyResult GraduationService::currentResult() const {
     return m_currentResult;
 }
@@ -111,6 +126,7 @@ void GraduationService::pushPressure(qreal t, qreal p) {
         m_backwardGraduator.pushPressure(t, p);
     }
 }
+
 void GraduationService::pushAngle(qint32 i, qreal t, qreal a) {
     if (m_forward) {
         m_forwardGraduator.pushAngle(i, t, a);
@@ -118,6 +134,7 @@ void GraduationService::pushAngle(qint32 i, qreal t, qreal a) {
         m_backwardGraduator.pushAngle(i, t, a);
     }
 }
+
 void GraduationService::connectObjects() {
     connect(ServiceLocator::instance().cameraProcessor(), &CameraProcessor::angleMeasured,
             this, &GraduationService::onAngleMeasured, Qt::QueuedConnection);

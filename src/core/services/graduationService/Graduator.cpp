@@ -108,8 +108,9 @@ double findAbyP(It1 tp_begin, It1 tp_end,
 
 Graduator::Graduator() {
     m_angleData.resize(8);
+    for (auto &v : m_angleData)
+        v.reserve(60 * 5 * 30);
     m_pressureData.reserve(60 * 5 * 15); // 5 минут по 15 Гц
-    m_angleData.reserve(60 * 5 * 30); // 5 минут по 30 Гц
 }
 
 void Graduator::setPressureNodes(const std::vector<double> &pressureNodes) {

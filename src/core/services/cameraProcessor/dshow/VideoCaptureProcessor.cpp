@@ -1,4 +1,6 @@
-﻿#include "VideoCaptureProcessor.h"
+﻿// #ifndef USE_STUB_IMPLEMENTATIONS
+
+#include "VideoCaptureProcessor.h"
 #include "FrameGrabberCB.h"
 #include "core/services/ServiceLocator.h"
 #include <QtDebug>
@@ -309,3 +311,5 @@ void VideoCaptureProcessor::cleanup() {
         m_comInitialized = false;
     }
 }
+
+// #endif

@@ -25,6 +25,8 @@ public:
     bool hasResult() const;
     void setResult(const PartyResult &result);
 signals:
+    void started();
+    void stopped();
     void currentResultChanged(bool hasResult);
 private slots:
     void onPressureMeasured(qreal t, Pressure p);

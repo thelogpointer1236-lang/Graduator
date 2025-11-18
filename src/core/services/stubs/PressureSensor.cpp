@@ -54,9 +54,19 @@ void PressureSensor::start() {
     QElapsedTimer timer;
     timer.start();
 
+    bool isRunned = false;
+
     while (!m_aboutToStop && !QThread::currentThread()->isInterruptionRequested()) {
         qreal elapsedSec = timer.elapsed() / 1000.0;
         qreal t = fmod(elapsedSec, period);
+
+        if (!isRunned && ServiceLocator::instance().graduationService()->isRunning()) {
+            // Сброс таймера при старте градуировки
+            timer.restart();
+            elapsedSec = 0.0;
+            t = 0.0;
+            isRunned = true;
+        }
 
         qreal pressureValue;
         if (t < totalUpTime)
@@ -70,6 +80,8 @@ void PressureSensor::start() {
 
         QThread::msleep(100); // 10 Гц опроса
     }
+
+    disconnect(ServiceLocator::instance().graduationService(), nullptr, this, nullptr);
 
     m_isRunning = false;
     ServiceLocator::instance().logger()->debug(QString::fromWCharArray(L"Заглушка: опрос датчика остановлен"));
