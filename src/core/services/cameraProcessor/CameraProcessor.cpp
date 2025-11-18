@@ -91,11 +91,3 @@ std::vector<qint32> CameraProcessor::cameraIndices() {
 std::vector<qint32> CameraProcessor::sysCameraIndices() {
     return extractDigits(sysCameraStr());
 }
-
-void CameraProcessor::startAll() {
-    FrameGrabberCB::s_isPolling = true;
-}
-
-void CameraProcessor::stopAll() {
-    FrameGrabberCB::s_isPolling = false;
-}

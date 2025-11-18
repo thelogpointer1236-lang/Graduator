@@ -37,7 +37,7 @@ public:
 public:
     static inline auto s_aimColor = RGBPixel(0, 0, 0);
     static inline bool s_isDrawAim = false;
-    static inline bool s_isPolling = false;
+    static inline bool s_isPolling = true;
     static inline bool s_isDrawAngle = true;
 private:
     LONG m_refCount;

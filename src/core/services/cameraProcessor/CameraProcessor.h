@@ -22,8 +22,6 @@ public:
     static QString sysCameraStr();
     static std::vector<qint32> cameraIndices();
     static std::vector<qint32> sysCameraIndices();
-    static void startAll();
-    static void stopAll();
 
 signals:
     void angleMeasured(qint32 idx, qreal time, qreal angle);
