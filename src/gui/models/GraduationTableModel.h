@@ -2,6 +2,9 @@
 #define GRADUATOR_GRADUATIONTABLEMODEL_H
 #include <QAbstractTableModel>
 #include <QTimer>
+
+#include "core/types/Grad.h"
+
 class GraduationTableModel final : public QAbstractTableModel {
     Q_OBJECT
 public:
@@ -18,7 +21,7 @@ private:
     const class GaugeModel *m_gaugeModel;
     QString m_cameraStr;
     QTimer m_updateTimer;
-    std::vector<std::vector<double> > m_forwardData;
-    std::vector<std::vector<double> > m_backwardData;
+    std::vector<std::vector<NodeResult>> m_forwardData;
+    std::vector<std::vector<NodeResult>> m_backwardData;
 };
 #endif //GRADUATOR_GRADUATIONTABLEMODEL_H

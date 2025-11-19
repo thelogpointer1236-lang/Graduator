@@ -3,15 +3,14 @@
 
 #include <vector>
 #include "GaugeModel.h"
-#include "core/services/graduationService/GraduationService.h"
+#include "Grad.h"
 
 struct PartyResult {
     GaugeModel gaugeModel;
-    PressureUnit pressureUnit = PressureUnit::Kgf;
-    std::vector<std::vector<grad::NodeResult>> forward;
-    std::vector<std::vector<grad::NodeResult>> backward;
-    std::vector<const grad::DebugData*> debugDataForward;
-    std::vector<const grad::DebugData*> debugDataBackward;
+    std::vector<std::vector<NodeResult>> forward;
+    std::vector<std::vector<NodeResult>> backward;
+    std::vector<const DebugData*> debugDataForward;
+    std::vector<const DebugData*> debugDataBackward;
     double durationSeconds;
 
     [[nodiscard]] bool isValid() const {

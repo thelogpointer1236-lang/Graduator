@@ -90,46 +90,6 @@ const QStringList &GaugeCatalog::allNames() const noexcept {
     }
     return names;
 }
-const QStringList &GaugeCatalog::allPrintingTemplates() const noexcept {
-    static QStringList templates;
-    if (templates.size() != m_models.size()) {
-        QSet<QString> unique;
-        templates.clear();
-        for (const auto &m: m_models)
-            unique.insert(m.printingTemplate());
-        for (const auto &m: unique)
-            templates.append(m);
-        std::sort(templates.begin(), templates.end(), [](const QString &a, const QString &b) {
-            return a.localeAwareCompare(b) < 0;
-        });
-    }
-    return templates;
-}
-const QStringList &GaugeCatalog::allPressureUnits() const noexcept {
-    static const QStringList units{
-        QString::fromWCharArray(L"Па"),
-        QString::fromWCharArray(L"кПа"),
-        QString::fromWCharArray(L"МПа"),
-        QString::fromWCharArray(L"Бар"),
-        QString::fromWCharArray(L"кгс/см²"),
-        QString::fromWCharArray(L"Psi")
-    };
-    return units;
-}
-const QStringList &GaugeCatalog::allPrinters() const noexcept {
-    static const QStringList printers{
-        QString::fromWCharArray(L"A3"),
-        QString::fromWCharArray(L"A2 первый"),
-        QString::fromWCharArray(L"A2 второй")
-    };
-    return printers;
-}
-const QStringList &GaugeCatalog::allPrecisions() const noexcept {
-    static const QStringList precisions{
-        "1,5", "2,5", "4"
-    };
-    return precisions;
-}
 const GaugeModel *GaugeCatalog::findByName(const QString &name) const noexcept {
     for (const auto &m: m_models)
         if (m.name().compare(name, Qt::CaseInsensitive) == 0)

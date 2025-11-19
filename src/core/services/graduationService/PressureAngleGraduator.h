@@ -4,24 +4,9 @@
 #include <vector>
 #include <utility>
 
+#include "core/types/Grad.h"
+
 namespace grad {
-
-    struct DebugData {
-        // локальные данные для каждого узла
-        struct LocalWindow {
-            double nodePressure;
-            std::vector<double> localPressure;
-            std::vector<double> localAngle;
-            std::vector<double> smoothAngle; // LOESS результат
-        };
-        std::vector<LocalWindow> windows;
-    };
-
-    struct NodeResult {
-        double pressure;
-        double angle;
-        bool   valid;
-    };
 
     class PressureAngleGraduator {
     public:

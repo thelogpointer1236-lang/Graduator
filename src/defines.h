@@ -29,4 +29,8 @@
 #define CFG_KEY_PRESSURE_SENSOR_COM              "pressureSensor.comPort"
 // stand
 #define CFG_KEY_STAND_NUMBER                     "stand.number"
+#define CFG_KEY_PARTIES_FOLDER                   "stand.partiesFolder"
+#define CFG_KEY_PRECISION_CLASSES                "stand.precisionClasses"
+#define CFG_KEY_DISPLACEMENTS                    "stand.displacements"
+#define CFG_KEY_PRINTERS                         "stand.printers"
 #endif // CONFIG_DEFINES_H

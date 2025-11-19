@@ -162,11 +162,11 @@ void PressureControllerStand4::start() {
     m_isRunning = true;
     emit started();
     auto *gs = ServiceLocator::instance().graduationService();
-    gs->switchToForward();
+    gs->graduator().switchToForward();
     preloadPressure(); // 1
     QMetaObject::invokeMethod(g540Driver(), "start", Qt::QueuedConnection);
     forwardPressure(); // 2
-    gs->switchToBackward();
+    gs->graduator().switchToBackward();
     backwardPressure(); // 3
     g540Driver()->stop();
     gs->stop();

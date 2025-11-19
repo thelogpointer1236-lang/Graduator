@@ -140,7 +140,6 @@ void GraduationService::onControllerInterrupted() {
 
 void GraduationService::updateResult() {
     m_currentResult.gaugeModel = m_gaugeModel;
-    m_currentResult.pressureUnit = m_pressureUnit;
     m_currentResult.forward = m_graduator.graduateForward();
     m_currentResult.debugDataForward = m_graduator.allDebugDataForward();
     if (!m_graduator.isForward()) {

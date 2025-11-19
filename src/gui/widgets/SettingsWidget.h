@@ -52,7 +52,7 @@ private:
     QComboBox *comboUnit_ = nullptr;
     QComboBox *comboAccuracy_ = nullptr;
     QComboBox *comboPrinter_ = nullptr;
-    QComboBox *comboDialLayout_ = nullptr;
+    QComboBox *comboDisplacement_ = nullptr;
     QLineEdit *editComPort_ = nullptr;
     QPushButton *btnConnectCom_ = nullptr;
     QCheckBox *chkDrawCrosshair_ = nullptr;

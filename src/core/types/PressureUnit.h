@@ -12,4 +12,5 @@ enum class PressureUnit {
     mmH2O,
     Unknown
 };
+
 #endif //GRADUATOR_PRESSUREUNIT_H

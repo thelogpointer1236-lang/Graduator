@@ -144,17 +144,18 @@ void ApplicationBuilder::initGraduation()
 
 void ApplicationBuilder::initPartyManager()
 {
-    auto* pm = new PartyManager();
+    auto* cfg = ServiceLocator::instance().configManager();
+    auto* pm = new PartyManager(cfg->get<int>(CFG_KEY_STAND_NUMBER));
     ServiceLocator::instance().setPartyManager(pm);
 
-    if (!pm->initDatabase("parties.sqlite")) {
-        QMessageBox::critical(
-            nullptr,
-            QString::fromWCharArray(L"Ошибка инициализации базы данных"),
-            QString::fromWCharArray(L"Не удалось открыть parties.sqlite.\nПроверьте файл.")
-        );
-        exit(-1);
-    }
+    // if (!pm->initDatabase("parties.sqlite")) {
+    //     QMessageBox::critical(
+    //         nullptr,
+    //         QString::fromWCharArray(L"Ошибка инициализации базы данных"),
+    //         QString::fromWCharArray(L"Не удалось открыть parties.sqlite.\nПроверьте файл.")
+    //     );
+    //     exit(-1);
+    // }
 }
 
 void ApplicationBuilder::initPressureController()

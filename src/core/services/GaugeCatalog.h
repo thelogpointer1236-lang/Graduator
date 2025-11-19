@@ -14,10 +14,6 @@ public:
     bool loadFromDirectory(const QString &dirPath);
     const QList<GaugeModel> &all() const noexcept;
     const QStringList &allNames() const noexcept;
-    const QStringList &allPressureUnits() const noexcept;
-    const QStringList &allPrintingTemplates() const noexcept;
-    const QStringList &allPrinters() const noexcept;
-    const QStringList &allPrecisions() const noexcept;
     const GaugeModel *findByName(const QString &name) const noexcept;
     const GaugeModel *findByIdx(int idx) const noexcept;
 private:

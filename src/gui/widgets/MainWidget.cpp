@@ -2,7 +2,6 @@
 #include "cameraGrid/CameraGridWidget.h"
 #include "control/ControlWidget.h"
 #include "GraduationTableWidget.h"
-#include "history/PartyHistoryWidget.h"
 #include "gui/views/StatusBarView.h"
 #include "gui/models/StatusBarModel.h"
 #include "SettingsWidget.h"
@@ -62,11 +61,11 @@ QTabWidget* MainWidget::createTabWidget()
 {
     auto *settingsWidget = new SettingsWidget;
     auto *controlPage = createControlPage();
-    auto *partiesPage = createPartiesPage();
+    // auto *partiesPage = createPartiesPage();
 
     auto *tabWidget = new QTabWidget;
     tabWidget->addTab(controlPage, tr("Graduation"));
-    tabWidget->addTab(partiesPage, tr("Parties"));
+    // tabWidget->addTab(partiesPage, tr("Parties"));
     tabWidget->addTab(settingsWidget, tr("Settings"));
 
     return tabWidget;
@@ -90,7 +89,3 @@ QWidget* MainWidget::createControlPage()
     return page;
 }
 
-QWidget* MainWidget::createPartiesPage()
-{
-    return new PartyHistoryWidget;
-}

@@ -11,8 +11,8 @@ set(CMAKE_AUTORCC ON)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-# set(CMAKE_PREFIX_PATH "D:/Qt/Qt5.14.2/5.14.2/msvc2017_64")
-set(CMAKE_PREFIX_PATH "S:/Qt/Qt-5.15.17/win32-msvc")
+ set(CMAKE_PREFIX_PATH "D:/Qt/Qt5.14.2/5.14.2/msvc2017_64")
+#set(CMAKE_PREFIX_PATH "S:/Qt/Qt-5.15.17/win32-msvc")
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/src)
 
@@ -56,10 +56,6 @@ set(SRC_FILES
         src/gui/widgets/GraduationTableWidget.cpp
         src/gui/models/GraduationTableModel.cpp
         src/gui/widgets/control/PartyWidget.cpp
-        src/gui/models/PartyHistoryModel.cpp
-        src/gui/widgets/history/PartyHistoryWidget.cpp
-        src/gui/dialogs/PartyResultDialog.cpp
-        src/core/services/PartyManager.cpp
         src/core/services/PressureSensor.cpp
         src/core/services/graduationService/GraduationService.cpp
         src/core/services/graduationService/Graduator.cpp
@@ -72,6 +68,11 @@ set(SRC_FILES
         src/core/services/stubs/VideoCaptureProcessor.cpp
         src/core/services/graduationService/PressureAngleGraduator.cpp
         src/core/services/graduationService/BatchGraduator.cpp
+        src/core/services/PartyManager.cpp
+        src/core/services/PartyManager.h
+        src/core/types/Printer.h
+        src/core/types/Displacement.h
+        src/core/types/Grad.h
 )
 
 set(HEADER_FILES
@@ -103,10 +104,6 @@ set(HEADER_FILES
         src/gui/widgets/GraduationTableWidget.h
         src/gui/models/GraduationTableModel.h
         src/gui/widgets/control/PartyWidget.h
-        src/gui/models/PartyHistoryModel.h
-        src/gui/widgets/history/PartyHistoryWidget.h
-        src/gui/dialogs/PartyResultDialog.h
-        src/core/services/PartyManager.h
         src/core/services/PressureSensor.h
         src/core/services/graduationService/Graduator.h
         src/core/services/graduationService/GraduationService.h

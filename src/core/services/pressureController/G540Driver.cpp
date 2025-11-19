@@ -15,7 +15,7 @@ G540Driver::G540Driver(QObject *parent) : QObject(parent) {
     }
     setDirection(m_direction);
     // Параметры:
-    const auto &cfg = *ServiceLocator::instance().configManager();
+    auto &cfg = *ServiceLocator::instance().configManager();
     try {
         m_portAddress = cfg.get<quint16>(CFG_KEY_G540_PORT_ADDRESS);
         m_byteCloseBothFlaps = cfg.get<int>(CFG_KEY_G540_BYTE_CLOSE_BOTH_FLAPS);

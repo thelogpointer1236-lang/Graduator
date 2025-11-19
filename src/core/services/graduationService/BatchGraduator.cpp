@@ -50,8 +50,8 @@ void BatchGraduator::setLoessFrac(double frac) {
     }
 }
 
-std::vector<std::vector<grad::NodeResult>> BatchGraduator::graduate() const {
-    std::vector<std::vector<grad::NodeResult>> out;
+std::vector<std::vector<NodeResult>> BatchGraduator::graduate() const {
+    std::vector<std::vector<NodeResult>> out;
     out.reserve(m_calibrators.size());
 
     for (auto const& calib : m_calibrators) {
@@ -88,8 +88,8 @@ std::vector<std::size_t> BatchGraduator::anglesCount() const {
     return out;
 }
 
-std::vector<const grad::DebugData *> BatchGraduator::allDebugData() const {
-    std::vector<const grad::DebugData*> out;
+std::vector<const DebugData *> BatchGraduator::allDebugData() const {
+    std::vector<const DebugData*> out;
     out.reserve(m_calibrators.size());
 
     for (auto const& c : m_calibrators) {

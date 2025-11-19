@@ -26,44 +26,69 @@ public:
     void setValue(const QString &keyPath, const QJsonValue &value);
     QString configPath() const;
     bool isLoaded() const;
-    template<typename T>
-    T get(const QString &keyPath, const T &defaultValue = {}) const {
-        QJsonValue v = getValue(keyPath);
-        if (v.isUndefined() || v.isNull()) {
-            // создаём запись в конфиге
-            const_cast<ConfigManager *>(this)->setValue(
-                keyPath, QJsonValue::fromVariant(QVariant::fromValue(defaultValue)));
-            return defaultValue;
-        }
-        if constexpr (std::is_same_v<T, int>)
+
+    template<typename U>
+    U convertJsonValue(const QJsonValue &v) {
+        if constexpr (std::is_same_v<U, int>) {
             return v.isDouble() ? v.toInt() : v.toString().toInt(nullptr, 0);
-        if constexpr (std::is_same_v<T, double>)
+        }
+        if constexpr (std::is_same_v<U, double>) {
             return v.isDouble() ? v.toDouble() : v.toString().toDouble();
-        if constexpr (std::is_same_v<T, bool>)
+        }
+        if constexpr (std::is_same_v<U, bool>) {
             return v.isBool() ? v.toBool() : (v.toString().toLower() == "true");
-        if constexpr (std::is_same_v<T, QString>)
+        }
+        if constexpr (std::is_same_v<U, QString>) {
             return v.toString();
-        if constexpr (std::is_same_v<T, quint16>)
+        }
+        if constexpr (std::is_same_v<U, quint16>) {
             return v.isDouble()
                        ? static_cast<quint16>(v.toInt())
                        : static_cast<quint16>(v.toString().toUShort(nullptr, 0));
-        if constexpr (std::is_same_v<T, qint64>)
+        }
+        if constexpr (std::is_same_v<U, qint64>) {
             return v.isDouble()
                        ? static_cast<qint64>(v.toDouble())
                        : v.toString().toLongLong(nullptr, 0);
+        }
+        // fallback: если тип неподдерживаем
+        return U{};
+    }
+
+    template<typename T>
+    T get(const QString &keyPath, const T &defaultValue = {}) {
+        QJsonValue v = getValue(keyPath);
+        if (v.isUndefined() || v.isNull()) {
+            this->setValue(
+                keyPath, QJsonValue::fromVariant(QVariant::fromValue(defaultValue)));
+            return defaultValue;
+        }
+
+        // Обычные типы
+        if constexpr (!is_qvector_v<T>) {
+            return convertJsonValue<T>(v);
+        }
+
+        // Универсальный QVector<U>
         if constexpr (is_qvector_v<T>) {
-            if (!v.isArray()) return defaultValue;
-            QVector<int> result;
+            using U = typename T::value_type;
+            if (!v.isArray())
+                return defaultValue;
+
+            T result;
+            result.reserve(v.toArray().size());
             for (const auto &item: v.toArray())
-                result.append(item.toInt());
+                result.append(convertJsonValue<U>(item));
             return result;
         }
-        // Fallback
+
         return defaultValue;
     }
-    signals:
-    
+
+
+signals:
     void valueChanged(const QString &keyPath, const QJsonValue &value);
+
 private:
     QJsonObject root;
     QString m_path;

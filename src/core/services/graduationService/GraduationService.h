@@ -2,7 +2,6 @@
 #define GRADUATOR_GRADUATIONSERVICE_H
 #include <QObject>
 #include <QElapsedTimer>
-#include <atomic>
 
 #include "Graduator.h"
 #include "core/types/GaugeModel.h"

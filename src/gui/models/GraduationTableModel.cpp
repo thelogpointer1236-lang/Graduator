@@ -1,5 +1,6 @@
 ﻿#include "GraduationTableModel.h"
 #include <iostream>
+#include <QtMath>
 #include "core/types/GaugeModel.h"
 #include "core/services/ServiceLocator.h"
 #include "defines.h"
@@ -39,8 +40,8 @@ void printVector2D(const std::vector<std::vector<double>>& vec) {
 
 void GraduationTableModel::onUpdateTimer() {
     beginResetModel();
-    m_forwardData = ServiceLocator::instance().graduationService()->graduateForward();
-    m_backwardData = ServiceLocator::instance().graduationService()->graduateBackward();
+    m_forwardData = ServiceLocator::instance().graduationService()->graduator().graduateForward();
+    m_backwardData = ServiceLocator::instance().graduationService()->graduator().graduateBackward();
     endResetModel();
 }
 int GraduationTableModel::rowCount(const QModelIndex &parent) const {
@@ -63,7 +64,7 @@ QVariant GraduationTableModel::data(const QModelIndex &index, int role) const {
         if (row >= data.size() || camIdx >= data[row].size())
             return {};
         auto &val = data[row][camIdx];
-        return qFuzzyIsNull(val) ? QVariant() : QVariant::fromValue(val);
+        return qFuzzyIsNull(val.angle) ? QVariant() : QVariant::fromValue(val.angle);
     }
     return QVariant();
 }

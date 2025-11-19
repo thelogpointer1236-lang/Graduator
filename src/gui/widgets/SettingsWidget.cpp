@@ -17,9 +17,6 @@
 #include <QEvent>
 #include <vector>
 
-namespace {
-constexpr int SectionSpacing = 6;
-}
 
 SettingsWidget::SettingsWidget(QWidget *parent)
     : QWidget(parent)
@@ -45,7 +42,7 @@ QVBoxLayout *SettingsWidget::createMainLayout()
 {
     auto *layout = new QVBoxLayout(this);
     layout->setContentsMargins(12, 12, 12, 12);
-    layout->setSpacing(SectionSpacing);
+    layout->setSpacing(6);
     return layout;
 }
 
@@ -79,17 +76,19 @@ QGroupBox *SettingsWidget::createDeviceGroup()
 
     auto &locator = ServiceLocator::instance();
     auto *catalog = locator.gaugeCatalog();
+    auto partyManager = locator.partyManager();
+
 
     comboDeviceType_ = new QComboBox(group);
     comboDeviceType_->addItems(catalog->allNames());
     comboDeviceType_->setCurrentIndex(locator.configManager()->get<int>(CFG_KEY_CURRENT_GAUGE_MODEL, 0));
 
     comboUnit_ = new QComboBox(group);
-    comboUnit_->addItems(catalog->allPressureUnits());
+    comboUnit_->addItems(partyManager->getAvailablePressureUnits());
     comboUnit_->setCurrentIndex(locator.configManager()->get<int>(CFG_KEY_CURRENT_PRESSURE_UNIT, 0));
 
     comboAccuracy_ = new QComboBox(group);
-    comboAccuracy_->addItems(catalog->allPrecisions());
+    comboAccuracy_->addItems(partyManager->getAvailablePrecisions());
     comboAccuracy_->setCurrentIndex(locator.configManager()->get<int>(CFG_KEY_CURRENT_PRECISION_CLASS, 0));
 
     layout->addRow(tr("Gauge model") + ":", comboDeviceType_);
@@ -104,19 +103,27 @@ QGroupBox *SettingsWidget::createPrintGroup()
 {
     auto *group = new QGroupBox(tr("Printing"), this);
     auto *layout = new QFormLayout(group);
-    auto &config = *ServiceLocator::instance().configManager();
-    auto *catalog = ServiceLocator::instance().gaugeCatalog();
+    auto *config = ServiceLocator::instance().configManager();
+    auto *partyManager =ServiceLocator::instance().partyManager();
 
     comboPrinter_ = new QComboBox(group);
-    comboPrinter_->addItems(catalog->allPrinters());
-    comboPrinter_->setCurrentIndex(config.get<int>(CFG_KEY_CURRENT_PRINTER, 0));
+    QStringList printers;
+    for (const auto& x : partyManager->getAvailablePrinters()) {
+        printers.append(x.name());
+    }
+    comboPrinter_->addItems(printers);
+    comboPrinter_->setCurrentIndex(config->get<int>(CFG_KEY_CURRENT_PRINTER, 0));
 
-    comboDialLayout_ = new QComboBox(group);
-    comboDialLayout_->addItems(catalog->allPrintingTemplates());
-    comboDialLayout_->setCurrentIndex(config.get<int>(CFG_KEY_CURRENT_DIAL_LAYOUT, 0));
+    comboDisplacement_ = new QComboBox(group);
+    QStringList displacements;
+    for (const auto& x : partyManager->getAvailableDisplacements()) {
+        displacements.append(x.name());
+    }
+    comboDisplacement_->addItems(displacements);
+    comboDisplacement_->setCurrentIndex(config->get<int>(CFG_KEY_CURRENT_DIAL_LAYOUT, 0));
 
     layout->addRow(tr("Printer") + ":", comboPrinter_);
-    layout->addRow(tr("Dial layout") + ":", comboDialLayout_);
+    layout->addRow(tr("Displacement") + ":", comboDisplacement_);
 
     group->setLayout(layout);
     return group;
@@ -161,7 +168,7 @@ void SettingsWidget::connectSignals()
             &SettingsWidget::onPrecisionClassChanged);
     connect(comboPrinter_, QOverload<int>::of(&QComboBox::currentIndexChanged), this,
             &SettingsWidget::onPrinterChanged);
-    connect(comboDialLayout_, QOverload<int>::of(&QComboBox::currentIndexChanged), this,
+    connect(comboDisplacement_, QOverload<int>::of(&QComboBox::currentIndexChanged), this,
             &SettingsWidget::onDialLayoutChanged);
     connect(btnConnectCom_, &QPushButton::clicked, this, &SettingsWidget::onConnectComPortClicked);
     connect(chkDrawCrosshair_, &QCheckBox::toggled, this, &SettingsWidget::onDrawCrosshairChanged);
@@ -234,7 +241,7 @@ void SettingsWidget::installEventFilters() {
     comboUnit_->installEventFilter(this);
     comboAccuracy_->installEventFilter(this);
     comboPrinter_->installEventFilter(this);
-    comboDialLayout_->installEventFilter(this);
+    comboDisplacement_->installEventFilter(this);
 }
 
 bool SettingsWidget::eventFilter(QObject *obj, QEvent *event)
