@@ -16,7 +16,8 @@ public:
     bool setData(const QModelIndex &index, const QVariant &value, int role = Qt::EditRole) override;
     Qt::ItemFlags flags(const QModelIndex &index) const override;
 private slots:
-    void onUpdateTimer();
+    void updateIndicators();
+    void updateScale();
 private:
     const class GaugeModel *m_gaugeModel;
     QString m_cameraStr;

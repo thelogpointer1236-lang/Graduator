@@ -19,7 +19,7 @@ ApplicationBuilder::~ApplicationBuilder()
 
     if (auto *graduationService = locator.graduationService(); graduationService) {
         if (graduationService->isRunning()) {
-            graduationService->stop();
+            graduationService->interrupt();
         }
     }
 

@@ -75,6 +75,10 @@ const PartyResult& GraduationService::getPartyResult() {
     return m_currentResult;
 }
 
+void GraduationService::requestTableUpdate() {
+    emit tableUpdateRequired();
+}
+
 qreal GraduationService::getElapsedTimeSeconds() const {
     if (!m_elapsedTimer.isValid()) return 0.0;
     return m_elapsedTimer.elapsed() / 1000.0;
@@ -100,7 +104,7 @@ void GraduationService::clearCurrentResult() {
     m_resultReady = false;
     m_graduator.clear();
     m_elapsedTimer.invalidate();
-    emit resultCleared();
+    emit resultAvailabilityChanged(false);
 }
 
 
@@ -116,19 +120,22 @@ void GraduationService::onAngleMeasured(qint32 i, qreal t, qreal a) {
     m_graduator.addAngleSample(i, t, a);
 }
 
-void GraduationService::stop() {
+void GraduationService::interrupt() {
     if (!m_isRunning) return;
     m_elapsedTimer.invalidate();
     disconnectObjects();
     ServiceLocator::instance().pressureController()->interrupt();
     m_isRunning = false;
+    emit interrupted();
 }
 
 void GraduationService::onControllerSuccessfullyStopped() {
     updateResult();
     disconnectObjects();
     ServiceLocator::instance().pressureController()->interrupt();
-    emit resultReady();
+    m_isRunning = false;
+    emit successfullyStopped();
+    emit resultAvailabilityChanged(true);
 }
 
 void GraduationService::onControllerInterrupted() {

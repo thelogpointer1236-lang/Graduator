@@ -11,17 +11,28 @@ return;
 #define MODE_FORWARD 1
 #define MODE_FORWARD_AND_BACKWARD 2
 
-double calculateFrequency(double maxFrequency, double currentPressure, double limitPressure) {
-    if (currentPressure >= limitPressure)
-        return maxFrequency / 4.0;
-    if (currentPressure <= 0)
-        return maxFrequency;
-    double ratio = currentPressure / limitPressure; // от 0 до 1
-    double frequency = maxFrequency - (maxFrequency * 3.0 / 4.0) * ratio; // линейное уменьшение
-    return frequency;
-}
+namespace {
+    double calculateFrequency(double maxFrequency, double currentPressure, double limitPressure) {
+        if (currentPressure >= limitPressure)
+            return maxFrequency / 4.0;
+        if (currentPressure <= 0)
+            return maxFrequency;
+        double ratio = currentPressure / limitPressure; // от 0 до 1
+        double frequency = maxFrequency - (maxFrequency * 3.0 / 4.0) * ratio; // линейное уменьшение
+        return frequency;
+    }
 
-bool isNearToPressureNode(const std::vector<double> &nodes, double p, double percentThreshold);
+    bool isNearToPressureNode(const std::vector<double> &nodes, double p, double percentThreshold) {
+        if (nodes.size() < 2) return false;
+        double step = nodes[1] - nodes[0];
+        for (const auto &node: nodes) {
+            double diff = std::abs(p - node);
+            double threshold = std::abs(step * percentThreshold / 100.0);
+            if (diff <= threshold) return true;
+        }
+        return false;
+    }
+}
 
 PressureControllerStand4::PressureControllerStand4(QObject *parent) : PressureControllerBase(parent) {
 }
@@ -126,7 +137,10 @@ void PressureControllerStand4::backwardPressure() {
     const qreal p_target = getTargetPressure();
     const int f_max = g540Driver()->maxFrequency();
     g540Driver()->setDirection(G540Direction::Backward);
-    while (!isStartLimitTriggered()) {
+
+    // TODO: заменить на проверку срабатывания концевика, т. к. я для проверки это сделал
+    // while (!isStartLimitTriggered()) {
+    while (currentPressure() > 10.0) {
         if (shouldStop()) {
             g540Driver()->stop();
             interrupt;
@@ -167,9 +181,10 @@ void PressureControllerStand4::start() {
     QMetaObject::invokeMethod(g540Driver(), "start", Qt::QueuedConnection);
     forwardPressure(); // 2
     gs->graduator().switchToBackward();
+    gs->requestTableUpdate();
     backwardPressure(); // 3
     g540Driver()->stop();
-    gs->stop();
+    gs->requestTableUpdate();
     m_dP_target = 0;
     m_isRunning = false;
     emit successfullyStopped();

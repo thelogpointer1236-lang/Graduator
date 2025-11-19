@@ -1,7 +1,9 @@
 ﻿#include "ConfigManager.h"
+
 ConfigManager::ConfigManager(const QString &path, QObject *parent)
     : QObject(parent), m_path(path) {
 }
+
 bool ConfigManager::load() {
     QFile f(m_path);
     if (!f.open(QIODevice::ReadOnly))
@@ -14,6 +16,7 @@ bool ConfigManager::load() {
     m_loaded = true;
     return true;
 }
+
 bool ConfigManager::save() const {
     QFile f(m_path);
     if (!f.open(QIODevice::WriteOnly | QIODevice::Truncate))
@@ -22,15 +25,20 @@ bool ConfigManager::save() const {
     f.write(doc.toJson(QJsonDocument::Indented));
     return true;
 }
+
 QJsonValue ConfigManager::getValue(const QString &keyPath, const QJsonValue &defaultValue) const {
     return getNestedValue(root, keyPath.split('.'), defaultValue);
 }
+
 void ConfigManager::setValue(const QString &keyPath, const QJsonValue &value) {
     setNestedValue(root, keyPath.split('.'), value);
     emit valueChanged(keyPath, value);
 }
+
 QString ConfigManager::configPath() const { return m_path; }
+
 bool ConfigManager::isLoaded() const { return m_loaded; }
+
 QJsonValue ConfigManager::getNestedValue(const QJsonObject &obj, const QStringList &path, const QJsonValue &def) {
     QJsonValue current = obj;
     for (const QString &key: path) {
@@ -41,6 +49,7 @@ QJsonValue ConfigManager::getNestedValue(const QJsonObject &obj, const QStringLi
     }
     return current;
 }
+
 void ConfigManager::setNestedValue(QJsonObject &obj, const QStringList &path, const QJsonValue &val) {
     if (path.isEmpty()) return;
     const QString &key = path.first();

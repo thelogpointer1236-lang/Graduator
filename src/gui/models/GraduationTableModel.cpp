@@ -24,9 +24,11 @@ GraduationTableModel::GraduationTableModel(QObject *parent) : QAbstractTableMode
                     endResetModel();
                 }
             });
-    m_updateTimer.setInterval(1234);
+    m_updateTimer.setInterval(100);
     m_updateTimer.start();
-    connect(&m_updateTimer, &QTimer::timeout, this, &GraduationTableModel::onUpdateTimer);
+    connect(&m_updateTimer, &QTimer::timeout, this, &GraduationTableModel::updateIndicators);
+    connect( ServiceLocator::instance().graduationService(), &GraduationService::tableUpdateRequired,
+            this, &GraduationTableModel::updateScale);
 }
 
 void printVector2D(const std::vector<std::vector<double>>& vec) {
@@ -38,12 +40,6 @@ void printVector2D(const std::vector<std::vector<double>>& vec) {
     }
 }
 
-void GraduationTableModel::onUpdateTimer() {
-    beginResetModel();
-    m_forwardData = ServiceLocator::instance().graduationService()->graduator().graduateForward();
-    m_backwardData = ServiceLocator::instance().graduationService()->graduator().graduateBackward();
-    endResetModel();
-}
 int GraduationTableModel::rowCount(const QModelIndex &parent) const {
     if (!m_gaugeModel) return 0 + 4;
     const int cnt = m_gaugeModel->pressureValues().size();
@@ -61,9 +57,9 @@ QVariant GraduationTableModel::data(const QModelIndex &index, int role) const {
     if (row < m_gaugeModel->pressureValues().size() && camIdx < 8) {
         const bool isForward = (col) % 2 == 0;
         const auto &data = isForward ? m_forwardData : m_backwardData;
-        if (row >= data.size() || camIdx >= data[row].size())
+        if (camIdx >= data.size() || row >= data[camIdx].size())
             return {};
-        auto &val = data[row][camIdx];
+        auto &val = data[camIdx][row];
         return qFuzzyIsNull(val.angle) ? QVariant() : QVariant::fromValue(val.angle);
     }
     return QVariant();
@@ -94,4 +90,15 @@ bool GraduationTableModel::setData(const QModelIndex &index, const QVariant &val
 }
 Qt::ItemFlags GraduationTableModel::flags(const QModelIndex &index) const {
     return QAbstractTableModel::flags(index);
+}
+
+void GraduationTableModel::updateIndicators() {
+
+}
+
+void GraduationTableModel::updateScale() {
+    beginResetModel();
+    m_forwardData = ServiceLocator::instance().graduationService()->graduator().graduateForward();
+    m_backwardData = ServiceLocator::instance().graduationService()->graduator().graduateBackward();
+    endResetModel();
 }

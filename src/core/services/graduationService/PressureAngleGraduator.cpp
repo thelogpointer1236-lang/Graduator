@@ -40,10 +40,12 @@ void PressureAngleGraduator::setLoessFrac(double frac) {
 const std::vector<NodeResult>& PressureAngleGraduator::graduate() const {
     if (m_lastAnglesCount_ == m_angleSeries_.size()) return m_results_;
     if (m_pressureSeries_.size() < 2 || m_angleSeries_.size() < 2) {
-        throw std::runtime_error("Not enough samples to graduate.");
+        // throw std::runtime_error("Not enough samples to graduate.");
+        return m_results_;
     }
     if (m_nodePressures_.empty()) {
-        throw std::runtime_error("Node pressures are not configured.");
+        // throw std::runtime_error("Node pressures are not configured.");
+        return m_results_;
     }
     m_debugData_ = DebugData{};
 
@@ -65,7 +67,7 @@ const std::vector<NodeResult>& PressureAngleGraduator::graduate() const {
     double tMin = std::max(tpTimes.front(), taTimes.front());
     double tMax = std::min(tpTimes.back(), taTimes.back());
     if (tMax <= tMin) {
-        throw std::runtime_error("No overlapping time interval between pressure and angle.");
+        return m_results_;
     }
 
     // 3) dt from minimum positive time step

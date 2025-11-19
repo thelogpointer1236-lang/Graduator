@@ -24,6 +24,8 @@ void AutomaticWidget::setupUi()
     m_calibrationModeComboBox->addItems(pressureController->getModes());
     m_startButton = new QPushButton(tr("Start"), this);
     m_stopButton = new QPushButton(tr("Stop"), this);
+    m_startButton->setEnabled(true);
+    m_stopButton->setEnabled(false);
 
     auto *mainLayout = new QVBoxLayout(this);
     mainLayout->addWidget(m_calibrationModeComboBox);
@@ -35,12 +37,30 @@ void AutomaticWidget::setupUi()
 
 void AutomaticWidget::connectSignals()
 {
+    auto *graduationService = ServiceLocator::instance().graduationService();
     connect(m_calibrationModeComboBox, QOverload<int>::of(&QComboBox::currentIndexChanged),
             this, &AutomaticWidget::onCalibrationModeChanged);
     connect(m_startButton, &QPushButton::clicked,
             this, &AutomaticWidget::onStartClicked);
     connect(m_stopButton, &QPushButton::clicked,
             this, &AutomaticWidget::onStopClicked);
+    connect(graduationService, &GraduationService::started,
+            this, [this]() {
+                m_startButton->setEnabled(false);
+                m_stopButton->setEnabled(true);
+            });
+    connect(graduationService, &GraduationService::interrupted,
+            this, [this]() {
+                m_startButton->setEnabled(true);
+                m_stopButton->setEnabled(false);
+            });
+    connect(graduationService, &GraduationService::successfullyStopped,
+            this, [this]() {
+                m_startButton->setEnabled(true);
+                m_stopButton->setEnabled(false);
+            });
+
+
 }
 
 void AutomaticWidget::onCalibrationModeChanged(int index)
@@ -68,5 +88,5 @@ void AutomaticWidget::onStartClicked()
 void AutomaticWidget::onStopClicked()
 {
     auto *gs = ServiceLocator::instance().graduationService();
-    if (gs->isRunning()) gs->stop();
+    if (gs->isRunning()) gs->interrupt();
 }

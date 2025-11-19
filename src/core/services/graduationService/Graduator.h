@@ -45,6 +45,7 @@ namespace grad {
         BatchGraduator m_forward;
         BatchGraduator m_backward;
         std::vector<double> m_lastAngles;
+        int m_cameraCount = 0;
 
         BatchGraduator& active();
         const BatchGraduator& active() const;

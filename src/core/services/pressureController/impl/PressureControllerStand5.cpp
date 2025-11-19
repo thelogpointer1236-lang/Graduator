@@ -92,7 +92,6 @@ void PressureControllerStand5::start() {
     gs->graduator().switchToBackward();
     backwardPressure(); // 3
     g540Driver()->stop();
-    gs->stop();
     m_isRunning = false;
     emit successfullyStopped();
 }

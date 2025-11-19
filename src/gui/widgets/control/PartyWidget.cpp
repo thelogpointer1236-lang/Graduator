@@ -50,12 +50,10 @@ void PartyWidget::setupConnections()
     connect(strongKnotCheck_, &QCheckBox::toggled, this, &PartyWidget::onStrongNodeToggled);
     connect(ServiceLocator::instance().partyManager(), &PartyManager::partyNumberChanged,
             this, &PartyWidget::setPartyNumber);
+    saveButton_->setEnabled(false);
     if (auto *graduationService = ServiceLocator::instance().graduationService()) {
-        saveButton_->setEnabled(graduationService->hasResult());
-        connect(graduationService, &GraduationService::currentResultChanged,
+        connect(graduationService, &GraduationService::resultAvailabilityChanged,
                 this, &PartyWidget::onResultAvailabilityChanged);
-    } else if (saveButton_) {
-        saveButton_->setEnabled(false);
     }
 }
 
@@ -97,14 +95,14 @@ QPushButton *PartyWidget::createSaveButton()
 void PartyWidget::onSaveClicked()
 {
     auto *graduationService = ServiceLocator::instance().graduationService();
-    if (!graduationService || !graduationService->hasResult()) {
+    if (!graduationService || !graduationService->isResultReady()) {
         QMessageBox::warning(this, tr("Saving"), tr("No valid graduation result is available for saving."));
         return;
     }
     auto *partyManager = ServiceLocator::instance().partyManager();
-    const PartyResult result = graduationService->currentResult();
-    if (!partyManager->saveCurrentPartyResult(result)) {
-        QMessageBox::critical(this, tr("Saving"), tr("Failed to store the graduation result for the current party."));
+    const PartyResult result = graduationService->getPartyResult();
+    if (QString err; !partyManager->savePartyResult(result, err)) {
+        QMessageBox::critical(this, tr("Saving"), tr("Failed to store the graduation result for the current party.") + "\n" + err);
         return;
     }
     QMessageBox::information(this, tr("Saving"), tr("The graduation result has been saved."));

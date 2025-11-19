@@ -1,4 +1,4 @@
-﻿// #ifndef USE_STUB_IMPLEMENTATIONS
+﻿#ifndef USE_STUB_IMPLEMENTATIONS
 
 #include "VideoCaptureProcessor.h"
 #include "FrameGrabberCB.h"
@@ -312,4 +312,4 @@ void VideoCaptureProcessor::cleanup() {
     }
 }
 
-// #endif
+#endif

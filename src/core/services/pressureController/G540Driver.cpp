@@ -86,7 +86,6 @@ bool G540Driver::isAnyLimitTriggered() const {
     return state() & (byteStartLimitSwitch() | byteEndLimitSwitch());
 }
 
-#include <iostream>
 bool G540Driver::isStartLimitTriggered() const {
     const bool sw = state() & byteStartLimitSwitch();
     m_startLimitTriggered = sw;
@@ -161,6 +160,7 @@ void G540Driver::start() {
         delayMicroseconds(m_halfDelayMcs);
         m_impulsesCount++;
     }
+    setFrequency(0);
     m_isRunning = false;
 }
 void G540Driver::stop() {

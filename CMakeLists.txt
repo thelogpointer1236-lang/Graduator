@@ -69,10 +69,6 @@ set(SRC_FILES
         src/core/services/graduationService/PressureAngleGraduator.cpp
         src/core/services/graduationService/BatchGraduator.cpp
         src/core/services/PartyManager.cpp
-        src/core/services/PartyManager.h
-        src/core/types/Printer.h
-        src/core/types/Displacement.h
-        src/core/types/Grad.h
 )
 
 set(HEADER_FILES
@@ -111,6 +107,10 @@ set(HEADER_FILES
         src/core/types/PartyResult.h
         src/gui/widgets/other/Toast.h
         src/ApplicationBuilder.h
+        src/core/services/PartyManager.h
+        src/core/types/Printer.h
+        src/core/types/Displacement.h
+        src/core/types/Grad.h
         src/defines.h
 )
 

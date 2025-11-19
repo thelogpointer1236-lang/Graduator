@@ -4,8 +4,9 @@ using namespace grad;
 
 Graduator::Graduator(int cameraCount)
     : m_forward(cameraCount)
+    , m_cameraCount(cameraCount)
     , m_backward(cameraCount) {
-    m_lastAngles.resize(cameraCount);
+    m_lastAngles.resize(m_cameraCount);
 }
 
 void Graduator::switchToForward() {
@@ -36,7 +37,7 @@ void Graduator::addPressureSample(double time, double pressure) {
 }
 
 void Graduator::addAngleSample(int cameraIndex, double time, double angle) {
-    if (cameraIndex < 0 || static_cast<std::size_t>(cameraIndex) >= m_lastAngles.size()) {
+    if (cameraIndex < 0 || static_cast<std::size_t>(cameraIndex) >= m_cameraCount) {
         return;
     }
     active().addAngleSample(cameraIndex, time, angle);
@@ -110,5 +111,6 @@ void Graduator::clear() {
     m_forward.clear();
     m_backward.clear();
     m_lastAngles.clear();
+    m_lastAngles.resize(m_cameraCount);
 }
 

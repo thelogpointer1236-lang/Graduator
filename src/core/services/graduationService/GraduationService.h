@@ -17,20 +17,21 @@ public:
     qreal getElapsedTimeSeconds() const;
 
     void start();
-    void stop();
+    void interrupt();
     bool isRunning() const;
     bool isReadyToRun(QString &err) const;
 
     grad::Graduator& graduator();
     bool isResultReady() const;
-
     const PartyResult& getPartyResult();
+    void requestTableUpdate();
 
 signals:
     void started();
     void interrupted();
-    void resultReady();
-    void resultCleared();
+    void successfullyStopped();
+    void resultAvailabilityChanged(bool available);
+    void tableUpdateRequired();
 
 private slots:
     void onPressureMeasured(qreal t, Pressure p);
