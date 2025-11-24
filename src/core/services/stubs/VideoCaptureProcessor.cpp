@@ -68,9 +68,7 @@ VideoCaptureProcessor::VideoCaptureProcessor(QObject *parent)
         const qreal shift = m_cameraIndex * 2.0;
         const qreal finalAngle = angle + shift;
 
-        emit angleReady(m_cameraIndex,
-                        elapsedMs / 1000.0,   // время в секундах
-                        finalAngle);
+
     });
 
     timer->start();

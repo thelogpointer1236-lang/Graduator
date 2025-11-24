@@ -35,6 +35,10 @@ bool GraduationService::isRunning() const {
 
 bool GraduationService::isReadyToRun(QString &err) const {
     if (this->isRunning()) return false;
+
+    auto* pc = ServiceLocator::instance().pressureController();
+    auto* ps = ServiceLocator::instance().pressureSensor();
+
     const int gaugeIdx = ServiceLocator::instance().configManager()->get<int>("current.gaugeModel", -1);
     if (gaugeIdx < 0 || gaugeIdx >= ServiceLocator::instance().gaugeCatalog()->all().size()) {
         err =  QString::fromWCharArray(L"Не задана модель манометра.");
@@ -51,13 +55,14 @@ bool GraduationService::isReadyToRun(QString &err) const {
         err =  QString::fromWCharArray(L"Не задана единица измерения.");
         return false;
     }
-    ServiceLocator::instance().pressureController()->setGaugePressurePoints(m_gaugeModel.pressureValues());
-    ServiceLocator::instance().pressureController()->setPressureUnit(m_pressureUnit);
-    if (!ServiceLocator::instance().pressureSensor()->isRunning()) {
+    if (!ps->isRunning()) {
         err = QString::fromWCharArray(L"Датчик давления не запущен.");
         return false;
     }
-    if (!ServiceLocator::instance().pressureController()->isReadyToStart(err)) {
+    pc->updatePressure(0, ps->getLastPressure().getValue(m_pressureUnit));
+    pc->setGaugePressurePoints(m_gaugeModel.pressureValues());
+    pc->setPressureUnit(m_pressureUnit);
+    if (!pc->isReadyToStart(err)) {
         return false;
     }
     return true;

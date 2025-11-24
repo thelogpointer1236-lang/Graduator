@@ -22,6 +22,8 @@ private slots:
     void onOpenInlet() const;
     void onOpenOutlet() const;
     void onCloseBoth() const;
+    void updateUiState();      // Слот для централизованного обновления UI
+    void onPollTimerTimeout(); // Слот, который будет вызываться таймером
 
 private:
     void setupUi();
@@ -37,6 +39,8 @@ private:
     QPushButton *m_btnOpenInlet = nullptr;
     QPushButton *m_btnOpenOutlet = nullptr;
     QPushButton *m_btnCloseBoth = nullptr;
+
+    QTimer* m_pollTimer = nullptr;
 };
 
 #endif // GRADUATOR_MANUALCONTROLWIDGET_H

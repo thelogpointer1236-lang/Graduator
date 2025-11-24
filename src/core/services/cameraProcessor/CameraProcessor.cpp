@@ -131,7 +131,7 @@ void CameraProcessor::enqueueImage(qint32 cameraIdx, qreal time, quint8 *imgData
     );
 
     for (auto& anglemeterProcessor : m_anglemeterProcessors) {
-        qDebug() << "queue size:" << anglemeterProcessor->queueSize();
+        // qDebug() << "queue size:" << anglemeterProcessor->queueSize();
     }
 
     (*it)->enqueueImage(cameraIdx, time, imgData);
