@@ -195,9 +195,10 @@ bool VideoCaptureProcessor::init(void *hwnd, int cameraIndex) {
         return false;
     }
     // Создание и установка callback
-    m_grabberCB = new FrameGrabberCB(m_cameraIndex);
+    m_grabberCB = new FrameGrabberCB(m_cameraIndex, 640, 480);
     // Предполагая, что FrameGrabberCB - ваша реализация ISampleGrabberCB
-    connect(m_grabberCB, &FrameGrabberCB::angleReady, this, &VideoCaptureProcessor::angleReady, Qt::QueuedConnection);
+    connect(m_grabberCB, &FrameGrabberCB::imageCaptured, this,
+        &VideoCaptureProcessor::imageCaptured, Qt::DirectConnection);
     // m_callback->AddRef(); // Ручное увеличение счетчика ссылок
     hr = m_pSampleGrabber->SetCallback(m_grabberCB, 1); // Метод 1 для BufferCB
     if (FAILED(hr)) {

@@ -3,12 +3,41 @@
 #include "CameraProcessor.h"
 #include "defines.h"
 #include "core/services/ServiceLocator.h"
+#include <QThread>
+#include <QDebug>
+#include <algorithm>
 
-CameraProcessor::CameraProcessor(QObject *parent) : QObject(parent) {
+CameraProcessor::CameraProcessor(int anglemeterThreadsCount, int imgWidth, int imgHeight, QObject *parent) : QObject(parent) {
     m_videoProcessors.reserve(8);
+    for (int i = 0; i < anglemeterThreadsCount; ++i) {
+        auto* anglemeterProcessor = new AnglemeterProcessor();
+        anglemeterProcessor->setImageSize(imgWidth, imgHeight);
+        anglemeterProcessor->setAngleTransformation([] (const float angleDeg) -> float {
+            float transformedAngle = std::fmodf(180.0f - angleDeg, 360.0f);
+            if (transformedAngle < 0.0f) transformedAngle += 360.0f;
+            return transformedAngle;
+
+        });
+        auto* thread = new QThread();
+        anglemeterProcessor->moveToThread(thread);
+        thread->start();
+        m_anglemeterProcessors.emplace_back(anglemeterProcessor);
+        m_anglemeterThreads.emplace_back(thread);
+        connect(anglemeterProcessor, &AnglemeterProcessor::angleMeasured,
+            this, &CameraProcessor::angleMeasured);
+    }
 }
 
-CameraProcessor::~CameraProcessor() = default;
+CameraProcessor::~CameraProcessor() {
+    for (auto* anglemeterProcessor : m_anglemeterProcessors) {
+        anglemeterProcessor->deleteLater();
+    }
+    for (auto* thread : m_anglemeterThreads) {
+        thread->quit();
+        thread->wait();
+        delete thread;
+    }
+}
 
 void CameraProcessor::setCameraString(const QString &cameraStr) {
     const int cameraLimit = availableCameraCount();
@@ -39,7 +68,8 @@ void CameraProcessor::setCameraIndices(std::vector<qint32> indices) {
 
 VideoCaptureProcessor* CameraProcessor::createVideoProcessor(QObject *parent) {
     auto* vp = new VideoCaptureProcessor(this);
-    connect(vp, &VideoCaptureProcessor::angleReady, this, &CameraProcessor::angleMeasured);
+    connect(vp, &VideoCaptureProcessor::imageCaptured,
+        this, &CameraProcessor::enqueueImage, Qt::DirectConnection);
     m_videoProcessors.emplace_back(vp);
     return vp;
 }
@@ -60,7 +90,7 @@ int CameraProcessor::availableCameraCount() {
 }
 
 void CameraProcessor::enableDrawingCrosshair(bool enabled) {
-    FrameGrabberCB::s_isDrawAim = enabled;
+    FrameGrabberCB::s_isDrawingAim = enabled;
 }
 
 QString CameraProcessor::cameraStr() {
@@ -90,4 +120,19 @@ std::vector<qint32> CameraProcessor::cameraIndices() {
 
 std::vector<qint32> CameraProcessor::sysCameraIndices() {
     return extractDigits(sysCameraStr());
+}
+
+void CameraProcessor::enqueueImage(qint32 cameraIdx, qreal time, quint8 *imgData) {
+    if (m_anglemeterProcessors.empty()) return;
+
+    const auto it = std::min_element(
+        m_anglemeterProcessors.begin(), m_anglemeterProcessors.end(),
+        [](const auto &a, const auto &b){ return a->queueSize() < b->queueSize(); }
+    );
+
+    for (auto& anglemeterProcessor : m_anglemeterProcessors) {
+        qDebug() << "queue size:" << anglemeterProcessor->queueSize();
+    }
+
+    (*it)->enqueueImage(cameraIdx, time, imgData);
 }

@@ -16,7 +16,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/src)
 
-add_definitions(-DUSE_STUB_IMPLEMENTATIONS)
+#add_definitions(-DUSE_STUB_IMPLEMENTATIONS)
 
 find_package(Qt5 COMPONENTS
         Core
@@ -59,7 +59,7 @@ set(SRC_FILES
         src/core/services/PressureSensor.cpp
         src/core/services/graduationService/GraduationService.cpp
         src/core/services/graduationService/Graduator.cpp
-        src/core/services/cameraProcessor/anglemeters/scan_anglemeter.cpp
+        src/core/services/cameraProcessor/anglemeter/cast_anglemeter.cpp
         src/gui/views/StatusBarView.cpp
         src/gui/models/StatusBarModel.cpp
         src/ApplicationBuilder.cpp
@@ -69,6 +69,7 @@ set(SRC_FILES
         src/core/services/graduationService/PressureAngleGraduator.cpp
         src/core/services/graduationService/BatchGraduator.cpp
         src/core/services/PartyManager.cpp
+        src/core/services/cameraProcessor/anglemeter/AnglemeterProcessor.cpp
 )
 
 set(HEADER_FILES
@@ -111,6 +112,7 @@ set(HEADER_FILES
         src/core/types/Printer.h
         src/core/types/Displacement.h
         src/core/types/Grad.h
+        src/core/services/cameraProcessor/anglemeter/AnglemeterProcessor.h
         src/defines.h
 )
 

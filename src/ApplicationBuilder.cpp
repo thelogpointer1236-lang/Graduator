@@ -11,6 +11,7 @@
 ApplicationBuilder::ApplicationBuilder(QApplication* app)
     : app_(app)
 {
+    declareMetatypes();
 }
 
 ApplicationBuilder::~ApplicationBuilder()
@@ -71,6 +72,7 @@ MainWindow* ApplicationBuilder::build()
 
 void ApplicationBuilder::declareMetatypes() {
     qRegisterMetaType<Pressure>("Pressure");
+    qRegisterMetaType<quint8*>("quint8*");
 }
 
 void ApplicationBuilder::loadStyle()
@@ -203,6 +205,6 @@ void ApplicationBuilder::initPressureSensor()
 
 void ApplicationBuilder::initCameraProcessor()
 {
-    auto* cam = new CameraProcessor();
+    auto* cam = new CameraProcessor(1, 640, 480);
     ServiceLocator::instance().setCameraProcessor(cam);
 }

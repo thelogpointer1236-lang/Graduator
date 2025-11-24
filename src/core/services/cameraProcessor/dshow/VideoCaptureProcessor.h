@@ -13,9 +13,10 @@ public:
     static int getCameraCount();
     void resizeVideoWindow(const QSize &size);
     FrameGrabberCB *frameGrabberCB() const;
-    signals:
-    
-    void angleReady(qint32 idx, qreal t, qreal a);
+
+signals:
+    void imageCaptured(qint32 cameraIdx, qreal time, quint8* imgData);
+
 private:
     void checkHR(long hr, const QString &errorMessage);
     void cleanup();
