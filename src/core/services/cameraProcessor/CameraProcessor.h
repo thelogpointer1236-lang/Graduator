@@ -35,6 +35,7 @@ private:
     std::vector<VideoCaptureProcessor*> m_videoProcessors;
     std::vector<AnglemeterProcessor*> m_anglemeterProcessors;
     std::vector<QThread*> m_anglemeterThreads;
+    std::map<qint32, qreal> m_lastAngles;
 };
 
 #endif //GRADUATOR_CAMERAPROCESSOR_H

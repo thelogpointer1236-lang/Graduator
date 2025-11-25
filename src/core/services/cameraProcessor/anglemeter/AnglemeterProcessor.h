@@ -9,7 +9,7 @@ class AnglemeterProcessor final : public QObject {
     Q_OBJECT
 public:
     AnglemeterProcessor();
-    ~AnglemeterProcessor();
+    ~AnglemeterProcessor() override;
     void setImageSize(qint32 width, qint32 height);
     void setAngleTransformation(float (*func_ptr)(float));
 
@@ -19,8 +19,8 @@ public:
 private slots:
     void processImage(qint32 cameraIdx, qreal time, quint8 *imgData);
 
-    signals:
-        void angleMeasured(qint32 cameraIdx, qreal time, qreal angle);
+signals:
+    void angleMeasured(qint32 cameraIdx, qreal time, qreal angle);
 
 private:
     anglemeter_t* m_am;

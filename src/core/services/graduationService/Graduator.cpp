@@ -6,7 +6,6 @@ Graduator::Graduator(int cameraCount)
     : m_forward(cameraCount)
     , m_cameraCount(cameraCount)
     , m_backward(cameraCount) {
-    m_lastAngles.resize(m_cameraCount);
 }
 
 void Graduator::switchToForward() {
@@ -41,7 +40,6 @@ void Graduator::addAngleSample(int cameraIndex, double time, double angle) {
         return;
     }
     active().addAngleSample(cameraIndex, time, angle);
-    m_lastAngles[cameraIndex] = angle;
 }
 
 void Graduator::setNodePressures(const std::vector<double>& pressures) {
@@ -96,9 +94,6 @@ std::vector<std::size_t> Graduator::anglesCountBackward() const {
     return m_backward.anglesCount();
 }
 
-const std::vector<double>& Graduator::currentAngles() const {
-    return m_lastAngles;
-}
 std::vector<const DebugData*> Graduator::allDebugDataForward() const {
     return m_forward.allDebugData();
 }
@@ -110,7 +105,5 @@ std::vector<const DebugData*> Graduator::allDebugDataBackward() const {
 void Graduator::clear() {
     m_forward.clear();
     m_backward.clear();
-    m_lastAngles.clear();
-    m_lastAngles.resize(m_cameraCount);
 }
 

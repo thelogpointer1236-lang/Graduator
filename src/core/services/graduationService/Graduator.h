@@ -33,8 +33,6 @@ namespace grad {
         std::vector<std::size_t> anglesCountForward() const;
         std::vector<std::size_t> anglesCountBackward() const;
 
-        const std::vector<double>& currentAngles() const;
-
         std::vector<const DebugData*> allDebugDataForward() const;
         std::vector<const DebugData*> allDebugDataBackward() const;
 
@@ -44,7 +42,6 @@ namespace grad {
         bool m_isForward = true;
         BatchGraduator m_forward;
         BatchGraduator m_backward;
-        std::vector<double> m_lastAngles;
         int m_cameraCount = 0;
 
         BatchGraduator& active();
