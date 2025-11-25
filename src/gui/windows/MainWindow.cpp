@@ -4,7 +4,7 @@
 #include <QVBoxLayout>
 #include <QCloseEvent>
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
-    setWindowTitle(QString::fromWCharArray(L"Градуировщик"));
+    setWindowTitle(tr("Graduator"));
     // Создаем центральный виджет
     const auto centralWidget = new QWidget(this);
     this->setCentralWidget(centralWidget);
