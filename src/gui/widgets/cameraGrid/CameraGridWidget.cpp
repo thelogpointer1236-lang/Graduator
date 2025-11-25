@@ -5,6 +5,7 @@
 
 #include <QResizeEvent>
 #include <QSizePolicy>
+#include <QDebug>
 
 namespace {
 constexpr int CameraColumns = 2;
@@ -52,7 +53,7 @@ void CameraGridWidget::createCameraLabels()
 
 AspectRatioLabel *CameraGridWidget::createCameraLabel(int index)
 {
-    auto *label = new AspectRatioLabel((tr("Camera") + "%1").arg(index + 1), this);
+    auto *label = new AspectRatioLabel((tr("Camera") + " %1").arg(index + 1), this);
     label->setAlignment(Qt::AlignCenter);
     label->setMinimumSize(MinCameraWidth, MinCameraHeight);
     label->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
@@ -123,6 +124,11 @@ void CameraGridWidget::rebuildVideoProcessors(int camCount,
         const HWND hwnd = reinterpret_cast<HWND>(label->winId());
         const int sysIdx = sysIndices[userIdx - 1] - 1;
         vp->init(hwnd, sysIdx);
+        vp->debugAllCameraProps();
+
+        // if (vp->setSharpness(15)) {
+        //     qDebug() << "Set brightness to 200 for camera index" << sysIdx;
+        // }
         vp->resizeVideoWindow(getCameraWindowSize());
     }
 }

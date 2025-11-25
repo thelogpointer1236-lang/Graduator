@@ -16,9 +16,14 @@ public:
     VideoCaptureProcessor* createVideoProcessor(QObject *parent = nullptr);
     const std::vector<VideoCaptureProcessor*>& videoProcessors();
     void clearVideoProcessors();
+    qreal lastAngleForCamera(qint32 cameraIdx) const;
+
+    static void setAimEnabled(bool enabled);
+    static void setCapturingRate(int rate);
+    static void setAimColor(const QColor &color);
+    static void setAimRadius(int radius);
 
     static int availableCameraCount();
-    static void enableDrawingCrosshair(bool enabled);
     static QString cameraStr();
     static QString sysCameraStr();
     static std::vector<qint32> cameraIndices();
@@ -26,6 +31,7 @@ public:
 
 private slots:
     void enqueueImage(qint32 cameraIdx, qreal time, quint8* imgData);
+    void onAngleMeasured(qint32 idx, qreal time, qreal angle);
 
 signals:
     void angleMeasured(qint32 idx, qreal time, qreal angle);

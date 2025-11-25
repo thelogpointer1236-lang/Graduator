@@ -1,7 +1,6 @@
 #include "SettingsWidget.h"
 
 #include "core/services/ServiceLocator.h"
-
 #include "defines.h"
 
 #include <QGroupBox>
@@ -15,8 +14,10 @@
 #include <QFormLayout>
 #include <QMessageBox>
 #include <QEvent>
+#include <QColorDialog>
+#include <QSlider>
+#include <QFrame>
 #include <vector>
-
 
 SettingsWidget::SettingsWidget(QWidget *parent)
     : QWidget(parent)
@@ -104,7 +105,7 @@ QGroupBox *SettingsWidget::createPrintGroup()
     auto *group = new QGroupBox(tr("Printing"), this);
     auto *layout = new QFormLayout(group);
     auto *config = ServiceLocator::instance().configManager();
-    auto *partyManager =ServiceLocator::instance().partyManager();
+    auto *partyManager = ServiceLocator::instance().partyManager();
 
     comboPrinter_ = new QComboBox(group);
     QStringList printers;
@@ -138,13 +139,46 @@ QGroupBox *SettingsWidget::createMiscGroup()
     editComPort_ = new QLineEdit(group);
     editComPort_->setText(ServiceLocator::instance().configManager()->get<QString>(CFG_KEY_PRESSURE_SENSOR_COM, "COM1"));
     btnConnectCom_ = new QPushButton(tr("Connect"), group);
+
     chkDrawCrosshair_ = new QCheckBox(tr("Draw a crosshair on the video output"), group);
-    chkDrawCrosshair_->setChecked(ServiceLocator::instance().configManager()->get<bool>(CFG_KEY_DRAW_CROSSHAIR, false));
+    chkDrawCrosshair_->setChecked(ServiceLocator::instance().configManager()->get<bool>(CFG_KEY_AIM_VISIBLE, false));
+
+    // -------------------------
+    // НОВОЕ: СЛАЙДЕР РАДИУСА
+    // -------------------------
+    int radius = ServiceLocator::instance().configManager()->get<int>(CFG_KEY_AIM_RADIUS, 30);
+    sliderAimRadius_ = new QSlider(Qt::Horizontal, group);
+    sliderAimRadius_->setRange(5, 200);
+    sliderAimRadius_->setValue(radius);
+
+    lblAimRadiusValue_ = new QLabel(QString::number(radius), group);
+
+    // -------------------------
+    // НОВОЕ: COLOR PICKER
+    // -------------------------
+    btnAimColor_ = new QPushButton(tr("Choose color"), group);
+
+    QString savedColor = ServiceLocator::instance().configManager()->get<QString>(CFG_KEY_AIM_COLOR, "#FF0000");
+    currentAimColor_ = QColor(savedColor);
+
+    colorPreview_ = new QLabel(group);
+    colorPreview_->setFixedSize(24, 24);
+    colorPreview_->setFrameStyle(QFrame::Box | QFrame::Plain);
+    colorPreview_->setStyleSheet(QString("background-color: %1").arg(savedColor));
 
     layout->addWidget(label, 0, 0);
     layout->addWidget(editComPort_, 0, 1);
     layout->addWidget(btnConnectCom_, 0, 2);
     layout->addWidget(chkDrawCrosshair_, 1, 1);
+
+    layout->addWidget(new QLabel(tr("Crosshair radius") + ":", group), 2, 0);
+    layout->addWidget(sliderAimRadius_, 2, 1);
+    layout->addWidget(lblAimRadiusValue_, 2, 2);
+
+    layout->addWidget(new QLabel(tr("Crosshair color") + ":", group), 3, 0);
+    layout->addWidget(btnAimColor_, 3, 1);
+    layout->addWidget(colorPreview_, 3, 2);
+
     group->setLayout(layout);
 
     return group;
@@ -172,13 +206,16 @@ void SettingsWidget::connectSignals()
             &SettingsWidget::onDialLayoutChanged);
     connect(btnConnectCom_, &QPushButton::clicked, this, &SettingsWidget::onConnectComPortClicked);
     connect(chkDrawCrosshair_, &QCheckBox::toggled, this, &SettingsWidget::onDrawCrosshairChanged);
+
+    // новые сигналы
+    connect(sliderAimRadius_, &QSlider::valueChanged, this, &SettingsWidget::onAimRadiusChanged);
+    connect(btnAimColor_, &QPushButton::clicked, this, &SettingsWidget::onAimColorPickRequested);
+
     connect(ServiceLocator::instance().cameraProcessor(), &CameraProcessor::cameraStrChanged,
             this, [&](const QString &newCameraStr) {
                 editCameras_->setText(newCameraStr);
             });
 }
-
-
 
 void SettingsWidget::onOpenCameraClicked() {
     const QString cameraString = editCameras_->text();
@@ -232,8 +269,37 @@ void SettingsWidget::onConnectComPortClicked() {
 }
 
 void SettingsWidget::onDrawCrosshairChanged(bool checked) {
-    ServiceLocator::instance().configManager()->setValue(CFG_KEY_DRAW_CROSSHAIR, checked);
-    ServiceLocator::instance().cameraProcessor()->enableDrawingCrosshair(checked);
+    ServiceLocator::instance().configManager()->setValue(CFG_KEY_AIM_VISIBLE, checked);
+    ServiceLocator::instance().cameraProcessor()->setAimEnabled(checked);
+}
+
+// ------------------------------
+// НОВОЕ: изменение радиуса
+// ------------------------------
+void SettingsWidget::onAimRadiusChanged(int value)
+{
+    lblAimRadiusValue_->setText(QString::number(value));
+    ServiceLocator::instance().configManager()->setValue(CFG_KEY_AIM_RADIUS, value);
+    ServiceLocator::instance().cameraProcessor()->setAimRadius(value);
+}
+
+// ------------------------------
+// НОВОЕ: Color Picker
+// ------------------------------
+void SettingsWidget::onAimColorPickRequested()
+{
+    QColor newColor = QColorDialog::getColor(currentAimColor_, this, tr("Select crosshair color"));
+
+    if (!newColor.isValid())
+        return;
+
+    currentAimColor_ = newColor;
+
+    colorPreview_->setStyleSheet(QString("background-color: %1").arg(newColor.name()));
+
+    ServiceLocator::instance().configManager()->setValue(CFG_KEY_AIM_COLOR, newColor.name());
+
+    ServiceLocator::instance().cameraProcessor()->setAimColor(newColor);
 }
 
 void SettingsWidget::installEventFilters() {
@@ -249,7 +315,7 @@ bool SettingsWidget::eventFilter(QObject *obj, QEvent *event)
     if (event->type() == QEvent::Wheel) {
         if (qobject_cast<QComboBox*>(obj)) {
             event->ignore();
-            return true; // блокируем
+            return true;
         }
     }
     return QWidget::eventFilter(obj, event);

@@ -161,6 +161,7 @@ void G540Driver::start() {
         m_impulsesCount++;
     }
     setFrequency(0);
+    m_impulsesCount = 0;
     m_isRunning = false;
 }
 void G540Driver::stop() {

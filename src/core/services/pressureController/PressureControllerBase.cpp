@@ -130,6 +130,7 @@ bool PressureControllerBase::shouldStop() const noexcept {
 }
 void PressureControllerBase::startGoToEnd() {
     m_isRunning = true;
+    emit started();
     g540Driver()->setDirection(G540Direction::Forward);
     QMetaObject::invokeMethod(g540Driver(), "start", Qt::QueuedConnection);
     while (!g540Driver()->isEndLimitTriggered()) {
@@ -143,6 +144,7 @@ void PressureControllerBase::startGoToEnd() {
 }
 void PressureControllerBase::startGoToStart() {
     m_isRunning = true;
+    emit started();
     g540Driver()->setDirection(G540Direction::Backward);
     QMetaObject::invokeMethod(g540Driver(), "start", Qt::QueuedConnection);
     const auto emergencyStopIfBothLimitsTriggered = [this]() -> bool {

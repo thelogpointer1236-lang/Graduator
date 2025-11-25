@@ -8,6 +8,8 @@
 #include <QString>
 #include <QVariant>
 #include <QJsonArray>
+#include <QColor>
+
 template<typename T>
 struct is_qvector : std::false_type {
 };
@@ -51,6 +53,35 @@ public:
                        ? static_cast<qint64>(v.toDouble())
                        : v.toString().toLongLong(nullptr, 0);
         }
+        if constexpr (std::is_same_v<U, QColor>) {
+            // Строка: "#RRGGBB" или имя цвета
+            if (v.isString()) {
+                QColor c(v.toString());
+                return c.isValid() ? c : QColor();
+            }
+
+            // Число: 0xRRGGBB или 0xAARRGGBB
+            if (v.isDouble()) {
+                uint val = v.toInt();
+                if (val <= 0xFFFFFF)
+                    return QColor::fromRgb(val);
+                else
+                    return QColor::fromRgba(val);
+            }
+
+            // JSON-объект: {r,g,b,a?}
+            if (v.isObject()) {
+                QJsonObject o = v.toObject();
+                int r = o.value("r").toInt(0);
+                int g = o.value("g").toInt(0);
+                int b = o.value("b").toInt(0);
+                int a = o.value("a").toInt(255);
+                return QColor(r, g, b, a);
+            }
+
+            return QColor();
+        }
+
         // fallback: если тип неподдерживаем
         return U{};
     }
@@ -96,12 +127,5 @@ private:
     static QJsonValue getNestedValue(const QJsonObject &obj, const QStringList &path, const QJsonValue &def);
     static void setNestedValue(QJsonObject &obj, const QStringList &path, const QJsonValue &val);
 };
-/*  Пример использвоания:
-    ConfigManager cfg("config.json");
-    cfg.load();
 
-    double kp = cfg.getValue("pressureController.pid.kp").toDouble();
-    cfg.setValue("camera.exposure", 15.0);
-    cfg.save();
- */
 #endif //GRADUATOR_CONFIGMANAGER_H

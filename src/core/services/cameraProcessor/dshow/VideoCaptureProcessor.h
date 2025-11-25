@@ -14,6 +14,18 @@ public:
     void resizeVideoWindow(const QSize &size);
     FrameGrabberCB *frameGrabberCB() const;
 
+    void debugCameraControls();
+    void debugVideoProcAmp();
+    void debugAllCameraProps();
+
+    bool setBrightness(long value);
+    bool setContrast(long value);
+    bool setHue(long value);
+    bool setSaturation(long value);
+    bool setSharpness(long value);
+    bool setGamma(long value);
+    bool setBacklightCompensation(long value);
+
 signals:
     void imageCaptured(qint32 cameraIdx, qreal time, quint8* imgData);
 
@@ -32,6 +44,8 @@ private:
     class IEnumMoniker *m_pEnum;
     class IMoniker *m_pMoniker;
     class ICreateDevEnum *m_pDevEnum;
+    class IAMCameraControl *m_pCameraControl;
+    class IAMVideoProcAmp *m_pVideoProcAmp;
     // Window handle
     void *m_hwnd;
     // Camera index

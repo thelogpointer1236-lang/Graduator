@@ -23,6 +23,7 @@ private:
     void initPressureController();
     void initPressureSensor();
     void initCameraProcessor();
+    void applySettings();
 
 private:
     QApplication* app_;

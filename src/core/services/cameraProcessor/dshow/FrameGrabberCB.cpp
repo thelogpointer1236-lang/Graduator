@@ -51,7 +51,7 @@ HRESULT FrameGrabberCB::BufferCB(double SampleTime, BYTE *pBuffer, const long Bu
     // -------------------------
     // Рисуем прицел
     // -------------------------
-    if (s_isDrawingAim) {
+    if (s_aimIsVisible) {
         RGBImage image(pBuffer, BufferLen);
 
         const int cx = image.getWidth() / 2;

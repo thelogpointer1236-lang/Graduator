@@ -47,6 +47,10 @@ public:
         }
 
         for (int camIdx = 0; camIdx < result.forward.size(); ++camIdx) {
+            if (result.forward[camIdx].size() != result.gaugeModel.pressureValues().size() ||
+                result.backward[camIdx].size() != result.gaugeModel.pressureValues().size()) {
+                continue;
+            }
             QString fileName = folder.filePath(QString("scale%1.tbl").arg(camIdx + 1));
             QFile file(fileName);
             if (!file.open(QIODevice::WriteOnly | QIODevice::Text)) {

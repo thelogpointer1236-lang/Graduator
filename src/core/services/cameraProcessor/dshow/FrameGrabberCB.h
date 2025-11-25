@@ -41,7 +41,7 @@ signals:
 public:
     static inline auto s_aimColor = RGBPixel(0, 0, 0);
     static inline auto s_aimRadius = 30;
-    static inline bool s_isDrawingAim = false;
+    static inline bool s_aimIsVisible = false;
     static inline bool s_isCapturing = true;
 
 private:

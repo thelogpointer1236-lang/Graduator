@@ -5,6 +5,7 @@
 #include "core/services/ServiceLocator.h"
 #include <QThread>
 #include <QDebug>
+#include <QColor>
 #include <algorithm>
 
 CameraProcessor::CameraProcessor(int anglemeterThreadsCount, int imgWidth, int imgHeight, QObject *parent) : QObject(parent) {
@@ -40,6 +41,7 @@ CameraProcessor::~CameraProcessor() {
 }
 
 void CameraProcessor::setCameraString(const QString &cameraStr) {
+    m_lastAngles.clear();
     const int cameraLimit = availableCameraCount();
     auto cleanAndUnique = [cameraLimit](const QString &input) -> QString {
         QString digits;
@@ -85,12 +87,35 @@ void CameraProcessor::clearVideoProcessors() {
     m_videoProcessors.clear();
 }
 
+qreal CameraProcessor::lastAngleForCamera(qint32 cameraIdx) const {
+    auto it = m_lastAngles.find(cameraIdx);
+    if (it != m_lastAngles.end()) {
+        return it->second;
+    }
+    return qreal{0};
+}
+
 int CameraProcessor::availableCameraCount() {
     return VideoCaptureProcessor::getCameraCount();
 }
 
-void CameraProcessor::enableDrawingCrosshair(bool enabled) {
-    FrameGrabberCB::s_isDrawingAim = enabled;
+void CameraProcessor::setAimEnabled(bool enabled) {
+    FrameGrabberCB::s_aimIsVisible = enabled;
+}
+
+void CameraProcessor::setCapturingRate(int rate) {
+}
+
+void CameraProcessor::setAimColor(const QColor &color) {
+    FrameGrabberCB::s_aimColor = RGBPixel(
+        static_cast<quint8>(color.red()),
+        static_cast<quint8>(color.green()),
+        static_cast<quint8>(color.blue())
+    );
+}
+
+void CameraProcessor::setAimRadius(int radius) {
+    FrameGrabberCB::s_aimRadius = radius;
 }
 
 QString CameraProcessor::cameraStr() {
@@ -135,4 +160,8 @@ void CameraProcessor::enqueueImage(qint32 cameraIdx, qreal time, quint8 *imgData
     }
 
     (*it)->enqueueImage(cameraIdx, time, imgData);
+}
+
+void CameraProcessor::onAngleMeasured(qint32 idx, qreal time, qreal angle) {
+    m_lastAngles[idx] = angle;
 }

@@ -19,7 +19,6 @@
 // cameraProcessor
 #define CFG_KEY_SYS_CAMERA_STR                   "cameraProcessor.sysCameraStr"
 #define CFG_KEY_SYS_AUTOOPEN                     "cameraProcessor.autoopen"
-#define CFG_KEY_DRAW_CROSSHAIR                   "cameraProcessor.drawCrosshair"
 // pressureController
 #define CFG_KEY_PRESSURE_MAX_VELOCITY_FACTOR     "pressureController.maxVelocityFactor"
 #define CFG_KEY_PRESSURE_MIN_VELOCITY_FACTOR     "pressureController.minVelocityFactor"
@@ -33,4 +32,10 @@
 #define CFG_KEY_PRECISION_CLASSES                "stand.precisionClasses"
 #define CFG_KEY_DISPLACEMENTS                    "stand.displacements"
 #define CFG_KEY_PRINTERS                         "stand.printers"
+
+
+#define CFG_KEY_AIM_COLOR                         "aim.color"
+#define CFG_KEY_AIM_RADIUS                        "aim.radius"
+#define CFG_KEY_AIM_VISIBLE                       "aim.visible"
+
 #endif // CONFIG_DEFINES_H

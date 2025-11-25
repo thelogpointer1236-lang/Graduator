@@ -51,16 +51,28 @@ int GraduationTableModel::columnCount(const QModelIndex &parent) const {
 QVariant GraduationTableModel::data(const QModelIndex &index, int role) const {
     if (role != Qt::DisplayRole || !m_gaugeModel)
         return {};
+    int pp_size = m_gaugeModel->pressureValues().size();
     const int row = index.row();
     const int col = index.column();
     const int camIdx = m_cameraStr[(col) / 2].digitValue() - 1;
-    if (row < m_gaugeModel->pressureValues().size() && camIdx < 8) {
+    if (camIdx >= 8) return QVariant();
+
+    // Graduation data
+    if (row < pp_size) {
         const bool isForward = (col) % 2 == 0;
         const auto &data = isForward ? m_forwardData : m_backwardData;
         if (camIdx >= data.size() || row >= data[camIdx].size())
             return {};
         auto &val = data[camIdx][row];
         return qFuzzyIsNull(val.angle) ? QVariant() : QVariant::fromValue(val.angle);
+    }
+
+    // Additional data
+    if (row < rowCount()) {
+        int infoRow = row - pp_size;
+        if (infoRow == 0) {
+            return QVariant(ServiceLocator::instance().cameraProcessor()->lastAngleForCamera(camIdx));
+        }
     }
     return QVariant();
 }

@@ -112,6 +112,7 @@ QCheckBox::indicator:checked {
 }
 
 /* Радиокнопки */
+/* Радиокнопки */
 QRadioButton {
     spacing: 6px;
 }
@@ -124,15 +125,29 @@ QRadioButton::indicator {
     background-color: #ffffff;
 }
 
+/* Наведение */
 QRadioButton::indicator:hover {
     border-color: #999999;
 }
 
+/* Выбрано */
 QRadioButton::indicator:checked {
     border: 1px solid #4a90e2;
     background-color: #4a90e2;
-    image: url(:/icons/res/radio_inner.png); /* нужно нарисовать круг внутри */
 }
+
+/* Отключено (не выбрано) */
+QRadioButton::indicator:disabled {
+    border: 1px solid #cccccc;
+    background-color: #f0f0f0;
+}
+
+/* Отключено и выбрано */
+QRadioButton::indicator:checked:disabled {
+    border: 1px solid #bbbbbb;
+    background-color: #bbbbbb;
+}
+
 
 /* Скроллбары */
 QScrollBar:vertical, QScrollBar:horizontal {

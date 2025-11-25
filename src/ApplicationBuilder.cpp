@@ -57,15 +57,7 @@ MainWindow* ApplicationBuilder::build()
     auto* mainWindow = new MainWindow();
     mainWindow->setMinimumSize(1600, 800);
 
-    auto* cfg = ServiceLocator::instance().configManager();
-    auto* camera = ServiceLocator::instance().cameraProcessor();
-
-    if (cfg->get<bool>(CFG_KEY_SYS_AUTOOPEN, false)) {
-        camera->setCameraString(cfg->get<QString>(CFG_KEY_SYS_CAMERA_STR));
-    }
-    if (cfg->get<bool>(CFG_KEY_DRAW_CROSSHAIR, false)) {
-        camera->enableDrawingCrosshair(true);
-    }
+    applySettings();
 
     return mainWindow;
 }
@@ -207,4 +199,18 @@ void ApplicationBuilder::initCameraProcessor()
 {
     auto* cam = new CameraProcessor(1, 640, 480);
     ServiceLocator::instance().setCameraProcessor(cam);
+}
+
+void ApplicationBuilder::applySettings() {
+    auto* cfg = ServiceLocator::instance().configManager();
+    auto* camera = ServiceLocator::instance().cameraProcessor();
+
+    if (cfg->get<bool>(CFG_KEY_SYS_AUTOOPEN, false)) {
+        camera->setCameraString(cfg->get<QString>(CFG_KEY_SYS_CAMERA_STR));
+    }
+    if (cfg->get<bool>(CFG_KEY_AIM_VISIBLE, false)) {
+        camera->setAimEnabled(true);
+    }
+    camera->setAimColor(cfg->get<QColor>(CFG_KEY_AIM_COLOR, QColor("#FF0000")));
+    camera->setAimRadius(cfg->get<int>(CFG_KEY_AIM_RADIUS, 30));
 }
