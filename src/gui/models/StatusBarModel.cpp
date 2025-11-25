@@ -82,12 +82,12 @@ QVariant StatusBarModel::data(const QModelIndex &idx, int role) const {
         QColor front = COLOR_TEXT_INV;
 
         if (running) {
-            text = "Идет градуировка";
+            text = tr("Calibration in progress");
             back = COLOR_OK;
         } else {
             QString err;
             bool ready = service.isReadyToRun(err);
-            text = ready ? "Система готова к работе" : err;
+            text = ready ? tr("System ready to operate") : err;
             back = ready ? COLOR_OK : COLOR_ERR;
         }
 
@@ -124,7 +124,7 @@ QVariant StatusBarModel::data(const QModelIndex &idx, int role) const {
         double p2 = pc.getTargetPressure();
 
         if (role == Qt::DisplayRole)
-            return QString("%1 / %2 кгс")
+            return tr("%1 / %2 kgf")
                     .arg(p1, 0, 'f', 2)
                     .arg(p2, 0, 'f', 2);
 
@@ -146,7 +146,7 @@ QVariant StatusBarModel::data(const QModelIndex &idx, int role) const {
         double s2 = pc.getTargetPressureVelocity();
 
         if (role == Qt::DisplayRole)
-            return QString("%1 / %2 кгс/с")
+            return tr("%1 / %2 kgf/s")
                     .arg(s1, 0, 'f', 2)
                     .arg(s2, 0, 'f', 2);
 
@@ -165,7 +165,7 @@ QVariant StatusBarModel::data(const QModelIndex &idx, int role) const {
     //
     if (col == 4) {
         if (role == Qt::DisplayRole)
-            return QString("%1 имп").arg(pc.getImpulsesCount());
+            return tr("%1 imp").arg(pc.getImpulsesCount());
         return {};
     }
 
@@ -175,7 +175,7 @@ QVariant StatusBarModel::data(const QModelIndex &idx, int role) const {
     //
     if (col == 5) {
         if (role == Qt::DisplayRole)
-            return QString("%1 Гц").arg(pc.getImpulsesFreq());
+            return tr("%1 Hz").arg(pc.getImpulsesFreq());
         return {};
     }
 
@@ -188,9 +188,9 @@ QVariant StatusBarModel::data(const QModelIndex &idx, int role) const {
         bool end = pc.isEndLimitTriggered();
 
         if (role == Qt::DisplayRole)
-            return QString("Старт: %1 / Конец: %2")
-                    .arg(start ? "да" : "нет")
-                    .arg(end ? "да" : "нет");
+            return tr("Start: %1 / End: %2")
+                    .arg(start ? tr("yes") : tr("no"))
+                    .arg(end ? tr("yes") : tr("no"));
 
         if (role == Qt::ForegroundRole)
             return fg(start || end ? COLOR_ERR : COLOR_OK);
@@ -209,16 +209,16 @@ QVariant StatusBarModel::data(const QModelIndex &idx, int role) const {
 
         switch (st) {
             case G540FlapsState::Unknown:
-                text = "Неизв. сост. клапанов";
+                text = tr("Unknown valves state");
                 color = COLOR_NEUTRAL;
                 break;
             case G540FlapsState::CloseBoth:
-                text = "Оба закрыты";
+                text = tr("Both valves closed");
                 color = COLOR_ERR;
                 break;
             case G540FlapsState::OpenInput:
             case G540FlapsState::OpenOutput:
-                text = "Клапан открыт";
+                text = tr("Valve is open");
                 color = COLOR_OK;
                 break;
         }

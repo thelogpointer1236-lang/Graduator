@@ -284,6 +284,66 @@
 
 </context>
 
+<context>
+    <name>StatusBarModel</name>
+    <message>
+        <source>Calibration in progress</source>
+        <translation>Идет градуировка</translation>
+    </message>
+    <message>
+        <source>System ready to operate</source>
+        <translation>Система готова к работе</translation>
+    </message>
+    <message>
+        <source>%1 / %2 kgf</source>
+        <translation>%1 / %2 кгс</translation>
+    </message>
+    <message>
+        <source>%1 / %2 kgf/s</source>
+        <translation>%1 / %2 кгс/с</translation>
+    </message>
+    <message>
+        <source>%1 imp</source>
+        <translation>%1 имп</translation>
+    </message>
+    <message>
+        <source>%1 Hz</source>
+        <translation>%1 Гц</translation>
+    </message>
+    <message>
+        <source>Start: %1 / End: %2</source>
+        <translation>Старт: %1 / Конец: %2</translation>
+    </message>
+    <message>
+        <source>yes</source>
+        <translation>да</translation>
+    </message>
+    <message>
+        <source>no</source>
+        <translation>нет</translation>
+    </message>
+    <message>
+        <source>Unknown valves state</source>
+        <translation>Неизв. сост. клапанов</translation>
+    </message>
+    <message>
+        <source>Both valves closed</source>
+        <translation>Оба закрыты</translation>
+    </message>
+    <message>
+        <source>Valve is open</source>
+        <translation>Клапан открыт</translation>
+    </message>
+</context>
+
+<context>
+    <name>MainWindow</name>
+    <message>
+        <source>Graduator</source>
+        <translation>Градуировщик</translation>
+    </message>
+</context>
+
 
 
 </TS>
