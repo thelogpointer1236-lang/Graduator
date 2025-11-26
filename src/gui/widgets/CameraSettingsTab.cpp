@@ -24,12 +24,8 @@ CameraSettingsTab::CameraSettingsTab(QWidget *parent)
     setupUi();
 
     if (auto *cameraProcessor = ServiceLocator::instance().cameraProcessor()) {
-
-        // Загружаем настройки при старте
-        cameraProcessor->loadSettingsFromFile("cameras.json");
-
         connect(cameraProcessor, &CameraProcessor::camerasChanged,
-                this, &CameraSettingsTab::rebuildCameraSettings);
+                this, &CameraSettingsTab::onCamerasChanged);
     }
 
     rebuildCameraSettings();
@@ -109,6 +105,25 @@ void CameraSettingsTab::onSaveClicked()
     if (auto *p = ServiceLocator::instance().cameraProcessor()) {
         p->saveSettingsToFile("cameras.json");
     }
+}
+
+void CameraSettingsTab::onCamerasChanged()
+{
+    auto *cameraProcessor = ServiceLocator::instance().cameraProcessor();
+    if (!cameraProcessor) {
+        return;
+    }
+
+    if (!settingsLoadedFromFile_) {
+        if (cameraProcessor->loadSettingsFromFile("cameras.json")) {
+            settingsLoadedFromFile_ = true;
+            return; // loadSettingsFromFile сам вызовет сигнал camerasChanged
+        }
+
+        settingsLoadedFromFile_ = true;
+    }
+
+    rebuildCameraSettings();
 }
 
 

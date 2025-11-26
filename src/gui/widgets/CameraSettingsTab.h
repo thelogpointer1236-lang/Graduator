@@ -16,6 +16,7 @@ public:
 private slots:
     void rebuildCameraSettings();
     void onSaveClicked();
+    void onCamerasChanged();
 
 private:
     void setupUi();
@@ -26,6 +27,7 @@ private:
 
 private:
     QVBoxLayout *camerasLayout_ = nullptr;
+    bool settingsLoadedFromFile_ = false;
 };
 
 #endif // GRADUATOR_CAMERASETTINGSTAB_H
