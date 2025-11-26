@@ -454,6 +454,13 @@ void VideoCaptureProcessor::debugAllCameraProps()
     qDebug() << "\n===========================================\n";
 }
 
+bool VideoCaptureProcessor::getVideoProcAmpCurrent(long prop, long& current, long& flags) {
+    if (!m_pVideoProcAmp) return false;
+    HRESULT hr = m_pVideoProcAmp->Get(prop, &current, &flags);
+    checkHR(hr, QString("Failed to get current value for property %1").arg(prop));
+    return SUCCEEDED(hr);
+}
+
 bool VideoCaptureProcessor::setVideoProcAmpProperty(long prop, long value) {
     if (!m_pVideoProcAmp) return false;
     HRESULT hr = m_pVideoProcAmp->Set(prop, value, VideoProcAmp_Flags_Manual);

@@ -8,6 +8,7 @@
 #include <QGroupBox>
 #include <QHBoxLayout>
 #include <QLabel>
+#include <QPushButton>
 #include <QScrollArea>
 #include <QSlider>
 #include <QVBoxLayout>
@@ -23,11 +24,17 @@ CameraSettingsTab::CameraSettingsTab(QWidget *parent)
     setupUi();
 
     if (auto *cameraProcessor = ServiceLocator::instance().cameraProcessor()) {
+
+        // Загружаем настройки при старте
+        cameraProcessor->loadSettingsFromFile("cameras.json");
+
         connect(cameraProcessor, &CameraProcessor::camerasChanged,
                 this, &CameraSettingsTab::rebuildCameraSettings);
-        rebuildCameraSettings();
     }
+
+    rebuildCameraSettings();
 }
+
 
 void CameraSettingsTab::setupUi()
 {
@@ -42,10 +49,24 @@ void CameraSettingsTab::setupUi()
 
     scrollArea->setWidget(scrollWidget);
 
+    // Панель кнопок (теперь только одна)
+    auto *buttonsWidget = new QWidget(this);
+    auto *buttonsLayout = new QHBoxLayout(buttonsWidget);
+    buttonsLayout->setContentsMargins(0, 0, 0, 0);
+
+    auto *btnSave = new QPushButton(tr("Save Settings"), buttonsWidget);
+    buttonsLayout->addWidget(btnSave);
+    buttonsLayout->addStretch();
+
+    connect(btnSave, &QPushButton::clicked, this, &CameraSettingsTab::onSaveClicked);
+
     auto *mainLayout = new QVBoxLayout(this);
+    mainLayout->addWidget(buttonsWidget);
     mainLayout->addWidget(scrollArea);
     setLayout(mainLayout);
 }
+
+
 
 void CameraSettingsTab::clearCameraGroups()
 {
@@ -83,6 +104,14 @@ void CameraSettingsTab::rebuildCameraSettings()
     camerasLayout_->addStretch();
 }
 
+void CameraSettingsTab::onSaveClicked()
+{
+    if (auto *p = ServiceLocator::instance().cameraProcessor()) {
+        p->saveSettingsToFile("cameras.json");
+    }
+}
+
+
 QGroupBox *CameraSettingsTab::createCameraGroup(int cameraIndex)
 {
     auto *cameraProcessor = ServiceLocator::instance().cameraProcessor();
@@ -98,8 +127,12 @@ QGroupBox *CameraSettingsTab::createCameraGroup(int cameraIndex)
     QVector<QString> keys;
     settings->getAvailableKeys(keys);
 
-    auto *group = new QGroupBox(tr("Camera %1").arg(cameraIndex + 1));
+    auto *group = new QGroupBox(tr("Camera") + " " + QString::number(cameraIndex + 1));
     auto *layout = new QVBoxLayout(group);
+
+    QWidget *rowContainer = nullptr;
+    QHBoxLayout *rowLayout = nullptr;
+    int itemsInRow = 0;
 
     for (const auto &key : keys) {
         long min = DefaultMinValue, max = DefaultMaxValue;
@@ -110,14 +143,41 @@ QGroupBox *CameraSettingsTab::createCameraGroup(int cameraIndex)
         const long current = settings->getValue(key, &valueOk);
 
         const long startValue = valueOk ? current : min;
-        layout->addWidget(createSettingRow(cameraIndex, key,
-                                           rangeOk ? min : DefaultMinValue,
-                                           rangeOk ? max : DefaultMaxValue,
-                                           startValue));
+
+        QWidget *setting = createSettingRow(
+            cameraIndex,
+            key,
+            rangeOk ? min : DefaultMinValue,
+            rangeOk ? max : DefaultMaxValue,
+            startValue
+        );
+
+        // Создаем новую строку, если предыдущая заполнена
+        if (itemsInRow == 0) {
+            rowContainer = new QWidget(group);
+            rowLayout = new QHBoxLayout(rowContainer);
+            rowLayout->setContentsMargins(0, 0, 0, 0);
+            rowLayout->setSpacing(20);
+        }
+
+        rowLayout->addWidget(setting);
+        itemsInRow++;
+
+        // Если собрали 2 элемента — добавляем строку в layout
+        if (itemsInRow == 2) {
+            layout->addWidget(rowContainer);
+            itemsInRow = 0;
+        }
+    }
+
+    // Если остался один параметр без пары
+    if (itemsInRow == 1) {
+        layout->addWidget(rowContainer);
     }
 
     return group;
 }
+
 
 QWidget *CameraSettingsTab::createSettingRow(int cameraIndex, const QString &key, long min, long max, long current)
 {
@@ -125,7 +185,7 @@ QWidget *CameraSettingsTab::createSettingRow(int cameraIndex, const QString &key
     auto *rowLayout = new QHBoxLayout(rowWidget);
     rowLayout->setContentsMargins(0, 0, 0, 0);
 
-    auto *label = new QLabel(key + ":", rowWidget);
+    auto *label = new QLabel(tr(key.toLocal8Bit()) + ":", rowWidget);
     auto *valueLabel = new QLabel(QString::number(current), rowWidget);
 
     auto *slider = new QSlider(Qt::Horizontal, rowWidget);

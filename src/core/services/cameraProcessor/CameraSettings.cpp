@@ -2,23 +2,7 @@
 #include "dshow/VideoCaptureProcessor.h"
 #include <dshow.h> // Для VideoProcAmp_*
 
-CameraSettings::CameraSettings(VideoCaptureProcessor* videoProcessor) {
-    // settings_[ключ] = { videoProcAmpPropertyId, текущее значение }
-    settings_.emplace("brightness", QPair<int, long>(VideoProcAmp_Brightness, 0));
-    settings_.emplace("contrast", QPair<int, long>(VideoProcAmp_Contrast, 0));
-    settings_.emplace("hue", QPair<int, long>(VideoProcAmp_Hue, 0));
-    settings_.emplace("saturation", QPair<int, long>(VideoProcAmp_Saturation, 0));
-    settings_.emplace("sharpness", QPair<int, long>(VideoProcAmp_Sharpness, 0));
-    settings_.emplace("gamma", QPair<int, long>(VideoProcAmp_Gamma, 0));
-    settings_.emplace("backlight_compensation", QPair<int, long>(VideoProcAmp_BacklightCompensation, 0));
-
-    // Можно сразу загрузить начальные значения, если требуется
-    for (auto& kv : settings_) {
-        long min, max;
-        videoProcessor->getVideoProcAmpRange(kv.second.first, min, max);
-        // Ничего не ставим, но можем учитывать диапазоны при необходимости
-    }
-}
+CameraSettings::CameraSettings() = default;
 
 CameraSettings::~CameraSettings() = default;
 
@@ -66,3 +50,34 @@ void CameraSettings::getAvailableKeys(QVector<QString>& keys) const {
         keys.push_back(kv.first);
     }
 }
+
+void CameraSettings::setVideoCapProcessor(VideoCaptureProcessor *videoProcessor) {
+    video_ = videoProcessor;
+
+    // Список поддерживаемых VideoProcAmp свойств
+    settings_.clear();
+    settings_.emplace("brightness", QPair<int, long>(VideoProcAmp_Brightness, 0));
+    settings_.emplace("contrast", QPair<int, long>(VideoProcAmp_Contrast, 0));
+    settings_.emplace("hue", QPair<int, long>(VideoProcAmp_Hue, 0));
+    settings_.emplace("saturation", QPair<int, long>(VideoProcAmp_Saturation, 0));
+    settings_.emplace("sharpness", QPair<int, long>(VideoProcAmp_Sharpness, 0));
+    settings_.emplace("gamma", QPair<int, long>(VideoProcAmp_Gamma, 0));
+    settings_.emplace("backlight_compensation", QPair<int, long>(VideoProcAmp_BacklightCompensation, 0));
+
+    // Получение диапазонов и текущих значений
+    for (auto& kv : settings_) {
+        int prop = kv.second.first;
+
+        long min, max;
+        videoProcessor->getVideoProcAmpRange(prop, min, max);
+
+        long current = 0;
+        long flags = 0;
+
+        if (videoProcessor->getVideoProcAmpCurrent(prop, current, flags)) {
+            kv.second.second = current;   // записываем актуальное значение камеры
+        }
+    }
+}
+
+VideoCaptureProcessor * CameraSettings::video() const { return video_; }

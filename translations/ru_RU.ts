@@ -344,6 +344,50 @@
     </message>
 </context>
 
+<context>
+<name>CameraSettingsTab</name>
+
+<message>
+<source>Camera</source>
+<translation>Камера</translation>
+</message>
+
+<message>
+<source>backlight_compensation</source>
+<translation>Компенсация подсветки</translation>
+</message>
+
+<message>
+<source>brightness</source>
+<translation>Яркость</translation>
+</message>
+
+<message>
+<source>contrast</source>
+<translation>Контраст</translation>
+</message>
+
+<message>
+<source>gamma</source>
+<translation>Гамма</translation>
+</message>
+
+<message>
+<source>hue</source>
+<translation>Оттенок</translation>
+</message>
+
+<message>
+<source>saturation</source>
+<translation>Насыщенность</translation>
+</message>
+
+<message>
+<source>sharpness</source>
+<translation>Резкость</translation>
+</message>
+
+</context>
 
 
 </TS>

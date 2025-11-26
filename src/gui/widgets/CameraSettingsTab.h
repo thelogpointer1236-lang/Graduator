@@ -15,6 +15,7 @@ public:
 
 private slots:
     void rebuildCameraSettings();
+    void onSaveClicked();
 
 private:
     void setupUi();

@@ -30,6 +30,10 @@ public:
     static std::vector<qint32> cameraIndices();
     static std::vector<qint32> sysCameraIndices();
 
+    bool saveSettingsToFile(const QString &path);
+    bool loadSettingsFromFile(const QString &path);
+
+
     void emitCamerasChanged() {
         emit camerasChanged();
     }

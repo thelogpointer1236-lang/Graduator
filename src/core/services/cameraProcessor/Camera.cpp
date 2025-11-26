@@ -1,14 +1,20 @@
 #include "Camera.h"
 #include "dshow/VideoCaptureProcessor.h"
 
-Camera::Camera()
-    : video_(new VideoCaptureProcessor())
-    , settings_(video_){
+Camera::Camera() {
+
+    video_ = std::make_shared<VideoCaptureProcessor>();
+    settings_.setVideoCapProcessor(video_.get());
+
 }
 
-Camera::~Camera() {
-    delete video_;
+Camera::Camera(const Camera & other) {
+    video_ = other.video_;
+    settings_ = other.settings_;
+    err_ = other.err_;
 }
+
+Camera::~Camera() { }
 
 bool Camera::isOk(QString& err) const {
     err = err_;
@@ -34,3 +40,5 @@ CameraSettings * Camera::settings() {
     if (isOk(err_)) return &settings_;
     return nullptr;
 }
+
+VideoCaptureProcessor * Camera::video() const { return video_.get(); }

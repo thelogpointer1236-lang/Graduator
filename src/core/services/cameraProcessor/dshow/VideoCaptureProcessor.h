@@ -18,6 +18,7 @@ public:
     void debugVideoProcAmp();
     void debugAllCameraProps();
 
+    bool getVideoProcAmpCurrent(long prop, long& current, long& flags);
     bool setVideoProcAmpProperty(long prop, long value);
     bool getVideoProcAmpRange(long prop, long& min, long& max);
 

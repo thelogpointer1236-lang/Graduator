@@ -129,6 +129,72 @@ std::vector<qint32> CameraProcessor::sysCameraIndices() {
     return extractDigits(sysCameraStr());
 }
 
+bool CameraProcessor::saveSettingsToFile(const QString &path)
+{
+    QJsonArray camerasArray;
+
+    for (auto &camera : m_cameras) {
+        auto *settings = camera.settings();
+        if (!settings) continue;
+
+        QVector<QString> keys;
+        settings->getAvailableKeys(keys);
+
+        QJsonObject settingsObj;
+        for (const auto &key : keys) {
+            bool ok = false;
+            long v = settings->getValue(key, &ok);
+            if (ok) settingsObj[key] = QJsonValue::fromVariant(QVariant::fromValue(v));
+        }
+
+        QJsonObject cameraObj;
+        cameraObj["settings"] = settingsObj;
+        camerasArray.append(cameraObj);
+    }
+
+    QJsonObject root;
+    root["cameras"] = camerasArray;
+
+    QJsonDocument doc(root);
+
+    QFile file(path);
+    if (!file.open(QIODevice::WriteOnly | QIODevice::Truncate)) {
+        return false;
+    }
+
+    file.write(doc.toJson());
+    return true;
+}
+
+bool CameraProcessor::loadSettingsFromFile(const QString &path)
+{
+    QFile file(path);
+    if (!file.open(QIODevice::ReadOnly)) {
+        return false;
+    }
+
+    QJsonDocument doc = QJsonDocument::fromJson(file.readAll());
+    if (!doc.isObject()) return false;
+
+    QJsonObject root = doc.object();
+    QJsonArray camerasArray = root["cameras"].toArray();
+
+    for (int i = 0; i < camerasArray.size() && i < m_cameras.size(); ++i) {
+        auto *settings = m_cameras[i].settings();
+        if (!settings) continue;
+
+        QJsonObject cameraObj = camerasArray[i].toObject();
+        QJsonObject settingsObj = cameraObj["settings"].toObject();
+
+        for (auto it = settingsObj.begin(); it != settingsObj.end(); ++it) {
+            settings->setValue(it.key(), it.value().toInt());
+        }
+    }
+
+    emit camerasChanged();
+    return true;
+}
+
 void CameraProcessor::enqueueImage(qint32 cameraIdx, qreal time, quint8 *imgData) {
     if (m_anglemeterProcessors.empty()) return;
 

@@ -263,8 +263,8 @@ inline void scanCol(anglemeter_t* am, const rgb_t* img, const int x, const int y
                 const float avgUp = avgRegion(minE.y - 16, minE.y - 1);
                 const float avgDown = avgRegion(maxE.y + 1, maxE.y + 16);
 
-                // if (avgUp < 200.0f || avgDown < 200.0f)
-                //     continue;
+                if (avgUp < 200.0f || avgDown < 200.0f)
+                    continue;
                 // if (std::abs(avgUp - avgDown) > 30.0f)
                 //     continue;
 
@@ -384,8 +384,8 @@ inline void scanRow(anglemeter_t* am, const rgb_t* img, const int y, const int x
                 const float avgLeft  = avgRegion(minE.x - 16, minE.x - 1);
                 const float avgRight = avgRegion(maxE.x + 1, maxE.x + 16);
 
-                // if (std::abs(avgLeft - avgRight) > 30.0f)
-                //     continue;
+                if (avgLeft < 200.0f || avgRight < 200.0f)
+                    continue;
 
                 candidates.push_back({
                     minE.x,
