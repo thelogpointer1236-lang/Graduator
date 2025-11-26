@@ -39,17 +39,18 @@ const QList<Printer>& PartyManager::getAvailablePrinters() const {
 }
 
 void PartyManager::initializeAvailableOptions() {
-    m_availablePressureUnits = QStringList {
-        QString::fromWCharArray(L"Па"),        // Pa
-        QString::fromWCharArray(L"кПа"),       // kPa
-        QString::fromWCharArray(L"МПа"),       // MPa
-        QString::fromWCharArray(L"Бар"),       // Bar
-        QString::fromWCharArray(L"кгс"),       // Kgf
-        QString::fromWCharArray(L"кгс/м²"),    // KgfM2
-        QString::fromWCharArray(L"атм"),       // Atm
-        QString::fromWCharArray(L"мм рт. ст."),// mmHg
-        QString::fromWCharArray(L"мм вод. ст."),// mmH2O
+    m_availablePressureUnits = QStringList{
+        tr("Pa"),          // Pa
+        tr("kPa"),         // kPa
+        tr("MPa"),         // MPa
+        tr("Bar"),         // Bar
+        tr("kgf/cm"),         // Kgf
+        tr("kgf/m"),      // KgfM2
+        tr("atm"),         // Atm
+        tr("mmHg"),        // mmHg
+        tr("mmH2O"),       // mmH2O
     };
+
     {
         auto x = ServiceLocator::instance().configManager()->get<QVector<double>>(CFG_KEY_PRECISION_CLASSES, QVector<double>{});
         for (const double &v : x)

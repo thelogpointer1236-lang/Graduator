@@ -113,15 +113,16 @@ void CameraSettingsTab::onCamerasChanged()
     if (!cameraProcessor) {
         return;
     }
+    cameraProcessor->loadSettingsFromFile("cameras.json");
 
-    if (!settingsLoadedFromFile_) {
-        if (cameraProcessor->loadSettingsFromFile("cameras.json")) {
-            settingsLoadedFromFile_ = true;
-            return; // loadSettingsFromFile сам вызовет сигнал camerasChanged
-        }
-
-        settingsLoadedFromFile_ = true;
-    }
+    // if (!settingsLoadedFromFile_) {
+        // if (cameraProcessor->loadSettingsFromFile("cameras.json")) {
+    //         settingsLoadedFromFile_ = true;
+    //     }
+    //     else {
+    //         settingsLoadedFromFile_ = false;
+    //     }
+    // }
 
     rebuildCameraSettings();
 }

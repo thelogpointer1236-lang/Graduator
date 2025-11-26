@@ -144,7 +144,7 @@ bool CameraProcessor::saveSettingsToFile(const QString &path)
         for (const auto &key : keys) {
             bool ok = false;
             long v = settings->getValue(key, &ok);
-            if (ok) settingsObj[key] = QJsonValue::fromVariant(QVariant::fromValue(v));
+            if (ok) settingsObj[key] = QJsonValue(static_cast<int>(v));
         }
 
         QJsonObject cameraObj;
@@ -173,11 +173,14 @@ bool CameraProcessor::loadSettingsFromFile(const QString &path)
         return false;
     }
 
-    QJsonDocument doc = QJsonDocument::fromJson(file.readAll());
+    QByteArray data = file.readAll();
+    QString sdata = data;
+    QJsonDocument doc = QJsonDocument::fromJson(data);
     if (!doc.isObject()) return false;
 
     QJsonObject root = doc.object();
     QJsonArray camerasArray = root["cameras"].toArray();
+
 
     for (int i = 0; i < camerasArray.size() && i < m_cameras.size(); ++i) {
         auto *settings = m_cameras[i].settings();
@@ -187,11 +190,11 @@ bool CameraProcessor::loadSettingsFromFile(const QString &path)
         QJsonObject settingsObj = cameraObj["settings"].toObject();
 
         for (auto it = settingsObj.begin(); it != settingsObj.end(); ++it) {
+            // qDebug() << it.key() << it.value();
             settings->setValue(it.key(), it.value().toInt());
         }
     }
 
-    emit camerasChanged();
     return true;
 }
 

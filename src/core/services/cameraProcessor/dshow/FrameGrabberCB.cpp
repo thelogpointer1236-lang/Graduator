@@ -45,7 +45,7 @@ HRESULT FrameGrabberCB::BufferCB(double SampleTime, BYTE *pBuffer, const long Bu
     if (s_isCapturing) {
         const BYTE *pixelData = pBuffer;
         const qreal timestampSec = ServiceLocator::instance().graduationService()->getElapsedTimeSeconds();
-        emit imageCaptured(m_camIdx, timestampSec, anglemeterCopyImage(pixelData));
+        // emit imageCaptured(m_camIdx, timestampSec, anglemeterCopyImage(pixelData));
     }
 
     // -------------------------

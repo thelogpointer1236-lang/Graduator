@@ -182,7 +182,7 @@
     <name>MainWidget</name>
     <message>
         <source>Graduation</source>
-        <translation>градуировка</translation>
+        <translation>Градуировка</translation>
     </message>
     <message>
         <source>Settings</source>
