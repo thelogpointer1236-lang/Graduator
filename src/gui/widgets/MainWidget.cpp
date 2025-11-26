@@ -5,6 +5,7 @@
 #include "gui/views/StatusBarView.h"
 #include "gui/models/StatusBarModel.h"
 #include "SettingsWidget.h"
+#include "CameraSettingsTab.h"
 #include <QHBoxLayout>
 #include <QTabWidget>
 
@@ -60,11 +61,13 @@ void MainWidget::setupRightPanel(QVBoxLayout *rightLayout)
 QTabWidget* MainWidget::createTabWidget()
 {
     auto *settingsWidget = new SettingsWidget;
+    auto *cameraSettingsTab = new CameraSettingsTab;
     auto *controlPage = createControlPage();
     // auto *partiesPage = createPartiesPage();
 
     auto *tabWidget = new QTabWidget;
     tabWidget->addTab(controlPage, tr("Graduation"));
+    tabWidget->addTab(cameraSettingsTab, tr("Cameras"));
     // tabWidget->addTab(partiesPage, tr("Parties"));
     tabWidget->addTab(settingsWidget, tr("Settings"));
 
