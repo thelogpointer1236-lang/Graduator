@@ -5,6 +5,31 @@
 #include "core/services/ServiceLocator.h"
 #include <QtDebug>
 #include <QSize>
+
+namespace {
+    void FreeMediaType(AM_MEDIA_TYPE& mt)
+    {
+        if (mt.cbFormat != 0) {
+            CoTaskMemFree((PVOID)mt.pbFormat);
+            mt.cbFormat = 0;
+            mt.pbFormat = NULL;
+        }
+        if (mt.pUnk != NULL) {
+            // pUnk should be released last
+            mt.pUnk->Release();
+            mt.pUnk = NULL;
+        }
+    }
+
+    void DeleteMediaType(AM_MEDIA_TYPE* pmt)
+    {
+        if (pmt == NULL) return;
+
+        FreeMediaType(*pmt);
+        CoTaskMemFree(pmt);
+    }
+}
+
 VideoCaptureProcessor::VideoCaptureProcessor(QObject *parent)
     : QObject(parent)
       , m_hwnd(nullptr)
@@ -37,9 +62,9 @@ FrameGrabberCB *VideoCaptureProcessor::frameGrabberCB() const {
 
 void VideoCaptureProcessor::checkHR(const HRESULT hr, const QString &errorMessage) {
     if (FAILED(hr) || hr == S_FALSE) {
-        ServiceLocator::instance().logger()->error(QString("VideoCaptureProcessor error: %1. HRESULT = 0x%2")
+        throw QString("VideoCaptureProcessor error: %1. HRESULT = 0x%2")
             .arg(errorMessage)
-            .arg(static_cast<qulonglong>(hr), 8, 16, QChar('0')));
+            .arg(static_cast<qulonglong>(hr), 8, 16, QChar('0'));
     }
 }
 int VideoCaptureProcessor::getCameraCount() {
@@ -80,41 +105,38 @@ int VideoCaptureProcessor::getCameraCount() {
 
 void VideoCaptureProcessor::resizeVideoWindow(const QSize &size) {
     if (!m_pVideoWindow) {
-        // ServiceLocator::instance().logger()->error(L"VideoCaptureProcessor error: Интерфейс видеоокна не инициализирован.");
         return;
     }
     // Call COM methods via a helper function
     m_pVideoWindow->SetWindowPosition(0, 0, size.width(), size.height());
 }
 
-bool VideoCaptureProcessor::init(void *hwnd, int cameraIndex) {
+void VideoCaptureProcessor::init(void *hwnd, int cameraIndex) {
     m_hwnd = hwnd;
     m_cameraIndex = cameraIndex;
 
     HRESULT hr = CoInitializeEx(NULL, COINIT_APARTMENTTHREADED | COINIT_SPEED_OVER_MEMORY);
     if (FAILED(hr)) {
         checkHR(hr, "CoInitializeEx failed");
-        return false;
     }
     m_comInitialized = true;
 
     hr = CoCreateInstance(CLSID_FilterGraph, NULL, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&m_pGraph));
-    if (FAILED(hr)) { checkHR(hr, "Failed to create FilterGraph"); cleanup(); return false; }
+    if (FAILED(hr)) { checkHR(hr, "Failed to create FilterGraph"); cleanup();}
 
     hr = CoCreateInstance(CLSID_CaptureGraphBuilder2, NULL, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&m_pCapture));
-    if (FAILED(hr)) { checkHR(hr, "Failed to create CaptureGraphBuilder2"); cleanup(); return false; }
+    if (FAILED(hr)) { checkHR(hr, "Failed to create CaptureGraphBuilder2"); cleanup();}
 
     hr = m_pCapture->SetFiltergraph(m_pGraph);
-    if (FAILED(hr)) { checkHR(hr, "SetFiltergraph failed"); cleanup(); return false; }
+    if (FAILED(hr)) { checkHR(hr, "SetFiltergraph failed"); cleanup();}
 
     hr = CoCreateInstance(CLSID_SystemDeviceEnum, NULL, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&m_pDevEnum));
-    if (FAILED(hr)) { checkHR(hr, "Failed to create SystemDeviceEnum"); cleanup(); return false; }
+    if (FAILED(hr)) { checkHR(hr, "Failed to create SystemDeviceEnum"); cleanup();}
 
     hr = m_pDevEnum->CreateClassEnumerator(CLSID_VideoInputDeviceCategory, &m_pEnum, 0);
     if (FAILED(hr) || hr == S_FALSE) {
         checkHR(hr, "No video capture devices");
         cleanup();
-        return false;
     }
 
     ULONG fetched = 0;
@@ -129,14 +151,90 @@ bool VideoCaptureProcessor::init(void *hwnd, int cameraIndex) {
     if (!m_pMoniker) {
         checkHR(E_FAIL, QString("Camera index %1 not found").arg(m_cameraIndex));
         cleanup();
-        return false;
     }
 
     hr = m_pMoniker->BindToObject(NULL, NULL, IID_PPV_ARGS(&m_pSrcFilter));
-    if (FAILED(hr)) { checkHR(hr, "BindToObject failed"); cleanup(); return false; }
+    if (FAILED(hr)) { checkHR(hr, "BindToObject failed"); cleanup();}
 
     hr = m_pGraph->AddFilter(m_pSrcFilter, L"Video Capture Source");
-    if (FAILED(hr)) { checkHR(hr, "AddFilter Source failed"); cleanup(); return false; }
+    if (FAILED(hr)) { checkHR(hr, "AddFilter Source failed"); cleanup();}
+
+    // ===================================================================
+// УСТАНОВКА МАКСИМАЛЬНО ВОЗМОЖНОГО FPS
+// ===================================================================
+
+ComPtr<IAMStreamConfig> pConfig;
+
+hr = m_pCapture->FindInterface(&PIN_CATEGORY_CAPTURE,
+                               &MEDIATYPE_Video,
+                               m_pSrcFilter,
+                               IID_IAMStreamConfig,
+                               (void**)&pConfig);
+
+if (FAILED(hr) || !pConfig) {
+    // Попробуем PREVIEW PIN как fallback
+    hr = m_pCapture->FindInterface(&PIN_CATEGORY_PREVIEW,
+                                   &MEDIATYPE_Video,
+                                   m_pSrcFilter,
+                                   IID_IAMStreamConfig,
+                                   (void**)&pConfig);
+}
+
+if (SUCCEEDED(hr) && pConfig) {
+
+    int count = 0, size = 0;
+    hr = pConfig->GetNumberOfCapabilities(&count, &size);
+
+    if (SUCCEEDED(hr)) {
+
+        long long bestFrameInterval = LLONG_MAX;
+        int bestIndex = -1;
+        AM_MEDIA_TYPE* bestMT = nullptr;
+
+        for (int i = 0; i < count; i++) {
+
+            VIDEO_STREAM_CONFIG_CAPS caps;
+            AM_MEDIA_TYPE* pmt = nullptr;
+
+            if (FAILED(pConfig->GetStreamCaps(i, &pmt, (BYTE*)&caps))) {
+                continue;
+            }
+
+            // FrameInterval = AvgTimePerFrame (100 ns)
+            long long minFI = caps.MinFrameInterval; // максимальный FPS
+            long long maxFI = caps.MaxFrameInterval; // минимальный FPS
+
+            // Нам нужен МАКСИМУМ FPS => минимальный интервал
+            if (minFI < bestFrameInterval) {
+                if (bestMT) {
+                    DeleteMediaType(bestMT);
+                }
+                bestFrameInterval = minFI;
+                bestIndex = i;
+                bestMT = pmt;
+            } else {
+                DeleteMediaType(pmt);
+            }
+        }
+
+        if (bestMT) {
+            // Устанавливаем AvgTimePerFrame вручную = minimal FI
+            VIDEOINFOHEADER* vih = (VIDEOINFOHEADER*)bestMT->pbFormat;
+            vih->AvgTimePerFrame = bestFrameInterval;
+
+            hr = pConfig->SetFormat(bestMT);
+            DeleteMediaType(bestMT);
+
+            if (FAILED(hr)) {
+                qDebug() << "SetFormat for max FPS FAILED";
+            } else {
+                double fps = 1e7 / bestFrameInterval;
+                qDebug() << "Max FPS applied:" << fps;
+            }
+        }
+    }
+}
+// ===================================================================
 
     // ---------- ВСТРОЕННЫЙ БЛОК: получение интерфейсов управления камерой ----------
     hr = m_pSrcFilter->QueryInterface(IID_PPV_ARGS(&m_pCameraControl));
@@ -147,13 +245,13 @@ bool VideoCaptureProcessor::init(void *hwnd, int cameraIndex) {
     // ------------------------------------------------------------------------------
 
     hr = CoCreateInstance(CLSID_SampleGrabber, NULL, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&m_pSampleGrabberFilter));
-    if (FAILED(hr)) { checkHR(hr, "Create SampleGrabber failed"); cleanup(); return false; }
+    if (FAILED(hr)) { checkHR(hr, "Create SampleGrabber failed"); cleanup();}
 
     hr = m_pGraph->AddFilter(m_pSampleGrabberFilter, L"Sample Grabber");
-    if (FAILED(hr)) { checkHR(hr, "AddFilter SampleGrabber failed"); cleanup(); return false; }
+    if (FAILED(hr)) { checkHR(hr, "AddFilter SampleGrabber failed"); cleanup();}
 
     hr = m_pSampleGrabberFilter->QueryInterface(IID_PPV_ARGS(&m_pSampleGrabber));
-    if (FAILED(hr)) { checkHR(hr, "QueryInterface SampleGrabber failed"); cleanup(); return false; }
+    if (FAILED(hr)) { checkHR(hr, "QueryInterface SampleGrabber failed"); cleanup();}
 
     AM_MEDIA_TYPE mt;
     ZeroMemory(&mt, sizeof(mt));
@@ -164,20 +262,20 @@ bool VideoCaptureProcessor::init(void *hwnd, int cameraIndex) {
     mt.pbFormat = (BYTE*)CoTaskMemAlloc(mt.cbFormat);
 
     hr = m_pSampleGrabber->SetMediaType(&mt);
-    if (FAILED(hr)) { checkHR(hr, "SetMediaType failed"); cleanup(); return false; }
+    if (FAILED(hr)) { checkHR(hr, "SetMediaType failed"); cleanup();}
 
     m_grabberCB = new FrameGrabberCB(m_cameraIndex, 640, 480);
     connect(m_grabberCB, &FrameGrabberCB::imageCaptured, this,
             &VideoCaptureProcessor::imageCaptured, Qt::DirectConnection);
 
     hr = m_pSampleGrabber->SetCallback(m_grabberCB, 1);
-    if (FAILED(hr)) { checkHR(hr, "SetCallback failed"); cleanup(); return false; }
+    if (FAILED(hr)) { checkHR(hr, "SetCallback failed"); cleanup();}
 
     hr = CoCreateInstance(CLSID_VideoRenderer, NULL, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&m_pVideoRenderer));
-    if (FAILED(hr)) { checkHR(hr, "Create VideoRenderer failed"); cleanup(); return false; }
+    if (FAILED(hr)) { checkHR(hr, "Create VideoRenderer failed"); cleanup();}
 
     hr = m_pGraph->AddFilter(m_pVideoRenderer, L"Video Renderer");
-    if (FAILED(hr)) { checkHR(hr, "AddFilter VideoRenderer failed"); cleanup(); return false; }
+    if (FAILED(hr)) { checkHR(hr, "AddFilter VideoRenderer failed"); cleanup();}
 
     hr = m_pCapture->RenderStream(&PIN_CATEGORY_CAPTURE, &MEDIATYPE_Video,
                                   m_pSrcFilter, m_pSampleGrabberFilter, m_pVideoRenderer);
@@ -187,31 +285,28 @@ bool VideoCaptureProcessor::init(void *hwnd, int cameraIndex) {
         if (FAILED(hr)) {
             checkHR(hr, "RenderStream failed");
             cleanup();
-            return false;
         }
     }
 
     hr = m_pGraph->QueryInterface(IID_PPV_ARGS(&m_pMediaControl));
-    if (FAILED(hr)) { checkHR(hr, "QueryInterface MediaControl failed"); cleanup(); return false; }
+    if (FAILED(hr)) { checkHR(hr, "QueryInterface MediaControl failed"); cleanup();}
 
     hr = m_pGraph->QueryInterface(IID_PPV_ARGS(&m_pVideoWindow));
-    if (FAILED(hr)) { checkHR(hr, "QueryInterface VideoWindow failed"); cleanup(); return false; }
+    if (FAILED(hr)) { checkHR(hr, "QueryInterface VideoWindow failed"); cleanup();}
 
     hr = m_pVideoWindow->put_Owner(reinterpret_cast<OAHWND>(m_hwnd));
-    if (FAILED(hr)) { checkHR(hr, "put_Owner failed"); cleanup(); return false; }
+    if (FAILED(hr)) { checkHR(hr, "put_Owner failed"); cleanup();}
 
     hr = m_pVideoWindow->put_WindowStyle(WS_CHILD | WS_CLIPSIBLINGS);
-    if (FAILED(hr)) { checkHR(hr, "put_WindowStyle failed"); cleanup(); return false; }
+    if (FAILED(hr)) { checkHR(hr, "put_WindowStyle failed"); cleanup();}
 
     RECT rc;
     GetClientRect((HWND)m_hwnd, &rc);
     hr = m_pVideoWindow->SetWindowPosition(0, 0, rc.right, rc.bottom);
-    if (FAILED(hr)) { checkHR(hr, "SetWindowPosition failed"); cleanup(); return false; }
+    if (FAILED(hr)) { checkHR(hr, "SetWindowPosition failed"); cleanup();}
 
     hr = m_pMediaControl->Run();
-    if (FAILED(hr)) { checkHR(hr, "Graph Run failed"); cleanup(); return false; }
-
-    return true;
+    if (FAILED(hr)) { checkHR(hr, "Graph Run failed"); cleanup();}
 }
 
 template<class T>
@@ -359,102 +454,18 @@ void VideoCaptureProcessor::debugAllCameraProps()
     qDebug() << "\n===========================================\n";
 }
 
-
-bool VideoCaptureProcessor::setBrightness(long value) {
-    if (!m_pVideoProcAmp)
-        return false;
-
-    const HRESULT hr = m_pVideoProcAmp->Set(
-        VideoProcAmp_Brightness,
-        value,
-        VideoProcAmp_Flags_Manual
-    );
-
-    checkHR(hr, QString("Failed to set brightness: %1").arg(value));
+bool VideoCaptureProcessor::setVideoProcAmpProperty(long prop, long value) {
+    if (!m_pVideoProcAmp) return false;
+    HRESULT hr = m_pVideoProcAmp->Set(prop, value, VideoProcAmp_Flags_Manual);
+    checkHR(hr, QString("Failed to set property %1").arg(prop));
     return SUCCEEDED(hr);
 }
 
-bool VideoCaptureProcessor::setContrast(long value) {
-    if (!m_pVideoProcAmp)
-        return false;
-
-    HRESULT hr = m_pVideoProcAmp->Set(
-        VideoProcAmp_Contrast,
-        value,
-        VideoProcAmp_Flags_Manual
-    );
-
-    checkHR(hr, QString("Failed to set contrast: %1").arg(value));
-    return SUCCEEDED(hr);
-}
-
-bool VideoCaptureProcessor::setHue(long value) {
-    if (!m_pVideoProcAmp)
-        return false;
-
-    HRESULT hr = m_pVideoProcAmp->Set(
-        VideoProcAmp_Hue,
-        value,
-        VideoProcAmp_Flags_Manual
-    );
-
-    checkHR(hr, QString("Failed to set hue: %1").arg(value));
-    return SUCCEEDED(hr);
-}
-
-bool VideoCaptureProcessor::setSaturation(long value) {
-    if (!m_pVideoProcAmp)
-        return false;
-
-    HRESULT hr = m_pVideoProcAmp->Set(
-        VideoProcAmp_Saturation,
-        value,
-        VideoProcAmp_Flags_Manual
-    );
-
-    checkHR(hr, QString("Failed to set saturation: %1").arg(value));
-    return SUCCEEDED(hr);
-}
-
-bool VideoCaptureProcessor::setSharpness(long value) {
-    if (!m_pVideoProcAmp)
-        return false;
-
-    HRESULT hr = m_pVideoProcAmp->Set(
-        VideoProcAmp_Sharpness,
-        value,
-        VideoProcAmp_Flags_Manual
-    );
-
-    checkHR(hr, QString("Failed to set sharpness: %1").arg(value));
-    return SUCCEEDED(hr);
-}
-
-bool VideoCaptureProcessor::setGamma(long value) {
-    if (!m_pVideoProcAmp)
-        return false;
-
-    HRESULT hr = m_pVideoProcAmp->Set(
-        VideoProcAmp_Gamma,
-        value,
-        VideoProcAmp_Flags_Manual
-    );
-
-    checkHR(hr, QString("Failed to set gamma: %1").arg(value));
-    return SUCCEEDED(hr);
-}
-
-bool VideoCaptureProcessor::setBacklightCompensation(long value) {
-    if (!m_pVideoProcAmp)
-        return false;
-
-    HRESULT hr = m_pVideoProcAmp->Set(
-        VideoProcAmp_BacklightCompensation,
-        value,
-        VideoProcAmp_Flags_Manual
-    );
-
-    checkHR(hr, QString("Failed to set backlight compensation: %1").arg(value));
+bool VideoCaptureProcessor::getVideoProcAmpRange(long prop, long& min, long& max) {
+    if (!m_pVideoProcAmp) return false;
+    long step, defVal, flags;
+    HRESULT hr = m_pVideoProcAmp->GetRange(prop, &min, &max, &step, &defVal, &flags);
+    checkHR(hr, QString("Failed to get range for property %1").arg(prop));
     return SUCCEEDED(hr);
 }
 

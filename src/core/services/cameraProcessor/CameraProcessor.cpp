@@ -9,24 +9,8 @@
 #include <algorithm>
 
 CameraProcessor::CameraProcessor(int anglemeterThreadsCount, int imgWidth, int imgHeight, QObject *parent) : QObject(parent) {
-    m_videoProcessors.reserve(8);
-    for (int i = 0; i < anglemeterThreadsCount; ++i) {
-        auto* anglemeterProcessor = new AnglemeterProcessor();
-        anglemeterProcessor->setImageSize(imgWidth, imgHeight);
-        anglemeterProcessor->setAngleTransformation([] (const float angleDeg) -> float {
-            float transformedAngle = std::fmodf(180.0f - angleDeg, 360.0f);
-            if (transformedAngle < 0.0f) transformedAngle += 360.0f;
-            return transformedAngle;
-
-        });
-        auto* thread = new QThread();
-        anglemeterProcessor->moveToThread(thread);
-        thread->start();
-        m_anglemeterProcessors.emplace_back(anglemeterProcessor);
-        m_anglemeterThreads.emplace_back(thread);
-        connect(anglemeterProcessor, &AnglemeterProcessor::angleMeasured,
-            this, &CameraProcessor::angleMeasured);
-    }
+    m_cameras.reserve(8);
+    createAnglemeterWorkers(anglemeterThreadsCount, imgWidth, imgHeight);
 }
 
 CameraProcessor::~CameraProcessor() {
@@ -68,23 +52,21 @@ void CameraProcessor::setCameraIndices(std::vector<qint32> indices) {
     setCameraString(cameraStr);
 }
 
-VideoCaptureProcessor* CameraProcessor::createVideoProcessor(QObject *parent) {
-    auto* vp = new VideoCaptureProcessor(this);
-    connect(vp, &VideoCaptureProcessor::imageCaptured,
-        this, &CameraProcessor::enqueueImage, Qt::DirectConnection);
-    m_videoProcessors.emplace_back(vp);
-    return vp;
+Camera& CameraProcessor::openCamera(void *hwnd, int cameraIndex) {
+    m_cameras.emplace_back();
+    Camera& cam = m_cameras.back();
+    cam.init(hwnd, cameraIndex);
+    connect(cam.video(), &VideoCaptureProcessor::imageCaptured,
+    this, &CameraProcessor::enqueueImage, Qt::DirectConnection);
+    return cam;
 }
 
-const std::vector<VideoCaptureProcessor*>& CameraProcessor::videoProcessors() {
-    return m_videoProcessors;
+std::vector<Camera>& CameraProcessor::cameras() {
+    return m_cameras;
 }
 
-void CameraProcessor::clearVideoProcessors() {
-    for (auto* vp : m_videoProcessors) {
-        delete vp;
-    }
-    m_videoProcessors.clear();
+void CameraProcessor::closeCameras() {
+    m_cameras.clear();
 }
 
 qreal CameraProcessor::lastAngleForCamera(qint32 cameraIdx) const {
@@ -155,13 +137,29 @@ void CameraProcessor::enqueueImage(qint32 cameraIdx, qreal time, quint8 *imgData
         [](const auto &a, const auto &b){ return a->queueSize() < b->queueSize(); }
     );
 
-    for (auto& anglemeterProcessor : m_anglemeterProcessors) {
-        // qDebug() << "queue size:" << anglemeterProcessor->queueSize();
-    }
-
     (*it)->enqueueImage(cameraIdx, time, imgData);
 }
 
 void CameraProcessor::onAngleMeasured(qint32 idx, qreal time, qreal angle) {
     m_lastAngles[idx] = angle;
+}
+
+void CameraProcessor::createAnglemeterWorkers(int anglemeterThreadsCount, int imgWidth, int imgHeight) {
+    for (int i = 0; i < anglemeterThreadsCount; ++i) {
+        auto* anglemeterProcessor = new AnglemeterProcessor();
+        anglemeterProcessor->setImageSize(imgWidth, imgHeight);
+        anglemeterProcessor->setAngleTransformation([] (const float angleDeg) -> float {
+            float transformedAngle = std::fmodf(180.0f - angleDeg, 360.0f);
+            if (transformedAngle < 0.0f) transformedAngle += 360.0f;
+            return transformedAngle;
+
+        });
+        auto* thread = new QThread();
+        anglemeterProcessor->moveToThread(thread);
+        thread->start();
+        m_anglemeterProcessors.emplace_back(anglemeterProcessor);
+        m_anglemeterThreads.emplace_back(thread);
+        connect(anglemeterProcessor, &AnglemeterProcessor::angleMeasured,
+            this, &CameraProcessor::angleMeasured);
+    }
 }

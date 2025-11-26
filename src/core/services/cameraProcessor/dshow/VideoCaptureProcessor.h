@@ -9,7 +9,7 @@ class VideoCaptureProcessor final : public QObject {
 public:
     explicit VideoCaptureProcessor(QObject *parent = nullptr);
     ~VideoCaptureProcessor() override;
-    bool init(void *hwnd, int cameraIndex);
+    void init(void *hwnd, int cameraIndex);
     static int getCameraCount();
     void resizeVideoWindow(const QSize &size);
     FrameGrabberCB *frameGrabberCB() const;
@@ -18,13 +18,8 @@ public:
     void debugVideoProcAmp();
     void debugAllCameraProps();
 
-    bool setBrightness(long value);
-    bool setContrast(long value);
-    bool setHue(long value);
-    bool setSaturation(long value);
-    bool setSharpness(long value);
-    bool setGamma(long value);
-    bool setBacklightCompensation(long value);
+    bool setVideoProcAmpProperty(long prop, long value);
+    bool getVideoProcAmpRange(long prop, long& min, long& max);
 
 signals:
     void imageCaptured(qint32 cameraIdx, qreal time, quint8* imgData);

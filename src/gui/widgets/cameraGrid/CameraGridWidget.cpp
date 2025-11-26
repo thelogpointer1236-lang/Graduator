@@ -107,7 +107,7 @@ void CameraGridWidget::rebuildVideoProcessors(int camCount,
 {
     auto *cameraProcessor = ServiceLocator::instance().cameraProcessor();
     if (!cameraProcessor) return;
-    cameraProcessor->clearVideoProcessors();
+    cameraProcessor->closeCameras();
 
     if (cameraLabels.empty() || sysIndices.empty()) return;
 
@@ -119,25 +119,22 @@ void CameraGridWidget::rebuildVideoProcessors(int camCount,
         }
         auto *label = cameraLabels[userIdx - 1];
         if (!label) continue;
-        auto *vp = cameraProcessor->createVideoProcessor(this);
-        if (!vp) continue;
         const HWND hwnd = reinterpret_cast<HWND>(label->winId());
         const int sysIdx = sysIndices[userIdx - 1] - 1;
-        vp->init(hwnd, sysIdx);
-        vp->debugAllCameraProps();
-
-        // if (vp->setSharpness(15)) {
-        //     qDebug() << "Set brightness to 200 for camera index" << sysIdx;
-        // }
-        vp->resizeVideoWindow(getCameraWindowSize());
+        Camera& cam = cameraProcessor->openCamera(hwnd, sysIdx);
+        if (QString err; !cam.isOk(err)) {
+            // TODO: handle error
+        }
+        cam.resizeVideoWindow(getCameraWindowSize());
     }
+    cameraProcessor->emitCamerasChanged();
 }
 
 void CameraGridWidget::resizeEvent(QResizeEvent *event)
 {
     QWidget::resizeEvent(event);
-    for (auto *vp : ServiceLocator::instance().cameraProcessor()->videoProcessors())
-        if (vp) vp->resizeVideoWindow(getCameraWindowSize());
+    for (Camera& cam : ServiceLocator::instance().cameraProcessor()->cameras())
+        cam.resizeVideoWindow(getCameraWindowSize());
 }
 
 QSize CameraGridWidget::getCameraWindowSize() const

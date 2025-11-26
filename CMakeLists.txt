@@ -72,6 +72,10 @@ set(SRC_FILES
         src/core/services/cameraProcessor/anglemeter/AnglemeterProcessor.cpp
         src/core/services/cameraProcessor/anglemeter/AnglemeterProcessor.cpp
         src/core/services/cameraProcessor/anglemeter/AnglemeterProcessor.h
+        src/core/services/cameraProcessor/CameraSettings.h
+        src/core/services/cameraProcessor/CameraSettings.cpp
+        src/core/services/cameraProcessor/Camera.cpp
+        src/core/services/cameraProcessor/Camera.h
 )
 
 set(HEADER_FILES
