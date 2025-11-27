@@ -23,6 +23,8 @@ public:
     void error(const wchar_t *msg);
     void critical(const QString &msg);
     void critical(const wchar_t *msg);
+
+    QString logFilePath() const;
 signals:
     void newLogEntry(LogLevel level, const QString &text);
 

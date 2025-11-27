@@ -38,6 +38,10 @@ void Logger::error(const QString &msg) { write(LogLevel::Error, msg); }
 void Logger::error(const wchar_t *msg) { write(LogLevel::Error, msg); }
 void Logger::critical(const QString &msg) { write(LogLevel::Critical, msg); }
 void Logger::critical(const wchar_t *msg) { write(LogLevel::Critical, msg); }
+
+QString Logger::logFilePath() const {
+    return m_file.fileName();
+}
 QString Logger::levelToString(LogLevel level) const {
     switch (level) {
         case LogLevel::Debug: return "DEBUG";
