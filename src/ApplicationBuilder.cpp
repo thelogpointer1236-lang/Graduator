@@ -64,6 +64,7 @@ MainWindow* ApplicationBuilder::build()
 
 void ApplicationBuilder::declareMetatypes() {
     qRegisterMetaType<Pressure>("Pressure");
+    qRegisterMetaType<LogLevel>("LogLevel");
     qRegisterMetaType<quint8*>("quint8*");
 }
 
@@ -187,7 +188,7 @@ void ApplicationBuilder::initPressureSensor()
 
     QObject::connect(&pressureSensorThread_, &QThread::started, [=]() {
         QString err;
-        bool ok = sensor->openCOM(cfg->get<QString>("pressureSensor.comPort", "COM1"), err);
+        bool ok = sensor->openCOM(cfg->get<QString>("pressureSensor.comPort", "COM155"), err);
         if (ok)
             QMetaObject::invokeMethod(sensor, "start", Qt::QueuedConnection);
     });
@@ -197,7 +198,7 @@ void ApplicationBuilder::initPressureSensor()
 
 void ApplicationBuilder::initCameraProcessor()
 {
-    auto* cam = new CameraProcessor(1, 640, 480);
+    auto* cam = new CameraProcessor(8, 640, 480);
     ServiceLocator::instance().setCameraProcessor(cam);
 }
 

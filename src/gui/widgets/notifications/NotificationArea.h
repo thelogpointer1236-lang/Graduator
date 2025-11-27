@@ -17,6 +17,7 @@ public:
     ~NotificationArea() override = default;
 
     void showMessage(LogLevel level, const QString &text);
+    void reposition();
 
 protected:
     bool eventFilter(QObject *watched, QEvent *event) override;
@@ -25,8 +26,6 @@ private slots:
     void handleFinished(NotificationWidget *widget);
 
 private:
-    void resizeToParent();
-
     QVBoxLayout *layout_{};
     QVector<NotificationWidget *> notifications_;
 };

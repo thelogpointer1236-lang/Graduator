@@ -55,8 +55,6 @@ set(SRC_FILES
         src/gui/widgets/control/ManualWidget.cpp
         src/gui/widgets/GraduationTableWidget.cpp
         src/gui/widgets/CameraSettingsTab.cpp
-        src/gui/widgets/notifications/NotificationArea.cpp
-        src/gui/widgets/notifications/NotificationWidget.cpp
         src/gui/models/GraduationTableModel.cpp
         src/gui/widgets/control/PartyWidget.cpp
         src/core/services/PressureSensor.cpp
@@ -75,6 +73,8 @@ set(SRC_FILES
         src/core/services/cameraProcessor/anglemeter/AnglemeterProcessor.cpp
         src/core/services/cameraProcessor/CameraSettings.cpp
         src/core/services/cameraProcessor/Camera.cpp
+        src/gui/widgets/notifications/NotificationArea.cpp
+        src/gui/widgets/notifications/NotificationWidget.cpp
 )
 
 set(HEADER_FILES
@@ -105,8 +105,6 @@ set(HEADER_FILES
         src/gui/widgets/control/ManualWidget.h
         src/gui/widgets/GraduationTableWidget.h
         src/gui/widgets/CameraSettingsTab.h
-        src/gui/widgets/notifications/NotificationArea.h
-        src/gui/widgets/notifications/NotificationWidget.h
         src/gui/models/GraduationTableModel.h
         src/gui/widgets/control/PartyWidget.h
         src/core/services/PressureSensor.h
@@ -122,6 +120,8 @@ set(HEADER_FILES
         src/core/services/cameraProcessor/Camera.h
         src/core/services/cameraProcessor/CameraSettings.h
         src/core/services/cameraProcessor/anglemeter/AnglemeterProcessor.h
+        src/gui/widgets/notifications/NotificationArea.h
+        src/gui/widgets/notifications/NotificationWidget.h
         src/defines.h
 )
 

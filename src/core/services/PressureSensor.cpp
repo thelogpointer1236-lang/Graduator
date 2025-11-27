@@ -160,7 +160,7 @@ bool PressureSensor::pollOnce(QString &error) {
     }
     // 3. Проверка длины ответа
     if (bytesRead != m_responseLength) {
-        ServiceLocator::instance().logger()->warn(
+        ServiceLocator::instance().logger()->debug(
             QString::fromWCharArray(L"Неверный ответ от устройства на порту %1. Получено %2 байт, ожидалось %3").
             arg(m_comPort).arg(bytesRead).arg(m_responseLength));
         return true;
@@ -191,7 +191,7 @@ bool PressureSensor::pollOnce(QString &error) {
     float pressureValue = 0.0F;
     std::memcpy(&pressureValue, nativeBytes.data(), sizeof(float));
     if (!qIsFinite(pressureValue)) {
-        ServiceLocator::instance().logger()->warn(
+        ServiceLocator::instance().logger()->debug(
             QString::fromWCharArray(L"Получено некорректное значение давления с порта %1").arg(m_comPort));
         return true;
     }
@@ -218,7 +218,7 @@ bool PressureSensor::pollOnce(QString &error) {
         case 9: unit = PressureUnit::Bar;
             break;
         default:
-            ServiceLocator::instance().logger()->warn(
+            ServiceLocator::instance().logger()->debug(
                 QString::fromWCharArray(L"Получено недопустимое значение единицы измерения с порта %1: 0x%2").
                 arg(m_comPort).arg(unitByte, 2, 16, QLatin1Char('0')));
             return true;

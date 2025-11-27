@@ -18,8 +18,8 @@ public:
     void showAnimated();
     void dismiss();
 
-signals:
-    void finished(NotificationWidget *self);
+    signals:
+        void finished(NotificationWidget *self);
 
 private:
     void setupUi(const QString &text, LogLevel level);
