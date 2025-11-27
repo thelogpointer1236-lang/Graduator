@@ -64,7 +64,6 @@ set(SRC_FILES
         src/gui/views/StatusBarView.cpp
         src/gui/models/StatusBarModel.cpp
         src/ApplicationBuilder.cpp
-        src/gui/widgets/other/Toast.cpp
         src/core/services/stubs/PressureSensor.cpp
         src/core/services/stubs/VideoCaptureProcessor.cpp
         src/core/services/graduationService/PressureAngleGraduator.cpp
@@ -111,7 +110,6 @@ set(HEADER_FILES
         src/core/services/graduationService/GraduationService.h
         src/gui/models/StatusBarModel.h
         src/core/types/PartyResult.h
-        src/gui/widgets/other/Toast.h
         src/ApplicationBuilder.h
         src/core/services/PartyManager.h
         src/core/types/Printer.h

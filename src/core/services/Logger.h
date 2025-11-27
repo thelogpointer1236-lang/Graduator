@@ -23,9 +23,9 @@ public:
     void error(const wchar_t *msg);
     void critical(const QString &msg);
     void critical(const wchar_t *msg);
-    signals:
-        
+signals:
     void newLogEntry(LogLevel level, const QString &text);
+
 private:
     QString levelToString(LogLevel level) const;
     QFile m_file;
