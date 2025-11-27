@@ -55,6 +55,8 @@ set(SRC_FILES
         src/gui/widgets/control/ManualWidget.cpp
         src/gui/widgets/GraduationTableWidget.cpp
         src/gui/widgets/CameraSettingsTab.cpp
+        src/gui/widgets/notifications/NotificationArea.cpp
+        src/gui/widgets/notifications/NotificationWidget.cpp
         src/gui/models/GraduationTableModel.cpp
         src/gui/widgets/control/PartyWidget.cpp
         src/core/services/PressureSensor.cpp
@@ -103,6 +105,8 @@ set(HEADER_FILES
         src/gui/widgets/control/ManualWidget.h
         src/gui/widgets/GraduationTableWidget.h
         src/gui/widgets/CameraSettingsTab.h
+        src/gui/widgets/notifications/NotificationArea.h
+        src/gui/widgets/notifications/NotificationWidget.h
         src/gui/models/GraduationTableModel.h
         src/gui/widgets/control/PartyWidget.h
         src/core/services/PressureSensor.h
