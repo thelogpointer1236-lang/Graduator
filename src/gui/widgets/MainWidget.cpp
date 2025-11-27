@@ -6,6 +6,7 @@
 #include "gui/models/StatusBarModel.h"
 #include "SettingsWidget.h"
 #include "CameraSettingsTab.h"
+#include "LogAndConfigTab.h"
 #include <QHBoxLayout>
 #include <QTabWidget>
 
@@ -63,12 +64,14 @@ QTabWidget* MainWidget::createTabWidget()
     auto *settingsWidget = new SettingsWidget;
     auto *cameraSettingsTab = new CameraSettingsTab;
     auto *controlPage = createControlPage();
+    auto *logAndConfigTab = new LogAndConfigTab;
     // auto *partiesPage = createPartiesPage();
 
     auto *tabWidget = new QTabWidget;
     tabWidget->addTab(controlPage, tr("Graduation"));
     tabWidget->addTab(cameraSettingsTab, tr("Cameras"));
     // tabWidget->addTab(partiesPage, tr("Parties"));
+    tabWidget->addTab(logAndConfigTab, tr("Логи"));
     tabWidget->addTab(settingsWidget, tr("Settings"));
 
     return tabWidget;

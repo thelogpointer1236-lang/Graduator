@@ -48,6 +48,7 @@ set(SRC_FILES
         src/core/services/cameraProcessor/dshow/FrameGrabberCB.cpp
         src/core/services/cameraProcessor/dshow/VideoCaptureProcessor.cpp
         src/gui/widgets/MainWidget.cpp
+        src/gui/widgets/LogAndConfigTab.cpp
         src/gui/windows/MainWindow.cpp
         src/gui/widgets/SettingsWidget.cpp
         src/gui/widgets/control/ControlWidget.cpp
@@ -97,6 +98,7 @@ set(HEADER_FILES
         src/core/services/cameraProcessor/dshow/VideoCaptureProcessor.h
         src/core/services/cameraProcessor/dshow/FrameGrabberCB.h
         src/gui/widgets/MainWidget.h
+        src/gui/widgets/LogAndConfigTab.h
         src/gui/windows/MainWindow.h
         src/gui/views/StatusBarView.h
         src/gui/widgets/SettingsWidget.h

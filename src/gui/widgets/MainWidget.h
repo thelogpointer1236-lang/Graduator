@@ -1,6 +1,8 @@
-﻿#ifndef GRADUATOR_MAINWIDGET_H
+#ifndef GRADUATOR_MAINWIDGET_H
 #define GRADUATOR_MAINWIDGET_H
+
 #include <QWidget>
+
 class QHBoxLayout;
 class QVBoxLayout;
 class QTabWidget;
@@ -16,4 +18,5 @@ private:
     QTabWidget* createTabWidget();
     QWidget* createControlPage();
 };
-#endif //GRADUATOR_MAINWIDGET_H
+
+#endif // GRADUATOR_MAINWIDGET_H
