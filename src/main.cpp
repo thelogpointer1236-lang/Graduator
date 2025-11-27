@@ -7,7 +7,7 @@ int main(int argc, char *argv[])
 
     ApplicationBuilder builder(&app);
     MainWindow* mainWindow = builder.build();
-    mainWindow->show();
+    mainWindow->showMaximized();
 
     return app.exec();
 }

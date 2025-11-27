@@ -8,7 +8,7 @@ Logger::Logger(QObject *parent) : QObject(parent) {
 bool Logger::init(const QString &logFilePath) {
     QDir().mkpath(QFileInfo(logFilePath).absolutePath());
     m_file.setFileName(logFilePath);
-    if (!m_file.open(QIODevice::Append | QIODevice::Text))
+    if (!m_file.open(QIODevice::WriteOnly | QIODevice::Text))
         return false;
     m_stream.setDevice(&m_file);
     m_stream.setCodec("UTF-8");

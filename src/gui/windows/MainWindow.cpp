@@ -21,6 +21,9 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
     // Не забудьте установить layout в центральный виджет!
     centralWidget_->setLayout(mainLayout);
 
+    mainLayout->setContentsMargins(0, 0, 5, 0);
+    mainLayout->setSpacing(0);
+
     setupNotifications();
 }
 void MainWindow::closeEvent(QCloseEvent *event) {
@@ -29,10 +32,10 @@ void MainWindow::closeEvent(QCloseEvent *event) {
 }
 
 void MainWindow::resizeEvent(QResizeEvent *event) {
-    QMainWindow::resizeEvent(event);
-    if (notificationArea_) {
-        notificationArea_->setGeometry(centralWidget_->rect());
-    }
+    // QMainWindow::resizeEvent(event);
+    // if (notificationArea_) {
+    //     notificationArea_->setGeometry(centralWidget_->rect());
+    // }
 }
 
 void MainWindow::setupNotifications() {

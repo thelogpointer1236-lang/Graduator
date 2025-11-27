@@ -13,7 +13,7 @@ public:
     void setValue(const QString& key, long rawValue);
     long getValue(const QString& key, bool* ok = nullptr) const;
     void getKeyRange(const QString& key, long& min, long& max, bool* ok = nullptr) const;
-    void getAvailableKeys(QVector<QString>& keys) const;
+    QVector<QString> keys() const;
     void setVideoCapProcessor(VideoCaptureProcessor* videoProcessor);
     VideoCaptureProcessor *video() const;
 

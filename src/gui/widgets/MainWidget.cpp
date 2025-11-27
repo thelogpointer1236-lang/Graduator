@@ -34,6 +34,8 @@ void MainWidget::setupUi()
      setupRightPanel(rightLayout);
 
      mainLayout->addLayout(rightLayout, RightPanelStretch);
+     mainLayout->setContentsMargins(0, 0, 0, 0);
+     mainLayout->setSpacing(0);
 
      setLayout(mainLayout);
 }
@@ -59,26 +61,24 @@ void MainWidget::setupRightPanel(QVBoxLayout *rightLayout)
      rightLayout->setSpacing(6);
 }
 
-QTabWidget* MainWidget::createTabWidget()
-{
-    auto *settingsWidget = new SettingsWidget;
-    auto *cameraSettingsTab = new CameraSettingsTab;
-    auto *controlPage = createControlPage();
-    auto *logAndConfigTab = new LogAndConfigTab;
-    // auto *partiesPage = createPartiesPage();
+QTabWidget* MainWidget::createTabWidget() {
+     auto *settingsWidget = new SettingsWidget;
+     auto *cameraSettingsTab = new CameraSettingsTab;
+     auto *controlPage = createControlPage();
+     auto *logAndConfigTab = new LogAndConfigTab;
+     // auto *partiesPage = createPartiesPage();
 
-    auto *tabWidget = new QTabWidget;
-    tabWidget->addTab(controlPage, tr("Graduation"));
-    tabWidget->addTab(cameraSettingsTab, tr("Cameras"));
-    // tabWidget->addTab(partiesPage, tr("Parties"));
-    tabWidget->addTab(logAndConfigTab, tr("Логи"));
-    tabWidget->addTab(settingsWidget, tr("Settings"));
+     auto *tabWidget = new QTabWidget;
+     tabWidget->addTab(controlPage, tr("Graduation"));
+     tabWidget->addTab(settingsWidget, tr("Settings"));
+     tabWidget->addTab(cameraSettingsTab, tr("Cameras"));
+     // tabWidget->addTab(partiesPage, tr("Parties"));
+     tabWidget->addTab(logAndConfigTab, tr("Additional Settings"));
 
-    return tabWidget;
+     return tabWidget;
 }
 
-QWidget* MainWidget::createControlPage()
-{
+QWidget* MainWidget::createControlPage() {
      auto *page = new QWidget;
      auto *layout = new QVBoxLayout(page);
 
@@ -92,6 +92,6 @@ QWidget* MainWidget::createControlPage()
 
      layout->setSpacing(6);
 
-    return page;
+     return page;
 }
 

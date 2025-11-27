@@ -23,7 +23,13 @@ long CameraSettings::getValue(const QString& key, bool* ok) const {
     auto it = settings_.find(key);
     if (it == settings_.end()) {
         if (ok) *ok = false;
-        return 0;
+        long prop = settings_.at(key).second;
+        long current;
+        long flags;
+        if (!video_->getVideoProcAmpCurrent(prop, current, flags)) {
+            return -9999; // Ошибка получения значения
+        }
+        return current;
     }
     if (ok) *ok = true;
     return it->second.second;
@@ -44,11 +50,13 @@ void CameraSettings::getKeyRange(const QString& key, long& min, long& max, bool*
     }
 }
 
-void CameraSettings::getAvailableKeys(QVector<QString>& keys) const {
-    keys.clear();
+QVector<QString> CameraSettings::keys() const {
+    QVector<QString> keys_;
+    keys_.clear();
     for (auto& kv : settings_) {
-        keys.push_back(kv.first);
+        keys_.push_back(kv.first);
     }
+    return keys_;
 }
 
 void CameraSettings::setVideoCapProcessor(VideoCaptureProcessor *videoProcessor) {

@@ -186,7 +186,15 @@
     </message>
     <message>
         <source>Settings</source>
-        <translation>Настройки</translation>
+        <translation>Основные настройки</translation>
+    </message>
+    <message>
+        <source>Cameras</source>
+        <translation>Детальная настройка камер</translation>
+    </message>
+    <message>
+        <source>Additional Settings</source>
+        <translation>Дополнительные настройки</translation>
     </message>
 </context>
 
@@ -385,6 +393,67 @@
 <message>
 <source>sharpness</source>
 <translation>Резкость</translation>
+</message>
+
+</context>
+
+
+<context>
+<name>LogAndConfigTab</name>
+
+<message>
+<source>Logs</source>
+<translation>Логи</translation>
+</message>
+
+<message>
+<source>Refresh</source>
+<translation>Обновить</translation>
+</message>
+
+<message>
+<source>Failed to open %1</source>
+<translation>Не удалось открыть %1</translation>
+</message>
+
+<message>
+<source>config.json</source>
+<translation>config.json</translation>
+</message>
+
+<message>
+<source>Reset</source>
+<translation>Сбросить</translation>
+</message>
+
+<message>
+<source>Save</source>
+<translation>Сохранить</translation>
+</message>
+
+<message>
+<source>Restart</source>
+<translation>Перезапустить</translation>
+</message>
+
+<message>
+<source>JSON Error</source>
+<translation>Ошибка JSON</translation>
+</message>
+
+<message>
+<source>Failed to parse config.json: %1</source>
+<translation>Не удалось разобрать config.json: %1</translation>
+</message>
+
+<message>
+<source>Write Error</source>
+<translation>Ошибка записи</translation>
+</message>
+
+<message>
+<source>Failed to save %1</source>
+<translation>Не удалось сохранить %1</translation>
 </message>
 
 </context>

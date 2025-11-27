@@ -140,8 +140,7 @@ QGroupBox *CameraSettingsTab::createCameraGroup(int cameraIndex)
     auto *settings = camera.settings();
     if (!settings) return nullptr;
 
-    QVector<QString> keys;
-    settings->getAvailableKeys(keys);
+    QVector<QString> keys = settings->keys();
 
     auto *group = new QGroupBox(tr("Camera") + " " + QString::number(cameraIndex + 1));
     auto *layout = new QVBoxLayout(group);

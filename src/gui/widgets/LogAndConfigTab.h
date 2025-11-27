@@ -25,16 +25,20 @@ private:
     QWidget *createLogSection();
     QWidget *createConfigSection();
     bool writeConfigToDisk();
+    void reloadFilteredLogs();
 
 private:
+    QString logFilePath_ = "logs.txt";
+    QString configFilePath_ = "config.json";
+
+    std::vector<std::pair<LogLevel, QString>> logBuffer_;
+    LogLevel currentFilterLevel_ = LogLevel::Debug;
+
     QPlainTextEdit *logView_ = nullptr;
     QPlainTextEdit *configEditor_ = nullptr;
     QPushButton *saveButton_ = nullptr;
     QPushButton *restartButton_ = nullptr;
     QSyntaxHighlighter *highlighter_ = nullptr;
-
-    QString logFilePath_ = "logs.txt";
-    QString configFilePath_ = "config.json";
 };
 
 #endif // GRADUATOR_LOGANDCONFIGTAB_H

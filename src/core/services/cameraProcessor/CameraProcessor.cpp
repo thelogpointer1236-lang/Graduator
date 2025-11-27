@@ -137,8 +137,7 @@ bool CameraProcessor::saveSettingsToFile(const QString &path)
         auto *settings = camera.settings();
         if (!settings) continue;
 
-        QVector<QString> keys;
-        settings->getAvailableKeys(keys);
+        QVector<QString> keys = settings->keys();
 
         QJsonObject settingsObj;
         for (const auto &key : keys) {
@@ -174,24 +173,41 @@ bool CameraProcessor::loadSettingsFromFile(const QString &path)
     }
 
     QByteArray data = file.readAll();
-    QString sdata = data;
     QJsonDocument doc = QJsonDocument::fromJson(data);
     if (!doc.isObject()) return false;
 
     QJsonObject root = doc.object();
     QJsonArray camerasArray = root["cameras"].toArray();
 
+    for (int i = 0; i < m_cameras.size(); ++i) {
+        if (i < camerasArray.size()) {
+            auto *settings = m_cameras[i].settings();
+            if (!settings) continue;
 
-    for (int i = 0; i < camerasArray.size() && i < m_cameras.size(); ++i) {
-        auto *settings = m_cameras[i].settings();
-        if (!settings) continue;
+            QJsonObject cameraObj = camerasArray[i].toObject();
+            QJsonObject settingsObj = cameraObj["settings"].toObject();
 
-        QJsonObject cameraObj = camerasArray[i].toObject();
-        QJsonObject settingsObj = cameraObj["settings"].toObject();
-
-        for (auto it = settingsObj.begin(); it != settingsObj.end(); ++it) {
-            // qDebug() << it.key() << it.value();
-            settings->setValue(it.key(), it.value().toInt());
+            // перебираем ВСЕ известные ключи камеры
+            for (const QString &key : settings->keys()) {
+                if (settingsObj.contains(key)) {
+                    settings->setValue(key, settingsObj[key].toInt());
+                } else {
+                    // если ключ отсутствует — ставим дефолт
+                    int val = settings->getValue(key);
+                    if (val != -9999)
+                        settings->setValue(key, settings->getValue(key));
+                }
+            }
+        }
+        else {
+            auto *settings = m_cameras[i].settings();
+            // перебираем ВСЕ известные ключи камеры
+            for (const QString &key : settings->keys()) {
+                    // если ключ отсутствует — ставим дефолт
+                int val = settings->getValue(key);
+                if (val != -9999)
+                    settings->setValue(key, settings->getValue(key));
+            }
         }
     }
 
