@@ -11,8 +11,8 @@ set(CMAKE_AUTORCC ON)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-# set(CMAKE_PREFIX_PATH "D:/Qt/Qt5.14.2/5.14.2/msvc2017_64")
-set(CMAKE_PREFIX_PATH "S:/Qt/Qt-5.15.17/win32-msvc")
+ set(CMAKE_PREFIX_PATH "D:/Qt/Qt5.14.2/5.14.2/msvc2017_64")
+#set(CMAKE_PREFIX_PATH "S:/Qt/Qt-5.15.17/win32-msvc")
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/src)
 
@@ -72,11 +72,8 @@ set(SRC_FILES
         src/core/services/PartyManager.cpp
         src/core/services/cameraProcessor/anglemeter/AnglemeterProcessor.cpp
         src/core/services/cameraProcessor/anglemeter/AnglemeterProcessor.cpp
-        src/core/services/cameraProcessor/anglemeter/AnglemeterProcessor.h
-        src/core/services/cameraProcessor/CameraSettings.h
         src/core/services/cameraProcessor/CameraSettings.cpp
         src/core/services/cameraProcessor/Camera.cpp
-        src/core/services/cameraProcessor/Camera.h
 )
 
 set(HEADER_FILES
@@ -120,6 +117,8 @@ set(HEADER_FILES
         src/core/types/Printer.h
         src/core/types/Displacement.h
         src/core/types/Grad.h
+        src/core/services/cameraProcessor/Camera.h
+        src/core/services/cameraProcessor/CameraSettings.h
         src/core/services/cameraProcessor/anglemeter/AnglemeterProcessor.h
         src/defines.h
 )
