@@ -74,12 +74,13 @@ void AutomaticWidget::onStartClicked()
     auto *gs = ServiceLocator::instance().graduationService();
     if (gs->isRunning()) return;
     if (QString err; !gs->isReadyToRun(err)) {
-        QMessageBox::critical(
-            this,
-            tr("Failed to start calibration"),
-            err,
-            tr("Ok")
-        );
+        // QMessageBox::critical(
+        //     this,
+        //     tr("Failed to start calibration"),
+        //     err,
+        //     tr("Ok")
+        // );
+        ServiceLocator::instance().logger()->critical(err);
         return;
     }
     gs->start();

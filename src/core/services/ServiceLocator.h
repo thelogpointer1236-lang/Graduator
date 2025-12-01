@@ -9,8 +9,8 @@
 #include "pressureController/PressureControllerBase.h"
 #include "cameraProcessor/CameraProcessor.h"
 #include "PressureSensor.h"
+#include "TelemetryLogger.h"
 #include "graduationService/GraduationService.h"
-#include "graduationService/GraduationObserver.h"
 
 
 // servicelocator.h
@@ -34,8 +34,9 @@ public:
     PressureSensor *pressureSensor() const noexcept;
     void setGraduationService(GraduationService *graduationService);
     GraduationService *graduationService() const noexcept;
-    void setGraduationObserver(GraduationObserver *graduationObserver);
-    GraduationObserver *graduationObserver() const noexcept;
+    void setTelemetryLogger(TelemetryLogger *telemetryLogger);
+    TelemetryLogger *telemetryLogger() const noexcept;
+
 private:
     QPointer<Logger> m_logger;
     QPointer<GaugeCatalog> m_gaugeCatalog;
@@ -45,6 +46,6 @@ private:
     QPointer<CameraProcessor> m_cameraProcessor;
     QPointer<PressureSensor> m_pressureSensor;
     QPointer<GraduationService> m_graduationService;
-    QPointer<GraduationObserver> m_graduationObserver;
+    QPointer<TelemetryLogger> m_telemetryLogger;
 };
 #endif //GRADUATOR_SERVICELOCATOR_H

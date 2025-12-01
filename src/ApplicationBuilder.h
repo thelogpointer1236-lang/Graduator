@@ -23,6 +23,7 @@ private:
     void initPressureController();
     void initPressureSensor();
     void initCameraProcessor();
+    void initTelemetryLogger();
     void applySettings();
 
 private:
@@ -31,7 +32,6 @@ private:
 
     QThread pressureSensorThread_;
     QThread pressureControllerThread_;
-    QThread graduationObserverThread_;
 };
 
 

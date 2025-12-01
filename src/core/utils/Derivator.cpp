@@ -45,7 +45,9 @@ qreal Derivator::dd() const {
 
 
 qreal Derivator::d(int n) const {
-    if (n < 2 || points_.size() < n) return 0.0;
+    if (n < 2) return 0.0;
+
+    if (points_.size() < n) return d(points_.size());
 
     // Берём последние n точек
     int start = points_.size() - n;

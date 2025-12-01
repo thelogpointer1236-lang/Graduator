@@ -38,4 +38,6 @@
 #define CFG_KEY_AIM_RADIUS                        "aim.radius"
 #define CFG_KEY_AIM_VISIBLE                       "aim.visible"
 
+#define CFG_KEY_TELEMETRY_LOG_FOLDER             "telemetryLogger.logFolder"
+
 #endif // CONFIG_DEFINES_H

@@ -1,5 +1,6 @@
 ﻿#ifndef GRADUATOR_PRESSURE_H
 #define GRADUATOR_PRESSURE_H
+#include <QObject>
 #include "PressureUnit.h"
 #include <stdexcept>
 class Pressure {

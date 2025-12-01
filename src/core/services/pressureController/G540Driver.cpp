@@ -135,6 +135,7 @@ void G540Driver::start() {
     m_lastTimeMsDangP = 0;
     m_lastTimeMs = 0;
     m_isRunning = true;
+    emit started();
     while (true) {
         if (m_aboutToStop || QThread::currentThread()->isInterruptionRequested()) {
             break;
@@ -163,6 +164,7 @@ void G540Driver::start() {
     setFrequency(0);
     m_impulsesCount = 0;
     m_isRunning = false;
+    emit stopped();
 }
 void G540Driver::stop() {
     m_aboutToStop = true;

@@ -46,6 +46,10 @@ public
     Q_INVOKABLE
     void start();
 
+    signals:
+    void started();
+    void stopped();
+
 private:
     static void delayMicroseconds(long long target);
     quint8 state() const;

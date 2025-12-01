@@ -457,18 +457,12 @@ void VideoCaptureProcessor::debugAllCameraProps()
 bool VideoCaptureProcessor::getVideoProcAmpCurrent(long prop, long& current, long& flags) {
     if (!m_pVideoProcAmp) return false;
     HRESULT hr = m_pVideoProcAmp->Get(prop, &current, &flags);
-    checkHR(hr, QString("Failed to get current value for property %1").arg(prop));
     return SUCCEEDED(hr);
 }
 
 bool VideoCaptureProcessor::setVideoProcAmpProperty(long prop, long value) {
     if (!m_pVideoProcAmp) return false;
     HRESULT hr = m_pVideoProcAmp->Set(prop, value, VideoProcAmp_Flags_Manual);
-    try {
-        checkHR(hr, QString("Failed to set property %1").arg(prop));
-    } catch (const QString&) {
-        return false;
-    }
     return SUCCEEDED(hr);
 }
 
@@ -476,11 +470,6 @@ bool VideoCaptureProcessor::getVideoProcAmpRange(long prop, long& min, long& max
     if (!m_pVideoProcAmp) return false;
     long step, defVal, flags;
     HRESULT hr = m_pVideoProcAmp->GetRange(prop, &min, &max, &step, &defVal, &flags);
-    try {
-        checkHR(hr, QString("Failed to get range for property %1").arg(prop));
-    } catch (const QString&) {
-        return false;
-    }
     return SUCCEEDED(hr);
 }
 

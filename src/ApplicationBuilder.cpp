@@ -8,6 +8,8 @@
 #include <QMetaObject>
 #include <QMetaType>
 
+#include "core/services/cameraProcessor/dshow/FrameGrabberCB.h"
+
 ApplicationBuilder::ApplicationBuilder(QApplication* app)
     : app_(app)
 {
@@ -23,15 +25,6 @@ ApplicationBuilder::~ApplicationBuilder()
             gs->interrupt();
         }
     }
-
-    if (auto go = locator.graduationObserver(); go) {
-        if (go->isRunning()) {
-            go->stop();
-        }
-    }
-    graduationObserverThread_.requestInterruption();
-    graduationObserverThread_.quit();
-    graduationObserverThread_.wait();
 
     if (auto *sensor = locator.pressureSensor(); sensor) {
         sensor->stop();
@@ -62,6 +55,7 @@ MainWindow* ApplicationBuilder::build()
     initPressureController();
     initPressureSensor();
     initCameraProcessor();
+    initTelemetryLogger();
 
     auto* mainWindow = new MainWindow();
     mainWindow->setMinimumSize(1600, 800);
@@ -144,10 +138,6 @@ void ApplicationBuilder::initGraduation()
 {
     auto* service = new GraduationService();
     ServiceLocator::instance().setGraduationService(service);
-    auto* observer = new GraduationObserver();
-    ServiceLocator::instance().setGraduationObserver(observer);
-    observer->moveToThread(&graduationObserverThread_);
-    graduationObserverThread_.start();
 }
 
 void ApplicationBuilder::initPartyManager()
@@ -204,6 +194,18 @@ void ApplicationBuilder::initCameraProcessor()
 {
     auto* cam = new CameraProcessor(8, 640, 480);
     ServiceLocator::instance().setCameraProcessor(cam);
+}
+
+void ApplicationBuilder::initTelemetryLogger() {
+    auto *cfg = ServiceLocator::instance().configManager();
+    auto *logger = new TelemetryLogger(cfg->get<QString>(CFG_KEY_TELEMETRY_LOG_FOLDER, "telemetry"));
+    ServiceLocator::instance().setTelemetryLogger(logger);
+    QObject::connect(
+        ServiceLocator::instance().pressureController()->g540Driver(), &G540Driver::started,
+        logger, &TelemetryLogger::begin, Qt::QueuedConnection);
+    QObject::connect(
+        ServiceLocator::instance().pressureController()->g540Driver(), &G540Driver::stopped,
+        logger, &TelemetryLogger::end, Qt::QueuedConnection);
 }
 
 void ApplicationBuilder::applySettings() {

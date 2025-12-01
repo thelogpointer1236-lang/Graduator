@@ -11,8 +11,8 @@ set(CMAKE_AUTORCC ON)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
- set(CMAKE_PREFIX_PATH "D:/Qt/Qt5.14.2/5.14.2/msvc2017_64")
-#set(CMAKE_PREFIX_PATH "S:/Qt/Qt-5.15.17/win32-msvc")
+# set(CMAKE_PREFIX_PATH "D:/Qt/Qt5.14.2/5.14.2/msvc2017_64")
+set(CMAKE_PREFIX_PATH "S:/Qt/Qt-5.15.17/win32-msvc")
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/src)
 
@@ -76,9 +76,9 @@ set(SRC_FILES
         src/core/services/cameraProcessor/Camera.cpp
         src/gui/widgets/notifications/NotificationArea.cpp
         src/gui/widgets/notifications/NotificationWidget.cpp
-        src/core/services/graduationService/GraduationObserver.cpp
         src/core/utils/Derivator.cpp
         src/core/utils/Mediator.cpp
+        src/core/services/TelemetryLogger.cpp
 )
 
 set(HEADER_FILES
@@ -127,8 +127,8 @@ set(HEADER_FILES
         src/core/services/cameraProcessor/anglemeter/AnglemeterProcessor.h
         src/gui/widgets/notifications/NotificationArea.h
         src/gui/widgets/notifications/NotificationWidget.h
+        src/core/services/TelemetryLogger.h
         src/core/utils/Derivator.h
-        src/core/services/graduationService/GraduationObserver.h
         src/core/utils/Mediator.h
         src/defines.h
 )

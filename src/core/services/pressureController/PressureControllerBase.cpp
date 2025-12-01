@@ -1,13 +1,17 @@
 ﻿#include "PressureControllerBase.h"
 #include "core/services/ServiceLocator.h"
+#include <QMetaObject>
 #include <QThread>
+
 PressureControllerBase::PressureControllerBase(QObject *parent) : QObject(parent) {
     m_G540Driver = std::make_unique<G540Driver>();
     m_G540DriverThread = new QThread(this);
     m_G540Driver->moveToThread(m_G540DriverThread);
     m_G540DriverThread->start();
 }
-PressureControllerBase::~PressureControllerBase() {
+
+PressureControllerBase::~PressureControllerBase()
+{
     if (m_isRunning) {
         interrupt();
     }
@@ -19,18 +23,26 @@ PressureControllerBase::~PressureControllerBase() {
     }
 
     if (m_G540DriverThread) {
+
+        // Удаляем объект в его собственном потоке
+        if (m_G540Driver) {
+            QMetaObject::invokeMethod(
+                m_G540Driver.get(),
+                "deleteLater",
+                Qt::QueuedConnection
+            );
+        }
+
         m_G540DriverThread->quit();
         m_G540DriverThread->wait();
+
+        delete m_G540DriverThread;
+        m_G540DriverThread = nullptr;
     }
 
-    if (m_G540Driver) {
-        m_G540Driver->moveToThread(QThread::currentThread());
-        m_G540Driver.reset();
-    }
-
-    delete m_G540DriverThread;
-    m_G540DriverThread = nullptr;
+    m_G540Driver.reset();
 }
+
 void PressureControllerBase::setGaugePressurePoints(const std::vector<qreal> &pressureValues) {
     m_gaugePressureValues = pressureValues;
 }

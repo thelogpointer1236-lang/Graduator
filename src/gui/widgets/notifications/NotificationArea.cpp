@@ -7,10 +7,10 @@
 #include <QVBoxLayout>
 
 namespace {
-    constexpr int kMaxNotifications = 3;
+    constexpr int kMaxNotifications = 2;
     constexpr int kHorizontalMargin = 12;
     constexpr int kVerticalMargin = 12;
-    constexpr int kMaxWidth = 120;
+    constexpr int kMaxWidth = 360;
 }
 
 NotificationArea::NotificationArea(QWidget *parent)
@@ -73,8 +73,10 @@ void NotificationArea::reposition()
     const auto hint = layout_->sizeHint();
     const int availableWidth = qMax(0, parentWidget()->width() - (kHorizontalMargin * 2));
     const int width = qMin(kMaxWidth, availableWidth);
-    const int availableHeight = qMax(0, parentWidget()->height() - (kVerticalMargin * 2));
-    const int height = qMin(availableHeight, hint.height() + (kVerticalMargin * 2));
+    // const int availableHeight = qMax(0, parentWidget()->height() - (kVerticalMargin * 2));
+    // const int height = qMin(availableHeight, hint.height() + (kVerticalMargin * 2));
+    const int availableHeight = 480;
+    const int height = availableHeight/2;
     const int x = parentWidget()->width() - width - kHorizontalMargin;
     const int y = parentWidget()->height() - height - kVerticalMargin;
 

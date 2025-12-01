@@ -52,10 +52,10 @@ GraduationService *ServiceLocator::graduationService() const noexcept {
     return m_graduationService;
 }
 
-void ServiceLocator::setGraduationObserver(GraduationObserver *graduationObserver) {
-     m_graduationObserver = graduationObserver;
+void ServiceLocator::setTelemetryLogger(TelemetryLogger *telemetryLogger) {
+    m_telemetryLogger = telemetryLogger;
 }
 
-GraduationObserver * ServiceLocator::graduationObserver() const noexcept {
-    return m_graduationObserver;
+TelemetryLogger * ServiceLocator::telemetryLogger() const noexcept {
+    return m_telemetryLogger;
 }
