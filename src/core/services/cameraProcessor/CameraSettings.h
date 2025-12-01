@@ -3,6 +3,7 @@
 #include <map>
 #include <QString>
 #include <QPair>
+#include <QStringList>
 
 class VideoCaptureProcessor;
 class CameraSettings {
@@ -12,13 +13,13 @@ public:
 
     void setValue(const QString& key, long rawValue);
     long getValue(const QString& key, bool* ok = nullptr) const;
-    void getKeyRange(const QString& key, long& min, long& max, bool* ok = nullptr) const;
-    QVector<QString> keys() const;
+    std::pair<int, int> getKeyRange(const QString& key, bool* ok = nullptr) const;
+
+    static QStringList keys();
     void setVideoCapProcessor(VideoCaptureProcessor* videoProcessor);
     VideoCaptureProcessor *video() const;
 
 private:
-    std::map<QString, QPair<int, long>> settings_;
     VideoCaptureProcessor* video_ = nullptr;
 };
 

@@ -76,6 +76,9 @@ set(SRC_FILES
         src/core/services/cameraProcessor/Camera.cpp
         src/gui/widgets/notifications/NotificationArea.cpp
         src/gui/widgets/notifications/NotificationWidget.cpp
+        src/core/services/graduationService/GraduationObserver.cpp
+        src/core/utils/Derivator.cpp
+        src/core/utils/Mediator.cpp
 )
 
 set(HEADER_FILES
@@ -124,6 +127,9 @@ set(HEADER_FILES
         src/core/services/cameraProcessor/anglemeter/AnglemeterProcessor.h
         src/gui/widgets/notifications/NotificationArea.h
         src/gui/widgets/notifications/NotificationWidget.h
+        src/core/utils/Derivator.h
+        src/core/services/graduationService/GraduationObserver.h
+        src/core/utils/Mediator.h
         src/defines.h
 )
 

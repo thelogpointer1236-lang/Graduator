@@ -31,6 +31,7 @@ private:
 
     QThread pressureSensorThread_;
     QThread pressureControllerThread_;
+    QThread graduationObserverThread_;
 };
 
 

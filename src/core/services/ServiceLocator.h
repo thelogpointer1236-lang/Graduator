@@ -10,6 +10,9 @@
 #include "cameraProcessor/CameraProcessor.h"
 #include "PressureSensor.h"
 #include "graduationService/GraduationService.h"
+#include "graduationService/GraduationObserver.h"
+
+
 // servicelocator.h
 class ServiceLocator final : public QObject {
     Q_OBJECT
@@ -31,6 +34,8 @@ public:
     PressureSensor *pressureSensor() const noexcept;
     void setGraduationService(GraduationService *graduationService);
     GraduationService *graduationService() const noexcept;
+    void setGraduationObserver(GraduationObserver *graduationObserver);
+    GraduationObserver *graduationObserver() const noexcept;
 private:
     QPointer<Logger> m_logger;
     QPointer<GaugeCatalog> m_gaugeCatalog;
@@ -40,5 +45,6 @@ private:
     QPointer<CameraProcessor> m_cameraProcessor;
     QPointer<PressureSensor> m_pressureSensor;
     QPointer<GraduationService> m_graduationService;
+    QPointer<GraduationObserver> m_graduationObserver;
 };
 #endif //GRADUATOR_SERVICELOCATOR_H

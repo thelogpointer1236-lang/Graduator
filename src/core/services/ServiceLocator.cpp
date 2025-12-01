@@ -51,3 +51,11 @@ void ServiceLocator::setGraduationService(GraduationService *graduationService) 
 GraduationService *ServiceLocator::graduationService() const noexcept {
     return m_graduationService;
 }
+
+void ServiceLocator::setGraduationObserver(GraduationObserver *graduationObserver) {
+     m_graduationObserver = graduationObserver;
+}
+
+GraduationObserver * ServiceLocator::graduationObserver() const noexcept {
+    return m_graduationObserver;
+}

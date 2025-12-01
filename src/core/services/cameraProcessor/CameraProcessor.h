@@ -30,13 +30,7 @@ public:
     static std::vector<qint32> cameraIndices();
     static std::vector<qint32> sysCameraIndices();
 
-    bool saveSettingsToFile(const QString &path);
-    bool loadSettingsFromFile(const QString &path);
-
-
-    void emitCamerasChanged() {
-        emit camerasChanged();
-    }
+    void emitCamerasChanged();
 
 private slots:
     void enqueueImage(qint32 cameraIdx, qreal time, quint8* imgData);

@@ -18,11 +18,20 @@ ApplicationBuilder::~ApplicationBuilder()
 {
     auto &locator = ServiceLocator::instance();
 
-    if (auto *graduationService = locator.graduationService(); graduationService) {
-        if (graduationService->isRunning()) {
-            graduationService->interrupt();
+    if (auto *gs = locator.graduationService(); gs) {
+        if (gs->isRunning()) {
+            gs->interrupt();
         }
     }
+
+    if (auto go = locator.graduationObserver(); go) {
+        if (go->isRunning()) {
+            go->stop();
+        }
+    }
+    graduationObserverThread_.requestInterruption();
+    graduationObserverThread_.quit();
+    graduationObserverThread_.wait();
 
     if (auto *sensor = locator.pressureSensor(); sensor) {
         sensor->stop();
@@ -135,6 +144,10 @@ void ApplicationBuilder::initGraduation()
 {
     auto* service = new GraduationService();
     ServiceLocator::instance().setGraduationService(service);
+    auto* observer = new GraduationObserver();
+    ServiceLocator::instance().setGraduationObserver(observer);
+    observer->moveToThread(&graduationObserverThread_);
+    graduationObserverThread_.start();
 }
 
 void ApplicationBuilder::initPartyManager()
@@ -142,15 +155,6 @@ void ApplicationBuilder::initPartyManager()
     auto* cfg = ServiceLocator::instance().configManager();
     auto* pm = new PartyManager(cfg->get<int>(CFG_KEY_STAND_NUMBER));
     ServiceLocator::instance().setPartyManager(pm);
-
-    // if (!pm->initDatabase("parties.sqlite")) {
-    //     QMessageBox::critical(
-    //         nullptr,
-    //         QString::fromWCharArray(L"Ошибка инициализации базы данных"),
-    //         QString::fromWCharArray(L"Не удалось открыть parties.sqlite.\nПроверьте файл.")
-    //     );
-    //     exit(-1);
-    // }
 }
 
 void ApplicationBuilder::initPressureController()

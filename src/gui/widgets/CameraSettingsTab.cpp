@@ -50,12 +50,6 @@ void CameraSettingsTab::setupUi()
     auto *buttonsLayout = new QHBoxLayout(buttonsWidget);
     buttonsLayout->setContentsMargins(0, 0, 0, 0);
 
-    auto *btnSave = new QPushButton(tr("Save Settings"), buttonsWidget);
-    buttonsLayout->addWidget(btnSave);
-    buttonsLayout->addStretch();
-
-    connect(btnSave, &QPushButton::clicked, this, &CameraSettingsTab::onSaveClicked);
-
     auto *mainLayout = new QVBoxLayout(this);
     mainLayout->addWidget(buttonsWidget);
     mainLayout->addWidget(scrollArea);
@@ -100,12 +94,6 @@ void CameraSettingsTab::rebuildCameraSettings()
     camerasLayout_->addStretch();
 }
 
-void CameraSettingsTab::onSaveClicked()
-{
-    if (auto *p = ServiceLocator::instance().cameraProcessor()) {
-        p->saveSettingsToFile("cameras.json");
-    }
-}
 
 void CameraSettingsTab::onCamerasChanged()
 {
@@ -113,17 +101,6 @@ void CameraSettingsTab::onCamerasChanged()
     if (!cameraProcessor) {
         return;
     }
-    cameraProcessor->loadSettingsFromFile("cameras.json");
-
-    // if (!settingsLoadedFromFile_) {
-        // if (cameraProcessor->loadSettingsFromFile("cameras.json")) {
-    //         settingsLoadedFromFile_ = true;
-    //     }
-    //     else {
-    //         settingsLoadedFromFile_ = false;
-    //     }
-    // }
-
     rebuildCameraSettings();
 }
 
@@ -140,8 +117,6 @@ QGroupBox *CameraSettingsTab::createCameraGroup(int cameraIndex)
     auto *settings = camera.settings();
     if (!settings) return nullptr;
 
-    QVector<QString> keys = settings->keys();
-
     auto *group = new QGroupBox(tr("Camera") + " " + QString::number(cameraIndex + 1));
     auto *layout = new QVBoxLayout(group);
 
@@ -149,21 +124,20 @@ QGroupBox *CameraSettingsTab::createCameraGroup(int cameraIndex)
     QHBoxLayout *rowLayout = nullptr;
     int itemsInRow = 0;
 
-    for (const auto &key : keys) {
-        long min = DefaultMinValue, max = DefaultMaxValue;
+    for (auto key : CameraSettings::keys()) {
         bool rangeOk = false;
-        settings->getKeyRange(key, min, max, &rangeOk);
+        std::pair<int, int> m = settings->getKeyRange(key, &rangeOk);
 
         bool valueOk = false;
         const long current = settings->getValue(key, &valueOk);
 
-        const long startValue = valueOk ? current : min;
+        const long startValue = valueOk ? current : m.first;
 
         QWidget *setting = createSettingRow(
             cameraIndex,
             key,
-            rangeOk ? min : DefaultMinValue,
-            rangeOk ? max : DefaultMaxValue,
+            rangeOk ? m.first : DefaultMinValue,
+            rangeOk ? m.second : DefaultMaxValue,
             startValue
         );
 
