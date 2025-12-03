@@ -240,18 +240,22 @@ void SettingsWidget::onGaugeTypeChanged(int index) {
 
 void SettingsWidget::onPressureUnitChanged(int index) {
     ServiceLocator::instance().configManager()->setValue(CFG_KEY_CURRENT_PRESSURE_UNIT, index);
+    ServiceLocator::instance().partyManager()->setCurrentPressureUnit(index);
 }
 
 void SettingsWidget::onPrecisionClassChanged(int index) {
     ServiceLocator::instance().configManager()->setValue(CFG_KEY_CURRENT_PRECISION_CLASS, index);
+    ServiceLocator::instance().partyManager()->setCurrentPrecision(index);
 }
 
 void SettingsWidget::onPrinterChanged(int index) {
     ServiceLocator::instance().configManager()->setValue(CFG_KEY_CURRENT_PRINTER, index);
+    ServiceLocator::instance().partyManager()->setCurrentPrinter(index);
 }
 
 void SettingsWidget::onDialLayoutChanged(int index) {
     ServiceLocator::instance().configManager()->setValue(CFG_KEY_CURRENT_DIAL_LAYOUT, index);
+    ServiceLocator::instance().partyManager()->setCurrentDisplacement(index);
 }
 
 void SettingsWidget::onConnectComPortClicked() {

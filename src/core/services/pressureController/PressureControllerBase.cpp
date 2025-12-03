@@ -161,8 +161,7 @@ void PressureControllerBase::startGoToStart() {
     QMetaObject::invokeMethod(g540Driver(), "start", Qt::QueuedConnection);
     const auto emergencyStopIfBothLimitsTriggered = [this]() -> bool {
         if (isStartLimitTriggered() && isEndLimitTriggered()) {
-            ServiceLocator::instance().logger()->error(
-                QString::fromWCharArray(L"Обнаружено одновременное срабатывание концевых выключателей. Выполнена экстренная остановка."));
+            ServiceLocator::instance().logger()->error("Simultaneous activation of limit switches detected. Emergency stop performed.");
             g540Driver()->stop();
             m_isRunning = false;
             emit interrupted();
