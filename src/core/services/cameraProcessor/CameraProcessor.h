@@ -17,6 +17,9 @@ public:
     std::vector<Camera>& cameras();
     void closeCameras();
 
+    static void setCapRate(int rate);
+    static void restoreDefaultCapRate();
+
     qreal lastAngleForCamera(qint32 cameraIdx) const;
 
     static void setAimEnabled(bool enabled);

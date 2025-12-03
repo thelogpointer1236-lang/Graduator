@@ -105,7 +105,7 @@ Qt::ItemFlags GraduationTableModel::flags(const QModelIndex &index) const {
 }
 
 void GraduationTableModel::updateIndicators() {
-
+    beginResetModel(); endResetModel();
 }
 
 void GraduationTableModel::updateScale() {

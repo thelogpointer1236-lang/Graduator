@@ -69,6 +69,14 @@ void CameraProcessor::closeCameras() {
     m_cameras.clear();
 }
 
+void CameraProcessor::setCapRate(int rate) {
+    FrameGrabberCB::s_capRate = rate;
+}
+
+void CameraProcessor::restoreDefaultCapRate() {
+    FrameGrabberCB::s_capRate = 4;
+}
+
 qreal CameraProcessor::lastAngleForCamera(qint32 cameraIdx) const {
     auto it = m_lastAngles.find(cameraIdx);
     if (it != m_lastAngles.end()) {
@@ -165,5 +173,6 @@ void CameraProcessor::createAnglemeterWorkers(int anglemeterThreadsCount, int im
         m_anglemeterThreads.emplace_back(thread);
         connect(anglemeterProcessor, &AnglemeterProcessor::angleMeasured,
             this, &CameraProcessor::angleMeasured);
+        connect(this, &CameraProcessor::angleMeasured, this, &CameraProcessor::onAngleMeasured);
     }
 }

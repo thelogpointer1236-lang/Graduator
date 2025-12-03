@@ -101,6 +101,11 @@ void PressureControllerStand4::preloadPressure() {
     const qreal p_preload = getPreloadPressure();
     g540Driver()->setFlapsState(G540FlapsState::OpenInput);
     while (currentPressure() < p_preload) {
+        const qreal p_cur = currentPressure();
+        if (isNearToPressureNode(gaugePressureValues(), p_cur, 7.5)) {
+            CameraProcessor::setCapRate(1);
+        }
+        CameraProcessor::restoreDefaultCapRate();
         if (shouldStop()) {
             g540Driver()->setFlapsState(G540FlapsState::OpenOutput);
             interrupt;
@@ -124,9 +129,11 @@ void PressureControllerStand4::forwardPressure() {
         m_dP_target = getMaxPressureVelocity();
         int freq = calculateFrequency(f_max, p_cur, p_target);
         if (isNearToPressureNode(gaugePressureValues(), p_cur, 7.5)) {
+            CameraProcessor::setCapRate(1); // ускоряем захват кадров при подходе к узлам
             m_dP_target = getMinPressureVelocity();
             freq = freq / 3;
         }
+        CameraProcessor::restoreDefaultCapRate();
         g540Driver()->setFrequency(freq);
         QThread::msleep(90);
     }
@@ -155,9 +162,11 @@ void PressureControllerStand4::backwardPressure() {
                 g540Driver()->setFlapsState(G540FlapsState::CloseBoth);
             }
             if (isNearToPressureNode(gaugePressureValues(), p_cur, 7.5)) {
+                CameraProcessor::setCapRate(1); // ускоряем захват кадров при подходе к узлам
                 m_dP_target = getMinPressureVelocity();
                 freq = freq / 3;
             }
+            CameraProcessor::restoreDefaultCapRate();
             g540Driver()->setFrequency(freq);
         }
         else {

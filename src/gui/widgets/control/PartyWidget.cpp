@@ -62,7 +62,7 @@ QHBoxLayout *PartyWidget::createPartyHeader()
     auto *layout = new QHBoxLayout;
     layout->setContentsMargins(5, 5, 5, 5);
     auto *partyLabelText = new QLabel(tr("Number of party") + ": ", this);
-    partyNumberLabel_ = new QLabel(QString::fromWCharArray(L"1"), this);
+    partyNumberLabel_ = new QLabel(QString::number(ServiceLocator::instance().partyManager()->partyNumber()), this);
     QFont font = partyNumberLabel_->font();
     font.setPointSize(font.pointSize() + 4);
     font.setBold(true);

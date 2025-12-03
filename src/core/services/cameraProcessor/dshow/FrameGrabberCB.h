@@ -43,6 +43,7 @@ public:
     static inline auto s_aimRadius = 30;
     static inline bool s_aimIsVisible = false;
     static inline bool s_isCapturing = true;
+    static inline int s_capRate = 4; // каждый N-й кадр
 
 private:
     LONG m_refCount;

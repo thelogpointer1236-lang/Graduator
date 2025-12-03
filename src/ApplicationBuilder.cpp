@@ -192,7 +192,7 @@ void ApplicationBuilder::initPressureSensor()
 
 void ApplicationBuilder::initCameraProcessor()
 {
-    auto* cam = new CameraProcessor(8, 640, 480);
+    auto* cam = new CameraProcessor(4, 640, 480);
     ServiceLocator::instance().setCameraProcessor(cam);
 }
 
@@ -220,4 +220,5 @@ void ApplicationBuilder::applySettings() {
     }
     camera->setAimColor(cfg->get<QColor>(CFG_KEY_AIM_COLOR, QColor("#FF0000")));
     camera->setAimRadius(cfg->get<int>(CFG_KEY_AIM_RADIUS, 30));
+    CameraProcessor::restoreDefaultCapRate(); // Раз в 4 кадра
 }

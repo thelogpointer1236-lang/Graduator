@@ -39,13 +39,18 @@ HRESULT FrameGrabberCB::SampleCB(double SampleTime, IMediaSample *pSample) {
 HRESULT FrameGrabberCB::BufferCB(double SampleTime, BYTE *pBuffer, const long BufferLen) {
     if (!pBuffer) return E_POINTER;
 
+    int capIdx = 0;
+
     // -------------------------
     // Захватываем изображение
     // -------------------------
     if (s_isCapturing) {
-        const BYTE *pixelData = pBuffer;
-        const qreal timestampSec = ServiceLocator::instance().graduationService()->getElapsedTimeSeconds();
-        // emit imageCaptured(m_camIdx, timestampSec, anglemeterCopyImage(pixelData));
+        if (capIdx % s_capRate == 0) {
+            const BYTE *pixelData = pBuffer;
+            const qreal timestampSec = ServiceLocator::instance().graduationService()->getElapsedTimeSeconds();
+            emit imageCaptured(m_camIdx, timestampSec, anglemeterCopyImage(pixelData));
+        }
+        capIdx++;
     }
 
     // -------------------------

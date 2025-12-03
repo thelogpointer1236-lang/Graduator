@@ -162,7 +162,8 @@ void GraduationService::updateResult() {
         m_currentResult.backward = m_currentResult.forward;
         m_currentResult.debugDataBackward = m_currentResult.debugDataForward;
     }
-    m_currentResult.backward[0] = m_currentResult.forward[0];
+    for (size_t i = 0; i < m_currentResult.backward[0].size(); i++)
+        m_currentResult.backward[i][0] = m_currentResult.forward[i][0];
     m_currentResult.durationSeconds = getElapsedTimeSeconds();
     m_resultReady = true;
 }

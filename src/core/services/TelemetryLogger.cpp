@@ -34,7 +34,7 @@ void TelemetryLogger::setPressureUnit(PressureUnit unit)
 
 QString TelemetryLogger::makeDailyFolder() const
 {
-    QString dateStr = QDate::currentDate().toString("dd.MM.yyyy_HH-mm-ss");
+    QString dateStr = QDateTime::currentDateTime().toString("dd.MM.yyyy_HH-mm-ss");
     QDir root(m_logFolderRoot);
     root.mkpath(dateStr);
     return root.filePath(dateStr);
