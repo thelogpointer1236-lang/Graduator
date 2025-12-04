@@ -4,10 +4,12 @@
 #include "gui/widgets/MainWidget.h"
 #include "gui/widgets/notifications/NotificationArea.h"
 
+#include <QNetworkAccessManager>
 #include <QCloseEvent>
 #include <QResizeEvent>
 #include <QVBoxLayout>
 #include <QMessageBox>
+#include <QPushButton>
 #include <QVector>
 
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
@@ -28,13 +30,10 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
 
     setupNotifications();
 
-    connect(ServiceLocator::instance().pressureController(), &PressureControllerBase::userConfirmationRequested,
-            this, &MainWindow::onUserConfirmationRequested);
-
-    if (auto *userDialogService = ServiceLocator::instance().userDialogService()) {
-        connect(userDialogService, &UserDialogService::dialogRequested,
-                this, &MainWindow::onDialogRequested);
-    }
+    auto *userDialogService = ServiceLocator::instance().userDialogService();
+    if (!userDialogService) throw std::runtime_error("UserDialogService is not available in ServiceLocator");
+    connect(ServiceLocator::instance().userDialogService(), &UserDialogService::dialogRequested,
+    this, &MainWindow::onDialogRequested);
 }
 void MainWindow::closeEvent(QCloseEvent *event) {
     ServiceLocator::instance().configManager()->save();
@@ -63,18 +62,6 @@ void MainWindow::setupNotifications() {
             }
         });
     }
-}
-
-void MainWindow::onUserConfirmationRequested(int* resp) {
-    // Где-то в коде (например, в слоте или методе QWidget-наследника)
-    QMessageBox::StandardButton reply = QMessageBox::question(
-        this,                             // родительский виджет (может быть nullptr)
-        "Подтверждение",                  // заголовок окна
-        "Вы уверены, что хотите продолжить?", // текст сообщения
-        QMessageBox::Yes | QMessageBox::No // кнопки
-    );
-
-    *resp = reply == QMessageBox::Yes ? USER_RESPONSE_TRUE : USER_RESPONSE_FALSE;
 }
 
 void MainWindow::onDialogRequested(const QString &title, const QString &message, const QStringList &options, QString *response) {

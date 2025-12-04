@@ -188,11 +188,3 @@ void PressureControllerBase::startGoToStart() {
     emit interrupted();
 }
 
-int PressureControllerBase::requestUserConfirmation() {
-    int response;
-    emit userConfirmationRequested(&response);
-    while (response == USER_RESPONSE_NOT_READY) {
-        QThread::msleep(50);
-    }
-    return response;
-}

@@ -19,7 +19,6 @@ private:
     void setupNotifications();
 
 private slots:
-    void onUserConfirmationRequested(int* resp);
     void onDialogRequested(const QString &title, const QString &message, const QStringList &options, QString *response);
 
 private:

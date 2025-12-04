@@ -152,14 +152,22 @@ void PressureControllerStand4::forwardPressure() {
 
         if (bad_dp_count >= 20) {
             g540Driver()->setFrequency(0);
-            int resp = requestUserConfirmation();
-            // Если пользователь выбрал вариант, что двигатель не работает, то выходим из градуировки
-            if (resp == USER_RESPONSE_FALSE) {
-                interrupt;
-            }
+
+            // Запрашиваем у пользователя состояние двигателя
             // Иначе считаем что с двигателем всё в порядки и давление не поднимается из-за сильной утечки
-            else {
+            // Если пользователь выбрал вариант, что двигатель не работает, то выходим из градуировки
+            const QString USER_RESPONSE_FALSE = tr("Roll the engine back");
+            const QString USER_RESPONSE_TRUE = tr("The engine is fine");
+            QString resp = ServiceLocator::instance().userDialogService()->requestUserInput(
+                tr("The engine is stuck"),
+                tr("The engine appears to be stuck. For safety reasons, the program has paused. Please check it and respond."),
+                QStringList({USER_RESPONSE_FALSE, USER_RESPONSE_TRUE})
+            );
+            if (resp == USER_RESPONSE_TRUE) {
                 bad_dp_count = 0;
+            }
+            else {
+                interrupt;
             }
         }
 

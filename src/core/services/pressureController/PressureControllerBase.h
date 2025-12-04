@@ -5,12 +5,7 @@
 #include <QThread>
 #include "core/types/GaugeModel.h"
 #include "core/types/Pressure.h"
-#include "G540Driver.h"
-
-
-#define    USER_RESPONSE_NOT_READY  0
-#define    USER_RESPONSE_TRUE       1
-#define    USER_RESPONSE_FALSE      2
+#include "drivers/G540Driver.h"
 
 
 class PressureControllerBase : public QObject {
@@ -19,7 +14,6 @@ signals:
     void interrupted();
     void successfullyStopped();
     void started();
-    void userConfirmationRequested(int* response);
 
 public:
     explicit PressureControllerBase(QObject *parent = nullptr);
@@ -58,7 +52,6 @@ protected:
     PressureUnit pressureUnit() const;
     qreal currentPressure() const;
     bool shouldStop() const noexcept;
-    int requestUserConfirmation();
 
 private:
     std::unique_ptr<G540Driver> m_G540Driver;

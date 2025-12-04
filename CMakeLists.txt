@@ -24,6 +24,7 @@ find_package(Qt5 COMPONENTS
         Widgets
         Concurrent
         Sql
+        Network
         LinguistTools
         REQUIRED)
 
@@ -37,8 +38,8 @@ set(SRC_FILES
         src/core/services/ServiceLocator.cpp
         src/core/services/UserDialogService.cpp
         src/core/services/pressureController/PressureControllerBase.cpp
-        src/core/services/pressureController/G540Driver.cpp
-        src/core/services/pressureController/LPTDriver.cpp
+        src/core/services/pressureController/drivers/G540Driver.cpp
+        src/core/services/pressureController/drivers/LPTDriver.cpp
         src/core/services/pressureController/impl/PressureControllerStand5.cpp
         src/core/services/pressureController/impl/PressureControllerStand4.cpp
         src/core/services/pressureController/impl/utils.cpp
@@ -92,8 +93,8 @@ set(HEADER_FILES
         src/core/services/ServiceLocator.h
         src/core/services/UserDialogService.h
         src/core/services/pressureController/PressureControllerBase.h
-        src/core/services/pressureController/G540Driver.h
-        src/core/services/pressureController/LPTDriver.h
+        src/core/services/pressureController/drivers/G540Driver.h
+        src/core/services/pressureController/drivers/LPTDriver.h
         src/core/services/pressureController/impl/PressureControllerStand5.h
         src/core/services/pressureController/impl/PressureControllerStand4.h
         src/core/services/pressureController/impl/utils.h
@@ -151,6 +152,7 @@ target_link_libraries(Graduator
     Qt5::Gui
     Qt5::Widgets
     Qt5::Concurrent
+    Qt5::Network
     Qt5::Sql)
 
 if (WIN32 AND NOT DEFINED CMAKE_TOOLCHAIN_FILE)
@@ -174,7 +176,7 @@ if (WIN32 AND NOT DEFINED CMAKE_TOOLCHAIN_FILE)
                 "${QT_INSTALL_PATH}/plugins/platforms/qwindows${DEBUG_SUFFIX}.dll"
                 "$<TARGET_FILE_DIR:${PROJECT_NAME}>/plugins/platforms/")
     endif ()
-    foreach (QT_LIB Core Gui Widgets Concurrent Sql)
+    foreach (QT_LIB Core Gui Widgets Concurrent Sql Network)
         add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
                 COMMAND ${CMAKE_COMMAND} -E copy
                 "${QT_INSTALL_PATH}/bin/Qt5${QT_LIB}${DEBUG_SUFFIX}.dll"
