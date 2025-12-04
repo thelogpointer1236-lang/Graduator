@@ -73,13 +73,12 @@ void NotificationArea::reposition()
     const auto hint = layout_->sizeHint();
     const int availableWidth = qMax(0, parentWidget()->width() - (kHorizontalMargin * 2));
     const int width = qMin(kMaxWidth, availableWidth);
-    // const int availableHeight = qMax(0, parentWidget()->height() - (kVerticalMargin * 2));
-    // const int height = qMin(availableHeight, hint.height() + (kVerticalMargin * 2));
-    const int availableHeight = 480;
-    const int height = availableHeight/2;
+    const int availableHeight = qMax(0, parentWidget()->height() - (kVerticalMargin * 2));
+    const int height = qMin(availableHeight, hint.height());
     const int x = parentWidget()->width() - width - kHorizontalMargin;
     const int y = parentWidget()->height() - height - kVerticalMargin;
 
     setFixedWidth(width);
+    setFixedHeight(height);
     setGeometry(x, y, width, height);
 }
