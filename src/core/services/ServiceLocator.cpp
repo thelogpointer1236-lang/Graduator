@@ -59,3 +59,11 @@ void ServiceLocator::setTelemetryLogger(TelemetryLogger *telemetryLogger) {
 TelemetryLogger * ServiceLocator::telemetryLogger() const noexcept {
     return m_telemetryLogger;
 }
+
+void ServiceLocator::setUserDialogService(UserDialogService *userDialogService) {
+    m_userDialogService = userDialogService;
+}
+
+UserDialogService *ServiceLocator::userDialogService() const noexcept {
+    return m_userDialogService;
+}
