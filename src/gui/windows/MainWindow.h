@@ -1,6 +1,7 @@
 ﻿#ifndef GRADUATOR_MAINWINDOW_H
 #define GRADUATOR_MAINWINDOW_H
 #include <QMainWindow>
+#include <QStringList>
 
 class QCloseEvent;
 class NotificationArea;
@@ -19,6 +20,7 @@ private:
 
 private slots:
     void onUserConfirmationRequested(int* resp);
+    void onDialogRequested(const QString &title, const QString &message, const QStringList &options, QString *response);
 
 private:
     QWidget *centralWidget_{};

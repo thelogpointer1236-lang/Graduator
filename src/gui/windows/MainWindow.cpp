@@ -8,6 +8,7 @@
 #include <QResizeEvent>
 #include <QVBoxLayout>
 #include <QMessageBox>
+#include <QVector>
 
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
     setWindowTitle(tr("Graduator"));
@@ -29,6 +30,11 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
 
     connect(ServiceLocator::instance().pressureController(), &PressureControllerBase::userConfirmationRequested,
             this, &MainWindow::onUserConfirmationRequested);
+
+    if (auto *userDialogService = ServiceLocator::instance().userDialogService()) {
+        connect(userDialogService, &UserDialogService::dialogRequested,
+                this, &MainWindow::onDialogRequested);
+    }
 }
 void MainWindow::closeEvent(QCloseEvent *event) {
     ServiceLocator::instance().configManager()->save();
@@ -69,4 +75,31 @@ void MainWindow::onUserConfirmationRequested(int* resp) {
     );
 
     *resp = reply == QMessageBox::Yes ? USER_RESPONSE_TRUE : USER_RESPONSE_FALSE;
+}
+
+void MainWindow::onDialogRequested(const QString &title, const QString &message, const QStringList &options, QString *response) {
+    QMessageBox msgBox(this);
+    msgBox.setWindowTitle(title);
+    msgBox.setText(message);
+
+    QVector<QAbstractButton*> buttons;
+    buttons.reserve(options.size());
+
+    for (const auto &option : options) {
+        buttons.push_back(msgBox.addButton(option, QMessageBox::ActionRole));
+    }
+
+    msgBox.exec();
+
+    if (auto *clicked = msgBox.clickedButton()) {
+        const int index = buttons.indexOf(clicked);
+        if (index >= 0 && index < options.size()) {
+            *response = options.at(index);
+            return;
+        }
+        *response = clicked->text();
+        return;
+    }
+
+    *response = QString();
 }

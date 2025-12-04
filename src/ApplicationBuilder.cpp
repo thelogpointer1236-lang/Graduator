@@ -1,5 +1,6 @@
 #include "ApplicationBuilder.h"
 #include "core/services/ServiceLocator.h"
+#include "core/services/UserDialogService.h"
 #include "core/services/pressureController/impl/PressureControllerStand4.h"
 #include "core/services/pressureController/impl/PressureControllerStand5.h"
 #include "defines.h"
@@ -52,6 +53,7 @@ MainWindow* ApplicationBuilder::build()
     initGaugeCatalog();
     initGraduation();
     initPartyManager();
+    initUserDialogService();
     initPressureController();
     initPressureSensor();
     initCameraProcessor();
@@ -70,6 +72,7 @@ void ApplicationBuilder::declareMetatypes() {
     qRegisterMetaType<LogLevel>("LogLevel");
     qRegisterMetaType<quint8*>("quint8*");
     qRegisterMetaType<int*>("int*");
+    qRegisterMetaType<QString*>("QString*");
 }
 
 void ApplicationBuilder::loadStyle()
@@ -146,6 +149,11 @@ void ApplicationBuilder::initPartyManager()
     auto* cfg = ServiceLocator::instance().configManager();
     auto* pm = new PartyManager(cfg->get<int>(CFG_KEY_STAND_NUMBER));
     ServiceLocator::instance().setPartyManager(pm);
+}
+
+void ApplicationBuilder::initUserDialogService() {
+    auto *service = new UserDialogService();
+    ServiceLocator::instance().setUserDialogService(service);
 }
 
 void ApplicationBuilder::initPressureController()

@@ -35,6 +35,7 @@ set(SRC_FILES
         src/core/services/GaugeCatalog.cpp
         src/core/services/Logger.cpp
         src/core/services/ServiceLocator.cpp
+        src/core/services/UserDialogService.cpp
         src/core/services/pressureController/PressureControllerBase.cpp
         src/core/services/pressureController/G540Driver.cpp
         src/core/services/pressureController/LPTDriver.cpp
@@ -89,6 +90,7 @@ set(HEADER_FILES
         src/core/services/GaugeCatalog.h
         src/core/services/Logger.h
         src/core/services/ServiceLocator.h
+        src/core/services/UserDialogService.h
         src/core/services/pressureController/PressureControllerBase.h
         src/core/services/pressureController/G540Driver.h
         src/core/services/pressureController/LPTDriver.h

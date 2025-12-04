@@ -11,6 +11,7 @@
 #include "PressureSensor.h"
 #include "TelemetryLogger.h"
 #include "graduationService/GraduationService.h"
+#include "UserDialogService.h"
 
 
 // servicelocator.h
@@ -36,6 +37,8 @@ public:
     GraduationService *graduationService() const noexcept;
     void setTelemetryLogger(TelemetryLogger *telemetryLogger);
     TelemetryLogger *telemetryLogger() const noexcept;
+    void setUserDialogService(UserDialogService *userDialogService);
+    UserDialogService *userDialogService() const noexcept;
 
 private:
     QPointer<Logger> m_logger;
@@ -47,5 +50,6 @@ private:
     QPointer<PressureSensor> m_pressureSensor;
     QPointer<GraduationService> m_graduationService;
     QPointer<TelemetryLogger> m_telemetryLogger;
+    QPointer<UserDialogService> m_userDialogService;
 };
 #endif //GRADUATOR_SERVICELOCATOR_H

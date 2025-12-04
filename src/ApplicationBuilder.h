@@ -20,6 +20,7 @@ private:
     void initGaugeCatalog();
     void initGraduation();
     void initPartyManager();
+    void initUserDialogService();
     void initPressureController();
     void initPressureSensor();
     void initCameraProcessor();
