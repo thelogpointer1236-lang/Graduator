@@ -23,7 +23,9 @@ public:
 
     grad::Graduator& graduator();
     bool isResultReady() const;
+    bool isResultSaved() const;
     const PartyResult& getPartyResult();
+    void markResultSaved();
     void requestTableUpdate();
 
 signals:
@@ -57,5 +59,6 @@ private:
 
     PartyResult m_currentResult;
     bool m_resultReady = false;
+    bool m_resultSaved = true;
 };
 #endif //GRADUATOR_GRADUATIONSERVICE_H

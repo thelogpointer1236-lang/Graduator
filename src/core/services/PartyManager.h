@@ -43,6 +43,8 @@ public:
 
     int currentDisplacementIndex() const;
 
+    int currentDisplacementNumber() const;
+
     int currentPrinterIndex() const;
 
     const QStringList& getAvailablePressureUnits() const;

@@ -73,6 +73,19 @@ void AutomaticWidget::onStartClicked()
 {
     auto *gs = ServiceLocator::instance().graduationService();
     if (gs->isRunning()) return;
+
+    if (gs->isResultReady() && !gs->isResultSaved()) {
+        const auto reply = QMessageBox::warning(
+            this,
+            tr("Graduation"),
+            tr("The previous graduation result was not saved. Continue and clear the table?"),
+            QMessageBox::Yes | QMessageBox::No,
+            QMessageBox::No
+        );
+        if (reply == QMessageBox::No) {
+            return;
+        }
+    }
     if (QString err; !gs->isReadyToRun(err)) {
         // QMessageBox::critical(
         //     this,
