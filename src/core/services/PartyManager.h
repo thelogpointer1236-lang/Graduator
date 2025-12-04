@@ -37,6 +37,14 @@ public:
     void setCurrentDisplacement(int index);
     void setCurrentPrinter(int index);
 
+    int currentPressureUnitIndex() const;
+
+    int currentPrecisionIndex() const;
+
+    int currentDisplacementIndex() const;
+
+    int currentPrinterIndex() const;
+
     const QStringList& getAvailablePressureUnits() const;
     const QStringList& getAvailablePrecisions() const;
     const QList<Displacement>& getAvailableDisplacements() const;
@@ -53,10 +61,6 @@ private:
     int m_standNumber;       // номер стенда
     int m_partyNumber;       // номер партии
 
-    int m_currentDisplacementIndex;
-    int m_currentPrinterIndex;
-    int m_currentPressureUnitIndex;
-    int m_currentPrecisionIndex;
     QStringList m_availablePressureUnits;
     QStringList m_availablePrecisions;
     QList<Displacement> m_availableDisplacements;

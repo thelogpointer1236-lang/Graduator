@@ -3,15 +3,11 @@
 #include "ServiceLocator.h"
 #include <QtMath>
 
-PartyManager::PartyManager(int standNumber, QObject *parent): QObject(parent)
-                                                              , m_currentPath()
-                                                              , m_currentDate()
-                                                              , m_standNumber(standNumber)
-                                                              , m_partyNumber(0)
-                                                              , m_currentDisplacementIndex(0)
-                                                              , m_currentPrinterIndex(0)
-                                                              , m_currentPressureUnitIndex(0)
-                                                              , m_currentPrecisionIndex(0) {
+PartyManager::PartyManager(int standNumber, QObject *parent)
+    : QObject(parent)
+    , m_standNumber(standNumber)
+    , m_partyNumber(0)
+{
     initializeAvailableOptions();
 }
 
@@ -23,7 +19,7 @@ bool PartyManager::savePartyResult(const PartyResult &result, QString &err) {
     QDir folder = QString("%1/p%2-%3/")
             .arg(m_currentPath)
             .arg(m_partyNumber)
-            .arg(m_currentDisplacementIndex);
+            .arg(currentDisplacementIndex());
 
     if (!folder.exists() && !folder.mkpath(".")) {
         err = QString("Cannot create path: %1").arg(folder.path());
@@ -78,7 +74,7 @@ bool PartyManager::updateCurrentPath(QString &err) {
     }
 
     QString fullPath = QString("%1/stend%2/%3")
-            .arg(m_availablePrinters[m_currentPrinterIndex].folder())
+            .arg(m_availablePrinters[currentPrinterIndex()].folder())
             .arg(m_standNumber)
             .arg(dateStr);
 
@@ -143,24 +139,40 @@ void PartyManager::updatePartyNumberFromFileSystem() {
     }
 }
 
+int PartyManager::currentPressureUnitIndex() const {
+    return ServiceLocator::instance().configManager()->get<int>(CFG_KEY_CURRENT_PRESSURE_UNIT, 0);
+}
+
+int PartyManager::currentPrecisionIndex() const {
+    return ServiceLocator::instance().configManager()->get<int>(CFG_KEY_CURRENT_PRECISION_CLASS, 0);
+}
+
+int PartyManager::currentDisplacementIndex() const {
+    return ServiceLocator::instance().configManager()->get<int>(CFG_KEY_CURRENT_DISPLACEMENT, 0);
+}
+
+int PartyManager::currentPrinterIndex() const {
+    return ServiceLocator::instance().configManager()->get<int>(CFG_KEY_CURRENT_PRINTER, 0);
+}
+
 void PartyManager::setCurrentPressureUnit(int index) {
     if (index < 0 || index >= m_availablePressureUnits.size()) return;
-    m_currentPressureUnitIndex = index;
+    ServiceLocator::instance().configManager()->setValue(CFG_KEY_CURRENT_PRESSURE_UNIT, index);
 }
 
 void PartyManager::setCurrentPrecision(int index) {
     if (index < 0 || index >= m_availablePrecisions.size()) return;
-    m_currentPrecisionIndex = index;
+    ServiceLocator::instance().configManager()->setValue(CFG_KEY_CURRENT_PRECISION_CLASS, index);
 }
 
 void PartyManager::setCurrentDisplacement(int index) {
     if (index < 0 || index >= m_availableDisplacements.size()) return;
-    m_currentDisplacementIndex = index;
+    ServiceLocator::instance().configManager()->setValue(CFG_KEY_CURRENT_DISPLACEMENT, index);
 }
 
 void PartyManager::setCurrentPrinter(int index) {
     if (index < 0 || index >= m_availablePrinters.size()) return;
-    m_currentPrinterIndex = index;
+    ServiceLocator::instance().configManager()->setValue(CFG_KEY_CURRENT_PRINTER, index);
 }
 
 const QStringList& PartyManager::getAvailablePressureUnits() const {

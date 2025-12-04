@@ -69,6 +69,7 @@ void ApplicationBuilder::declareMetatypes() {
     qRegisterMetaType<Pressure>("Pressure");
     qRegisterMetaType<LogLevel>("LogLevel");
     qRegisterMetaType<quint8*>("quint8*");
+    qRegisterMetaType<int*>("int*");
 }
 
 void ApplicationBuilder::loadStyle()

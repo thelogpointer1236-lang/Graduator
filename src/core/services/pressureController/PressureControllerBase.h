@@ -6,13 +6,21 @@
 #include "core/types/GaugeModel.h"
 #include "core/types/Pressure.h"
 #include "G540Driver.h"
-// Работать с единицей измерения кгс/см2 и секундами
+
+
+#define    USER_RESPONSE_NOT_READY  0
+#define    USER_RESPONSE_TRUE       1
+#define    USER_RESPONSE_FALSE      2
+
+
 class PressureControllerBase : public QObject {
     Q_OBJECT
 signals:
     void interrupted();
     void successfullyStopped();
     void started();
+    void userConfirmationRequested(int* response);
+
 public:
     explicit PressureControllerBase(QObject *parent = nullptr);
     ~PressureControllerBase() override;
@@ -37,23 +45,28 @@ public:
     virtual bool isReadyToStart(QString &err) const;
     bool isRunning() const;
     Q_INVOKABLE void interrupt();
+
 public slots:
     Q_INVOKABLE virtual void setMode(int modeIdx) = 0;
     Q_INVOKABLE virtual void startGoToEnd();
     Q_INVOKABLE virtual void startGoToStart();
     Q_INVOKABLE virtual void start() = 0;
+
 protected:
     virtual void onPressureUpdated(qreal time, qreal pressure) = 0;
     const std::vector<qreal> &gaugePressureValues() const;
     PressureUnit pressureUnit() const;
     qreal currentPressure() const;
     bool shouldStop() const noexcept;
+    int requestUserConfirmation();
+
 private:
     std::unique_ptr<G540Driver> m_G540Driver;
     QThread *m_G540DriverThread = nullptr;
     std::vector<qreal> m_gaugePressureValues;
     PressureUnit m_pressureUnit{};
     std::atomic<bool> m_aboutToStop{false};
+
 protected:
     std::atomic<bool> m_isRunning{false};
     std::vector<qreal> m_pressure_history;

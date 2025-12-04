@@ -1,9 +1,11 @@
 ﻿#ifndef GRADUATOR_MAINWINDOW_H
 #define GRADUATOR_MAINWINDOW_H
 #include <QMainWindow>
+
 class QCloseEvent;
 class NotificationArea;
 class QWidget;
+
 class MainWindow final : public QMainWindow {
     Q_OBJECT
 public:
@@ -14,6 +16,9 @@ protected:
 
 private:
     void setupNotifications();
+
+private slots:
+    void onUserConfirmationRequested(int* resp);
 
 private:
     QWidget *centralWidget_{};

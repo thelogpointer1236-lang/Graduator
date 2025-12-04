@@ -15,7 +15,7 @@
 #define CFG_KEY_CURRENT_PRESSURE_UNIT            "current.pressureUnit"
 #define CFG_KEY_CURRENT_PRECISION_CLASS          "current.precisionClass"
 #define CFG_KEY_CURRENT_PRINTER                  "current.printer"
-#define CFG_KEY_CURRENT_DIAL_LAYOUT              "current.dialLayout"
+#define CFG_KEY_CURRENT_DISPLACEMENT             "current.displacement"
 // cameraProcessor
 #define CFG_KEY_SYS_CAMERA_STR                   "cameraProcessor.sysCameraStr"
 #define CFG_KEY_SYS_AUTOOPEN                     "cameraProcessor.autoopen"

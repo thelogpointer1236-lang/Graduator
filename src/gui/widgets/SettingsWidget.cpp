@@ -86,11 +86,11 @@ QGroupBox *SettingsWidget::createDeviceGroup()
 
     comboUnit_ = new QComboBox(group);
     comboUnit_->addItems(partyManager->getAvailablePressureUnits());
-    comboUnit_->setCurrentIndex(locator.configManager()->get<int>(CFG_KEY_CURRENT_PRESSURE_UNIT, 0));
+    comboUnit_->setCurrentIndex(partyManager->currentPressureUnitIndex());
 
     comboAccuracy_ = new QComboBox(group);
     comboAccuracy_->addItems(partyManager->getAvailablePrecisions());
-    comboAccuracy_->setCurrentIndex(locator.configManager()->get<int>(CFG_KEY_CURRENT_PRECISION_CLASS, 0));
+    comboAccuracy_->setCurrentIndex(partyManager->currentPrecisionIndex());
 
     layout->addRow(tr("Gauge model") + ":", comboDeviceType_);
     layout->addRow(tr("Gauge pressure unit") + ":", comboUnit_);
@@ -113,7 +113,7 @@ QGroupBox *SettingsWidget::createPrintGroup()
         printers.append(x.name());
     }
     comboPrinter_->addItems(printers);
-    comboPrinter_->setCurrentIndex(config->get<int>(CFG_KEY_CURRENT_PRINTER, 0));
+    comboPrinter_->setCurrentIndex(partyManager->currentPrinterIndex());
 
     comboDisplacement_ = new QComboBox(group);
     QStringList displacements;
@@ -121,7 +121,7 @@ QGroupBox *SettingsWidget::createPrintGroup()
         displacements.append(x.name());
     }
     comboDisplacement_->addItems(displacements);
-    comboDisplacement_->setCurrentIndex(config->get<int>(CFG_KEY_CURRENT_DIAL_LAYOUT, 0));
+    comboDisplacement_->setCurrentIndex(partyManager->currentDisplacementIndex());
 
     layout->addRow(tr("Printer") + ":", comboPrinter_);
     layout->addRow(tr("Displacement") + ":", comboDisplacement_);
@@ -239,22 +239,18 @@ void SettingsWidget::onGaugeTypeChanged(int index) {
 }
 
 void SettingsWidget::onPressureUnitChanged(int index) {
-    ServiceLocator::instance().configManager()->setValue(CFG_KEY_CURRENT_PRESSURE_UNIT, index);
     ServiceLocator::instance().partyManager()->setCurrentPressureUnit(index);
 }
 
 void SettingsWidget::onPrecisionClassChanged(int index) {
-    ServiceLocator::instance().configManager()->setValue(CFG_KEY_CURRENT_PRECISION_CLASS, index);
     ServiceLocator::instance().partyManager()->setCurrentPrecision(index);
 }
 
 void SettingsWidget::onPrinterChanged(int index) {
-    ServiceLocator::instance().configManager()->setValue(CFG_KEY_CURRENT_PRINTER, index);
     ServiceLocator::instance().partyManager()->setCurrentPrinter(index);
 }
 
 void SettingsWidget::onDialLayoutChanged(int index) {
-    ServiceLocator::instance().configManager()->setValue(CFG_KEY_CURRENT_DIAL_LAYOUT, index);
     ServiceLocator::instance().partyManager()->setCurrentDisplacement(index);
 }
 

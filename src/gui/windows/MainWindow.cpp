@@ -1,4 +1,4 @@
-#include "MainWindow.h"
+﻿#include "MainWindow.h"
 #include "core/services/Logger.h"
 #include "core/services/ServiceLocator.h"
 #include "gui/widgets/MainWidget.h"
@@ -7,6 +7,7 @@
 #include <QCloseEvent>
 #include <QResizeEvent>
 #include <QVBoxLayout>
+#include <QMessageBox>
 
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
     setWindowTitle(tr("Graduator"));
@@ -25,6 +26,9 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
     mainLayout->setSpacing(0);
 
     setupNotifications();
+
+    connect(ServiceLocator::instance().pressureController(), &PressureControllerBase::userConfirmationRequested,
+            this, &MainWindow::onUserConfirmationRequested);
 }
 void MainWindow::closeEvent(QCloseEvent *event) {
     ServiceLocator::instance().configManager()->save();
@@ -53,4 +57,16 @@ void MainWindow::setupNotifications() {
             }
         });
     }
+}
+
+void MainWindow::onUserConfirmationRequested(int* resp) {
+    // Где-то в коде (например, в слоте или методе QWidget-наследника)
+    QMessageBox::StandardButton reply = QMessageBox::question(
+        this,                             // родительский виджет (может быть nullptr)
+        "Подтверждение",                  // заголовок окна
+        "Вы уверены, что хотите продолжить?", // текст сообщения
+        QMessageBox::Yes | QMessageBox::No // кнопки
+    );
+
+    *resp = reply == QMessageBox::Yes ? USER_RESPONSE_TRUE : USER_RESPONSE_FALSE;
 }

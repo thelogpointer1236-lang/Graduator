@@ -1,9 +1,11 @@
 ﻿#include "PressureControllerStand4.h"
 #include <QThread>
+#include <QDebug>
 #include "core/services/ServiceLocator.h"
 #include "utils.h"
 
 #define interrupt   m_isRunning = false; \
+CameraProcessor::restoreDefaultCapRate(); \
 emit interrupted(); \
 return;
 
@@ -120,19 +122,47 @@ void PressureControllerStand4::forwardPressure() {
     const qreal p_target = getTargetPressure();
     const int f_max = g540Driver()->maxFrequency();
     g540Driver()->setDirection(G540Direction::Forward);
-    while (currentPressure() < p_target) {
+
+    int bad_dp_count = 0;
+
+    while (currentPressure() < p_target) {    
         if (shouldStop()) {
             g540Driver()->stop();
             interrupt;
         }
+
         const qreal p_cur = currentPressure();
+        const qreal dp_cur = getCurrentPressureVelocity();
         m_dP_target = getMaxPressureVelocity();
         int freq = calculateFrequency(f_max, p_cur, p_target);
+
         if (isNearToPressureNode(gaugePressureValues(), p_cur, 7.5)) {
             CameraProcessor::setCapRate(1); // ускоряем захват кадров при подходе к узлам
             m_dP_target = getMinPressureVelocity();
             freq = freq / 3;
         }
+
+        if (dp_cur < m_dP_target / 10) {
+            bad_dp_count += 1;
+        }
+        else {
+            if (bad_dp_count > 0)
+                bad_dp_count -= 1;
+        }
+
+        if (bad_dp_count >= 20) {
+            g540Driver()->setFrequency(0);
+            int resp = requestUserConfirmation();
+            // Если пользователь выбрал вариант, что двигатель не работает, то выходим из градуировки
+            if (resp == USER_RESPONSE_FALSE) {
+                interrupt;
+            }
+            // Иначе считаем что с двигателем всё в порядки и давление не поднимается из-за сильной утечки
+            else {
+                bad_dp_count = 0;
+            }
+        }
+
         CameraProcessor::restoreDefaultCapRate();
         g540Driver()->setFrequency(freq);
         QThread::msleep(90);
@@ -198,3 +228,4 @@ void PressureControllerStand4::start() {
     m_isRunning = false;
     emit successfullyStopped();
 }
+
