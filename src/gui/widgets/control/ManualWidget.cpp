@@ -35,6 +35,15 @@ void ManualWidget::connectSignals()
     connect(m_btnOpenInlet, &QPushButton::clicked, this, &ManualWidget::onOpenInlet);
     connect(m_btnOpenOutlet, &QPushButton::clicked, this, &ManualWidget::onOpenOutlet);
     connect(m_btnCloseBoth, &QPushButton::clicked, this, &ManualWidget::onCloseBoth);
+
+    // Следим за изменением состояния контроллера, чтобы разблокировать
+    // обратный ход, когда стартовый концевик освобожден после работы
+    // автоматического режима.
+    auto *pressureController = ServiceLocator::instance().pressureController();
+    connect(pressureController, &PressureControllerBase::interrupted,
+            this, &ManualWidget::updateUiState);
+    connect(pressureController, &PressureControllerBase::successfullyStopped,
+            this, &ManualWidget::updateUiState);
 }
 
 // -----------------------------------------------------------------

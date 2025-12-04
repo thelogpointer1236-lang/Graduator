@@ -76,8 +76,16 @@ bool GraduationService::isResultReady() const {
     return m_resultReady;
 }
 
+bool GraduationService::isResultSaved() const {
+    return m_resultSaved;
+}
+
 const PartyResult& GraduationService::getPartyResult() {
     return m_currentResult;
+}
+
+void GraduationService::markResultSaved() {
+    m_resultSaved = true;
 }
 
 void GraduationService::requestTableUpdate() {
@@ -107,8 +115,10 @@ void GraduationService::disconnectObjects() {
 
 void GraduationService::clearCurrentResult() {
     m_resultReady = false;
+    m_resultSaved = true;
     m_graduator.clear();
     m_elapsedTimer.invalidate();
+    requestTableUpdate();
     emit resultAvailabilityChanged(false);
 }
 
@@ -162,8 +172,9 @@ void GraduationService::updateResult() {
         m_currentResult.backward = m_currentResult.forward;
         m_currentResult.debugDataBackward = m_currentResult.debugDataForward;
     }
-    for (size_t i = 0; i < m_currentResult.backward[0].size(); i++)
-        m_currentResult.backward[i][0] = m_currentResult.forward[i][0];
+    for (size_t camIdx = 0; camIdx < m_currentResult.backward.size(); camIdx++)
+        m_currentResult.backward[camIdx][0] = m_currentResult.forward[camIdx][0];
     m_currentResult.durationSeconds = getElapsedTimeSeconds();
     m_resultReady = true;
+    m_resultSaved = false;
 }

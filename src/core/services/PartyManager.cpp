@@ -19,7 +19,7 @@ bool PartyManager::savePartyResult(const PartyResult &result, QString &err) {
     QDir folder = QString("%1/p%2-%3/")
             .arg(m_currentPath)
             .arg(m_partyNumber)
-            .arg(currentDisplacementIndex());
+            .arg(currentDisplacementNumber());
 
     if (!folder.exists() && !folder.mkpath(".")) {
         err = QString("Cannot create path: %1").arg(folder.path());
@@ -60,6 +60,9 @@ bool PartyManager::savePartyResult(const PartyResult &result, QString &err) {
                 .arg(minutes, 2, 10, QChar('0'))
                 .arg(seconds, 2, 10, QChar('0'));
         file.close();
+    }
+    if (auto *graduationService = ServiceLocator::instance().graduationService()) {
+        graduationService->markResultSaved();
     }
     return true;
 }
@@ -118,14 +121,16 @@ void PartyManager::updatePartyNumberFromFileSystem() {
 
     int maxParty = 0;
     const QStringList entries = dir.entryList();
-    QRegularExpression re("^p(\\d+)-"); // p<номер>-<смещение>
+    QRegularExpression re("^p(\\d+)-(\\d+)"); // p<номер>-<смещение>
 
     for (const QString& name : entries) {
         QRegularExpressionMatch match = re.match(name);
         if (match.hasMatch()) {
-            bool ok = false;
-            int party = match.captured(1).toInt(&ok);
-            if (ok && party > maxParty) {
+            bool okParty = false;
+            bool okDisplacement = false;
+            const int party = match.captured(1).toInt(&okParty);
+            const int displacement = match.captured(2).toInt(&okDisplacement);
+            if (okParty && okDisplacement && displacement == currentDisplacementNumber() && party > maxParty) {
                 maxParty = party;
             }
         }
@@ -149,6 +154,14 @@ int PartyManager::currentPrecisionIndex() const {
 
 int PartyManager::currentDisplacementIndex() const {
     return ServiceLocator::instance().configManager()->get<int>(CFG_KEY_CURRENT_DISPLACEMENT, 0);
+}
+
+int PartyManager::currentDisplacementNumber() const {
+    const int index = currentDisplacementIndex();
+    if (index < 0 || index >= m_availableDisplacements.size()) {
+        return index;
+    }
+    return m_availableDisplacements.at(index).num();
 }
 
 int PartyManager::currentPrinterIndex() const {
