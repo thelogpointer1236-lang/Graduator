@@ -147,7 +147,7 @@ void CameraProcessor::emitCamerasChanged() {
     emit camerasChanged();
 }
 
-void CameraProcessor::enqueueImage(qint32 cameraIdx, qreal time, quint8 *imgData) {
+void CameraProcessor::enqueueImage(qint32 cameraIdx, qreal time, const quint8 *imgData) {
     if (m_anglemeterProcessors.empty()) return;
 
     const auto it = std::min_element(

@@ -13,7 +13,7 @@ void anglemeterCreateImageBuffer(int width, int height);
 bool anglemeterIsImageBufferCreated();
 void anglemeterDestroyImageBuffer();
 unsigned char* anglemeterCopyImage(const unsigned char* img);
-void anglemeterFreeImage(unsigned char* img);
+void anglemeterFreeImage(const unsigned char* img);
 
 // ----------------------------------------------------------------------------------------
 // Основная функция вычисления угла стрелки

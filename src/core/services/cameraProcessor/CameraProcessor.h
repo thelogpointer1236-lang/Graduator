@@ -38,7 +38,7 @@ public:
     void emitCamerasChanged();
 
 private slots:
-    void enqueueImage(qint32 cameraIdx, qreal time, quint8* imgData);
+    void enqueueImage(qint32 cameraIdx, qreal time, const quint8* imgData);
     void onAngleMeasured(qint32 idx, qreal time, qreal angle);
 
 signals:

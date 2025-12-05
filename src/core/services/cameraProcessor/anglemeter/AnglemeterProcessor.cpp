@@ -20,12 +20,12 @@ void AnglemeterProcessor::setAngleTransformation(float(*func_ptr)(float)) {
     anglemeterSetAngleTransformation(m_am, func_ptr);
 }
 
-void AnglemeterProcessor::enqueueImage(qint32 cameraIdx, qreal time, quint8* imgData) {
+void AnglemeterProcessor::enqueueImage(qint32 cameraIdx, qreal time, const quint8* imgData) {
     QMetaObject::invokeMethod(this, "processImage",
                               Qt::QueuedConnection,
                               Q_ARG(qint32, cameraIdx),
                               Q_ARG(qreal, time),
-                              Q_ARG(quint8*, imgData));
+                              Q_ARG(const quint8*, imgData));
     ++m_queueSize;
 }
 
@@ -33,10 +33,10 @@ qint32 AnglemeterProcessor::queueSize() const {
     return m_queueSize.load();
 }
 
-void AnglemeterProcessor::processImage(qint32 cameraIdx, qreal time, quint8* imgData) {
+void AnglemeterProcessor::processImage(qint32 cameraIdx, qreal time, const quint8* imgData) {
     float angle;
     if (anglemeterGetArrowAngle(m_am, imgData, &angle)) {
-        qDebug() << "angle measured:" << angle;
+        // qDebug() << "angle measured:" << angle;
         emit angleMeasured(cameraIdx, time, static_cast<qreal>(angle));
     }
     anglemeterFreeImage(imgData);

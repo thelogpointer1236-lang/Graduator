@@ -8,6 +8,8 @@
 #include <QSharedPointer>
 #include <QSize>
 #include <QTimer>
+#include <QImage>
+#include <QDebug>
 
 VideoCaptureProcessor::VideoCaptureProcessor(QObject *parent)
     : QObject(parent)
@@ -32,26 +34,50 @@ VideoCaptureProcessor::VideoCaptureProcessor(QObject *parent)
 
 VideoCaptureProcessor::~VideoCaptureProcessor() = default;
 
-void VideoCaptureProcessor::init(void *hwnd, int cameraIndex) {
+void VideoCaptureProcessor::init(void *hwnd, int cameraIndex)
+{
     m_hwnd = hwnd;
     m_cameraIndex = cameraIndex;
     m_comInitialized = true;
 
-    auto buffer = QSharedPointer<QByteArray>::create(640 * 480 * 3, '\0');
+    // Загружаем stub-картинку из ресурсов
+    QImage img(":/assets/assets/stub_arrow.png");
+    if (img.isNull()) {
+        qWarning() << "Stub-image not found!";
+        return;
+    }
+
+    // Приводим к формату RGB888 (3 байта на пиксель)
+    QImage rgb = img.convertToFormat(QImage::Format_RGB888);
+
+    // Копируем в QByteArray
+    auto buffer = QSharedPointer<QByteArray>::create(
+        reinterpret_cast<const char*>(rgb.constBits()),
+        rgb.width() * rgb.height() * 3
+    );
+
     QPointer<VideoCaptureProcessor> self(this);
 
     auto timer = new QTimer(this);
     timer->setInterval(250);
+
     connect(timer, &QTimer::timeout, this, [self, buffer]() {
-        if (!self) {
+        if (!self)
             return;
-        }
-        const qreal timestampSec = QDateTime::currentMSecsSinceEpoch() / 1000.0;
-        emit self->imageCaptured(self->m_cameraIndex, timestampSec,
-                                 reinterpret_cast<quint8*>(buffer->data()));
+
+        const qreal timestampSec =
+            QDateTime::currentMSecsSinceEpoch() / 1000.0;
+
+        emit self->imageCaptured(
+            self->m_cameraIndex,
+            timestampSec,
+            reinterpret_cast<const quint8*>(buffer->constData())
+        );
     });
+
     timer->start();
 }
+
 
 int VideoCaptureProcessor::getCameraCount() {
     return 1;

@@ -17,7 +17,7 @@ set(CMAKE_PREFIX_PATH "D:/Qt/Qt5.14.2/5.14.2/msvc2017_64")
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/src)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/third-party)
 
-#add_definitions(-DUSE_STUB_IMPLEMENTATIONS)
+add_definitions(-DUSE_STUB_IMPLEMENTATIONS)
 
 find_package(Qt5 COMPONENTS
         Core

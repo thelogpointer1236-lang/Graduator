@@ -42,7 +42,8 @@ void PressureSensor::closeCOM() {
     m_comPort.clear();
 }
 
-void PressureSensor::start() {
+void PressureSensor::start()
+{
     if (m_isRunning) {
         return;
     }
@@ -50,29 +51,44 @@ void PressureSensor::start() {
     m_aboutToStop = false;
     m_isRunning = true;
 
-    const auto emitReading = [this]() {
-        if (!m_isRunning || m_aboutToStop) {
-            m_isRunning = false;
-            m_aboutToStop = false;
-            return;
-        }
-
-        const double basePressureKPa = 100.0;
-        const double noise = QRandomGenerator::global()->bounded(-5.0, 5.0);
-        m_lastPressure = Pressure::fromKPa(basePressureKPa + noise);
+    while (m_isRunning && !m_aboutToStop) {
 
         qreal timestampSec = 0.0;
         if (auto *graduationService = ServiceLocator::instance().graduationService()) {
             timestampSec = graduationService->getElapsedTimeSeconds();
         }
 
+        // Период 60 секунд
+        const double period = 60.0;
+        const double halfPeriod = period / 2.0; // 30 секунд
+        const double maxPressure = 260.0;
+
+        double phase = std::fmod(timestampSec, period);
+
+        double pressureKPa = 0.0;
+        if (phase < halfPeriod) {
+            // рост 0 → 250 за 30 секунд
+            pressureKPa = (phase / halfPeriod) * maxPressure;
+        } else {
+            // спад 250 → 0 за следующие 30 секунд
+            pressureKPa = ((period - phase) / halfPeriod) * maxPressure;
+        }
+
+        // (Опционально) добавить шум ±5
+        // pressureKPa += QRandomGenerator::global()->bounded(-5.0, 5.0);
+
+        m_lastPressure = Pressure::fromKgf(pressureKPa);
+
         emit pressureMeasured(timestampSec, m_lastPressure);
 
-        QTimer::singleShot(100, this, emitReading);
-    };
+        QThread::msleep(100);
+    }
 
-    QTimer::singleShot(0, this, emitReading);
+    m_isRunning = false;
+    m_aboutToStop = false;
 }
+
+
 
 bool PressureSensor::pollOnce(QString &error) {
     Q_UNUSED(error);

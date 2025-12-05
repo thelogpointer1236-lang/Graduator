@@ -16,13 +16,14 @@ TelemetryLogger::TelemetryLogger(const QString &logFolder, QObject *parent)
     : QObject(parent)
     , m_logFolderRoot(logFolder)
 {
-    // Конфигурируем таймер, но не запускаем его здесь —
-    // он будет запущен при начале градуировки.
+    // Конфигурируем таймер
     m_savingTimer.setInterval(2000);
 
-    // Один раз привязываем таймер к слоту сохранения.
     connect(&m_savingTimer, &QTimer::timeout,
             this, &TelemetryLogger::saveTelemetryData);
+
+    // Логгер сам подписывается на GraduationService
+    begin();
 }
 
 TelemetryLogger::~TelemetryLogger()
@@ -338,6 +339,10 @@ void TelemetryLogger::startLoggingSession()
         return;
 
     auto &locator = ServiceLocator::instance();
+
+    setPressureUnit(static_cast<PressureUnit>(
+        locator.configManager()->get<int>("current.pressureUnit", static_cast<int>(PressureUnit::Pa))
+    ));
 
     // Подключаемся к датчикам только на время градуировки
     connect(locator.pressureSensor(), &PressureSensor::pressureMeasured,

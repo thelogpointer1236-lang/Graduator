@@ -13,11 +13,11 @@ public:
     void setImageSize(qint32 width, qint32 height);
     void setAngleTransformation(float (*func_ptr)(float));
 
-    void enqueueImage(qint32 cameraIdx, qreal time, quint8* imgData);
+    void enqueueImage(qint32 cameraIdx, qreal time, const quint8* imgData);
     qint32 queueSize() const;
 
 private slots:
-    void processImage(qint32 cameraIdx, qreal time, quint8 *imgData);
+    void processImage(qint32 cameraIdx, qreal time, const quint8 *imgData);
 
 signals:
     void angleMeasured(qint32 cameraIdx, qreal time, qreal angle);

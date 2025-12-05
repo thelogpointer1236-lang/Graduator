@@ -5,4 +5,7 @@
     <qresource prefix="/translations">
         <file>translations/ru_RU.qm</file>
     </qresource>
+    <qresource prefix="/assets">
+        <file>assets/stub_arrow.png</file>
+    </qresource>
 </RCC>

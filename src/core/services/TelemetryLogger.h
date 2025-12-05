@@ -30,6 +30,7 @@ public:
     /// Задать единицы измерения давления (будут применяться при логировании)
     void setPressureUnit(PressureUnit unit);
 
+private:
     /// Активировать логгер (подписаться на события GraduationService)
     void begin();
 

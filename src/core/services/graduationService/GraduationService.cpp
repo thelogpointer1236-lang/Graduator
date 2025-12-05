@@ -173,7 +173,8 @@ void GraduationService::updateResult() {
         m_currentResult.debugDataBackward = m_currentResult.debugDataForward;
     }
     for (size_t camIdx = 0; camIdx < m_currentResult.backward.size(); camIdx++)
-        m_currentResult.backward[camIdx][0] = m_currentResult.forward[camIdx][0];
+        if (!m_currentResult.backward[camIdx].empty() && !m_currentResult.forward[camIdx].empty())
+            m_currentResult.backward[camIdx][0] = m_currentResult.forward[camIdx][0];
     m_currentResult.durationSeconds = getElapsedTimeSeconds();
     m_resultReady = true;
     m_resultSaved = false;

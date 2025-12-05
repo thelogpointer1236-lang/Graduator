@@ -36,7 +36,7 @@ public:
     STDMETHOD (BufferCB)(double SampleTime, BYTE *pBuffer, long BufferLen) override;
 
 signals:
-    void imageCaptured(qint32 cameraIdx, qreal time, quint8* imgData);
+    void imageCaptured(qint32 cameraIdx, qreal time, const quint8* imgData);
 
 public:
     static inline auto s_aimColor = RGBPixel(0, 0, 0);

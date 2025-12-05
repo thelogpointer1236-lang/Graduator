@@ -1283,7 +1283,7 @@ unsigned char* anglemeterCopyImage(const unsigned char* img) {
     return nullptr;
 }
 
-void anglemeterFreeImage(unsigned char* img) {
+void anglemeterFreeImage(const unsigned char* img) {
     if (!img) return;
 
     for (int i = 0; i < g_buf.capacity; i++) {

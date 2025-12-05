@@ -71,6 +71,7 @@ void ApplicationBuilder::declareMetatypes() {
     qRegisterMetaType<Pressure>("Pressure");
     qRegisterMetaType<LogLevel>("LogLevel");
     qRegisterMetaType<quint8*>("quint8*");
+    qRegisterMetaType<const quint8*>("const quint8*");
     qRegisterMetaType<int*>("int*");
     qRegisterMetaType<QString*>("QString*");
 }
@@ -209,12 +210,6 @@ void ApplicationBuilder::initTelemetryLogger() {
     auto *cfg = ServiceLocator::instance().configManager();
     auto *logger = new TelemetryLogger(cfg->get<QString>(CFG_KEY_TELEMETRY_LOG_FOLDER, "telemetry"));
     ServiceLocator::instance().setTelemetryLogger(logger);
-    QObject::connect(
-        ServiceLocator::instance().pressureController()->g540Driver(), &G540Driver::started,
-        logger, &TelemetryLogger::begin, Qt::QueuedConnection);
-    QObject::connect(
-        ServiceLocator::instance().pressureController()->g540Driver(), &G540Driver::stopped,
-        logger, &TelemetryLogger::end, Qt::QueuedConnection);
 }
 
 void ApplicationBuilder::applySettings() {

@@ -131,6 +131,8 @@ void PressureControllerStand4::forwardPressure() {
             interrupt;
         }
 
+        qDebug() << "Current pressure:" << currentPressure() << "Target pressure:" << p_target;
+
         const qreal p_cur = currentPressure();
         const qreal dp_cur = getCurrentPressureVelocity();
         m_dP_target = getMaxPressureVelocity();
@@ -186,6 +188,7 @@ void PressureControllerStand4::backwardPressure() {
     // TODO: заменить на проверку срабатывания концевика, т. к. я для проверки это сделал
     // while (!isStartLimitTriggered()) {
     while (currentPressure() > 10.0) {
+        qDebug() << "Current pressure (backward):" << currentPressure();
         if (shouldStop()) {
             g540Driver()->stop();
             interrupt;
@@ -220,6 +223,7 @@ void PressureControllerStand4::backwardPressure() {
 }
 
 void PressureControllerStand4::start() {
+    qDebug() << "PressureControllerStand4::start() called";
     m_isRunning = true;
     emit started();
     auto *gs = ServiceLocator::instance().graduationService();
