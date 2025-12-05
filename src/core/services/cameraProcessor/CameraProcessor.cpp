@@ -8,6 +8,11 @@
 #include <QColor>
 #include <algorithm>
 
+namespace {
+    constexpr qreal kMaxExpectedAngleDeg = 340.0;
+}
+
+
 CameraProcessor::CameraProcessor(int anglemeterThreadsCount, int imgWidth, int imgHeight, QObject *parent) : QObject(parent) {
     m_cameras.reserve(8);
     createAnglemeterWorkers(anglemeterThreadsCount, imgWidth, imgHeight);
@@ -26,6 +31,7 @@ CameraProcessor::~CameraProcessor() {
 
 void CameraProcessor::setCameraString(const QString &cameraStr) {
     m_lastAngles.clear();
+    m_angleOvershootAcknowledged.clear();
     const int cameraLimit = availableCameraCount();
     auto cleanAndUnique = [cameraLimit](const QString &input) -> QString {
         QString digits;
@@ -153,6 +159,33 @@ void CameraProcessor::enqueueImage(qint32 cameraIdx, qreal time, quint8 *imgData
 }
 
 void CameraProcessor::onAngleMeasured(qint32 idx, qreal time, qreal angle) {
+    const bool angleExceeded = angle > kMaxExpectedAngleDeg;
+    if (angleExceeded && m_angleOvershootAcknowledged.find(idx) == m_angleOvershootAcknowledged.end()) {
+        if (auto *dialog = ServiceLocator::instance().userDialogService()) {
+            const QString yesOption = tr("Yes");
+            const QString noOption = tr("No");
+
+            QString response = dialog->requestUserInput(
+                tr("Gauge angle exceeded"),
+                tr("The gauge pointer angle is higher than expected. Continue?"),
+                {yesOption, noOption}
+            );
+
+            if (response == noOption) {
+                if (auto *graduationService = ServiceLocator::instance().graduationService()) {
+                    graduationService->interrupt();
+                }
+                return;
+            }
+        }
+        m_angleOvershootAcknowledged.insert(idx);
+    }
+
+    if (!angleExceeded) {
+        m_angleOvershootAcknowledged.erase(idx);
+    }
+
+    emit angleMeasured(idx, time, angle);
     m_lastAngles[idx] = angle;
 }
 
@@ -171,8 +204,12 @@ void CameraProcessor::createAnglemeterWorkers(int anglemeterThreadsCount, int im
         thread->start();
         m_anglemeterProcessors.emplace_back(anglemeterProcessor);
         m_anglemeterThreads.emplace_back(thread);
+
         connect(anglemeterProcessor, &AnglemeterProcessor::angleMeasured,
-            this, &CameraProcessor::angleMeasured);
-        connect(this, &CameraProcessor::angleMeasured, this, &CameraProcessor::onAngleMeasured);
+                this, &CameraProcessor::onAngleMeasured);
+
+        // connect(anglemeterProcessor, &AnglemeterProcessor::angleMeasured,
+        //     this, &CameraProcessor::angleMeasured);
+        // connect(this, &CameraProcessor::angleMeasured, this, &CameraProcessor::onAngleMeasured);
     }
 }

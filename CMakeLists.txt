@@ -15,6 +15,7 @@ set(CMAKE_PREFIX_PATH "D:/Qt/Qt5.14.2/5.14.2/msvc2017_64")
 #set(CMAKE_PREFIX_PATH "S:/Qt/Qt-5.15.17/win32-msvc")
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/src)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/third-party)
 
 #add_definitions(-DUSE_STUB_IMPLEMENTATIONS)
 
@@ -81,6 +82,11 @@ set(SRC_FILES
         src/core/utils/Derivator.cpp
         src/core/utils/Mediator.cpp
         src/core/services/TelemetryLogger.cpp
+        third-party/miniz.h
+        third-party/miniz.c
+        third-party/miniz_tdef.c
+        third-party/miniz_tinfl.c
+        third-party/miniz_zip.c
 )
 
 set(HEADER_FILES

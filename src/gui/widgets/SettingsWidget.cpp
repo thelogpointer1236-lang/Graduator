@@ -85,6 +85,8 @@ QGroupBox *SettingsWidget::createDeviceGroup()
     comboDeviceType_->setCurrentIndex(locator.configManager()->get<int>(CFG_KEY_CURRENT_GAUGE_MODEL, 0));
 
     comboUnit_ = new QComboBox(group);
+    QStringList trPressureUnits;
+
     comboUnit_->addItems(partyManager->getAvailablePressureUnits());
     comboUnit_->setCurrentIndex(partyManager->currentPressureUnitIndex());
 

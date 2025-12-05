@@ -148,7 +148,7 @@ const std::vector<NodeResult>& PressureAngleGraduator::graduate() const {
         lw.nodePressure = nodeP;
         lw.localPressure = sortedP;
         lw.localAngle = sortedA;
-        lw.smoothAngle = smoothA;
+        // lw.smoothAngle = smoothA;
 
         m_debugData_.windows.push_back(std::move(lw));
     }

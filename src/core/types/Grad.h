@@ -7,7 +7,6 @@ struct DebugData {
         double nodePressure;
         std::vector<double> localPressure;
         std::vector<double> localAngle;
-        std::vector<double> smoothAngle; // LOESS результат
     };
     std::vector<LocalWindow> windows;
 };

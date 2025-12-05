@@ -18,21 +18,18 @@ public:
 private slots:
     void setPartyNumber(int number);
     void onSaveClicked();
-    void onAlignTopNodeToggled(bool checked);
     void onStrongNodeToggled(bool checked);
     void onResultAvailabilityChanged(bool available);
 
 private:
     class QHBoxLayout *createPartyHeader();
-    class QCheckBox *createAlignTopCheck();
-    class QCheckBox *createStrongKnotCheck();
+    class QCheckBox *createStrongNodeCheck();
     class QPushButton *createSaveButton();
     void setupUi();
     void setupConnections();
 
     QLabel *partyNumberLabel_ = nullptr;
-    QCheckBox *alignTopCheck_ = nullptr;
-    QCheckBox *strongKnotCheck_ = nullptr;
+    QCheckBox *strongNodeCheck_ = nullptr;
     QPushButton *saveButton_ = nullptr;
 };
 

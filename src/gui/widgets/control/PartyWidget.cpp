@@ -35,8 +35,7 @@ void PartyWidget::setupUi()
     auto *frameLayout = new QVBoxLayout(frame);
     frameLayout->setSpacing(5);
     frameLayout->addLayout(createPartyHeader());
-    frameLayout->addWidget(createAlignTopCheck());
-    frameLayout->addWidget(createStrongKnotCheck());
+    frameLayout->addWidget(createStrongNodeCheck());
     frameLayout->addWidget(createSaveButton());
     frameLayout->addStretch();
 
@@ -46,8 +45,7 @@ void PartyWidget::setupUi()
 void PartyWidget::setupConnections()
 {
     connect(saveButton_, &QPushButton::clicked, this, &PartyWidget::onSaveClicked);
-    connect(alignTopCheck_, &QCheckBox::toggled, this, &PartyWidget::onAlignTopNodeToggled);
-    connect(strongKnotCheck_, &QCheckBox::toggled, this, &PartyWidget::onStrongNodeToggled);
+    connect(strongNodeCheck_, &QCheckBox::toggled, this, &PartyWidget::onStrongNodeToggled);
     connect(ServiceLocator::instance().partyManager(), &PartyManager::partyNumberChanged,
             this, &PartyWidget::setPartyNumber);
     saveButton_->setEnabled(false);
@@ -74,16 +72,10 @@ QHBoxLayout *PartyWidget::createPartyHeader()
     return layout;
 }
 
-QCheckBox *PartyWidget::createAlignTopCheck()
+QCheckBox *PartyWidget::createStrongNodeCheck()
 {
-    alignTopCheck_ = new QCheckBox(tr("Center top mark"), this);
-    return alignTopCheck_;
-}
-
-QCheckBox *PartyWidget::createStrongKnotCheck()
-{
-    strongKnotCheck_ = new QCheckBox(tr("Strong mark"), this);
-    return strongKnotCheck_;
+    strongNodeCheck_ = new QCheckBox(tr("Strong mark"), this);
+    return strongNodeCheck_;
 }
 
 QPushButton *PartyWidget::createSaveButton()
@@ -106,10 +98,6 @@ void PartyWidget::onSaveClicked()
         return;
     }
     QMessageBox::information(this, tr("Saving"), tr("The graduation result has been saved."));
-}
-
-void PartyWidget::onAlignTopNodeToggled(bool checked)
-{
 }
 
 void PartyWidget::onStrongNodeToggled(bool checked)

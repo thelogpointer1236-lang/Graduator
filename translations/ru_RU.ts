@@ -9,13 +9,8 @@
     </message>
 
     <message>
-    <source>Center top mark</source>
-    <translation>Центральная верхняя метка</translation>
-    </message>
-
-    <message>
     <source>Strong mark</source>
-    <translation>Усиленная метка</translation>
+    <translation>Крепкий узел</translation>
     </message>
 
     <message>
@@ -95,6 +90,11 @@
 
   <context>
     <name>ManualWidget</name>
+
+    <message>
+        <source>Valve control</source>
+        <translation>Управление клапанами</translation>
+    </message>
 
     <message>
       <source>Engine direction</source>
@@ -260,8 +260,8 @@
         <translation>Принтер</translation>
     </message>
     <message>
-        <source>Dial layout</source>
-        <translation>Разметка шкалы</translation>
+        <source>Displacement</source>
+        <translation>Подствака</translation>
     </message>
 
     <message>
@@ -289,6 +289,14 @@
         <source>Could not open COM port for the pressure sensor.</source>
         <translation>Не удалось открыть COM-порт для датчика давления.</translation>
     </message>
+<message>
+<source>Crosshair radius</source>
+<translation>Радиус мушки</translation>
+</message>
+<message>
+<source>Crosshair color</source>
+<translation>Цвет мушки</translation>
+</message>
 
 </context>
 
@@ -458,5 +466,7 @@
 
 </context>
 
+
+<context> <name>CameraProcessor</name> <message> <source>Gauge angle exceeded</source> <translation>Угол стрелки превысил ожидаемое значение</translation> </message> <message> <source>The gauge pointer angle is higher than expected. Continue?</source> <translation>Угол стрелки манометра больше ожидаемого. Продолжить?</translation> </message> <message> <source>Yes</source> <translation>Да</translation> </message> <message> <source>No</source> <translation>Нет</translation> </message> </context>
 
 </TS>

@@ -5,6 +5,8 @@
 #include <QObject>
 #include <QString>
 #include <vector>
+#include <map>
+#include <set>
 
 class CameraProcessor final : public QObject {
     Q_OBJECT
@@ -50,6 +52,7 @@ private:
     std::vector<AnglemeterProcessor*> m_anglemeterProcessors;
     std::vector<QThread*> m_anglemeterThreads;
     std::map<qint32, qreal> m_lastAngles;
+    std::set<qint32> m_angleOvershootAcknowledged;
 };
 
 #endif //GRADUATOR_CAMERAPROCESSOR_H
