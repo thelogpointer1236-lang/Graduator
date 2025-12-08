@@ -4,6 +4,7 @@
 #include <QTimer>
 
 #include "core/types/Grad.h"
+#include "core/types/PartyResult.h"
 
 class GraduationTableModel final : public QAbstractTableModel {
     Q_OBJECT
@@ -22,7 +23,6 @@ private:
     const class GaugeModel *m_gaugeModel;
     QString m_cameraStr;
     QTimer m_updateTimer;
-    std::vector<std::vector<NodeResult>> m_forwardData;
-    std::vector<std::vector<NodeResult>> m_backwardData;
+    PartyResult m_partyResult;
 };
 #endif //GRADUATOR_GRADUATIONTABLEMODEL_H

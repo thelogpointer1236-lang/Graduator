@@ -1,5 +1,6 @@
 ﻿#ifndef GRADUATOR_GRADUATIONSERVICE_H
 #define GRADUATOR_GRADUATIONSERVICE_H
+
 #include <QObject>
 #include <QElapsedTimer>
 
@@ -10,55 +11,96 @@
 
 class GraduationService final : public QObject {
     Q_OBJECT
+
 public:
+    // FSM — состояние сервиса
+    enum class State {
+        Idle,
+        Prepared,
+        Running,
+        Finished,
+        Interrupted
+    };
+
     explicit GraduationService(QObject *parent = nullptr);
     ~GraduationService() override;
 
-    qreal getElapsedTimeSeconds() const;
+    // ---------------------------------------------------------
+    // Public API — строгий, предсказуемый интерфейс
+    // ---------------------------------------------------------
 
-    void start();
+    // 1) Этап подготовки: загружает модель, проверяет конфиг, готовит контекст
+    bool prepare(QString &err);
+
+    // 2) Этап запуска: запускает алгоритм только после успешного prepare()
+    bool start();
+
+    // 3) Прерывание процесса
     void interrupt();
-    bool isRunning() const;
-    bool isReadyToRun(QString &err) const;
 
-    grad::Graduator& graduator();
+    // 4) Состояние
+    qreal getElapsedTimeSeconds() const;
     bool isResultReady() const;
-    bool isResultSaved() const;
-    const PartyResult& getPartyResult();
-    void markResultSaved();
-    void requestTableUpdate();
+
+    // 5) Результат
+    const PartyResult& getPartyResult() const;
+
+    // Для внешнего доступа к вычислителю
+    grad::Graduator& graduator() { return m_graduator; }
+
+    State state() const { return m_state; }
+
+    void requestUpdateResultAndTable();
 
 signals:
+    // События жизненного цикла
     void started();
     void interrupted();
-    void successfullyStopped();
+    void ended();
+
+    // UI-сигналы
     void resultAvailabilityChanged(bool available);
     void tableUpdateRequired();
 
 private slots:
+    // Обработчики данных в процессе градуировки
     void onPressureMeasured(qreal t, Pressure p);
-    void onAngleMeasured(qint32 i, qreal t, qreal a);
-    void onControllerSuccessfullyStopped();
-    void onControllerInterrupted();
+    void onAngleMeasured(qint32 idx, qreal t, qreal angle);
+
+    // События контроллера давления
+    void onPressureControllerResultReady();
+    void onPressureControllerInterrupted();
 
 private:
-    void updateResult();
 
+    // Управление состояниями
     void connectObjects();
     void disconnectObjects();
 
-    void clearCurrentResult();
+    // Очистка при новом запуске
+    void clearForNewRun();
+    void clearResultOnly();
+
+    // Обновление результата после успешного завершения
+    void updateResult();
 
 private:
-    bool m_isRunning = false;
+    // Текущее состояние
+    State m_state = State::Idle;
+
+    // Таймер длительности градуировки
     QElapsedTimer m_elapsedTimer;
 
+    // Основной вычислитель
     grad::Graduator m_graduator;
-    mutable GaugeModel m_gaugeModel;
-    mutable PressureUnit m_pressureUnit = PressureUnit::Kgf;
 
+    // Модель прибора и единица давления
+    GaugeModel   m_gaugeModel;
+    PressureUnit m_pressureUnit = PressureUnit::Unknown;
+
+    // Готовый результат
     PartyResult m_currentResult;
     bool m_resultReady = false;
-    bool m_resultSaved = true;
 };
-#endif //GRADUATOR_GRADUATIONSERVICE_H
+
+#endif // GRADUATOR_GRADUATIONSERVICE_H

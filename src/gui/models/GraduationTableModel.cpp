@@ -51,7 +51,7 @@ int GraduationTableModel::columnCount(const QModelIndex &parent) const {
 QVariant GraduationTableModel::data(const QModelIndex &index, int role) const {
     if (role != Qt::DisplayRole || !m_gaugeModel)
         return {};
-    int pp_size = m_gaugeModel->pressureValues().size();
+    const int pp_size = m_gaugeModel->pressureValues().size();
     const int row = index.row();
     const int col = index.column();
     const int camIdx = m_cameraStr[(col) / 2].digitValue() - 1;
@@ -60,7 +60,7 @@ QVariant GraduationTableModel::data(const QModelIndex &index, int role) const {
     // Graduation data
     if (row < pp_size) {
         const bool isForward = (col) % 2 == 0;
-        const auto &data = isForward ? m_forwardData : m_backwardData;
+        const auto &data = isForward ? m_partyResult.forward : m_partyResult.backward;
         if (camIdx >= data.size() || row >= data[camIdx].size())
             return {};
         auto &val = data[camIdx][row];
@@ -69,7 +69,7 @@ QVariant GraduationTableModel::data(const QModelIndex &index, int role) const {
 
     // Additional data
     if (row < rowCount()) {
-        int infoRow = row - pp_size;
+        const int infoRow = row - pp_size;
         if (infoRow == 0) {
             return QVariant(ServiceLocator::instance().cameraProcessor()->lastAngleForCamera(camIdx));
         }
@@ -110,7 +110,6 @@ void GraduationTableModel::updateIndicators() {
 
 void GraduationTableModel::updateScale() {
     beginResetModel();
-    m_forwardData = ServiceLocator::instance().graduationService()->graduator().graduateForward();
-    m_backwardData = ServiceLocator::instance().graduationService()->graduator().graduateBackward();
+    m_partyResult = ServiceLocator::instance().graduationService()->getPartyResult();
     endResetModel();
 }

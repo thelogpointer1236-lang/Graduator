@@ -22,7 +22,7 @@ ApplicationBuilder::~ApplicationBuilder()
     auto &locator = ServiceLocator::instance();
 
     if (auto *gs = locator.graduationService(); gs) {
-        if (gs->isRunning()) {
+        if (gs->state() == GraduationService::State::Running) {
             gs->interrupt();
         }
     }

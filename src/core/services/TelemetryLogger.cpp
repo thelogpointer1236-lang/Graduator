@@ -56,7 +56,7 @@ void TelemetryLogger::begin()
     connect(locator.graduationService(), &GraduationService::started,
             this, &TelemetryLogger::onGraduationStarted, Qt::QueuedConnection);
 
-    connect(locator.graduationService(), &GraduationService::successfullyStopped,
+    connect(locator.graduationService(), &GraduationService::ended,
             this, &TelemetryLogger::onGraduationEnded, Qt::QueuedConnection);
 
     connect(locator.graduationService(), &GraduationService::interrupted,

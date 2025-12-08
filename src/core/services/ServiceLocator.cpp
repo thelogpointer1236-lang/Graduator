@@ -48,22 +48,36 @@ PressureSensor *ServiceLocator::pressureSensor() const noexcept {
 void ServiceLocator::setGraduationService(GraduationService *graduationService) {
     m_graduationService = graduationService;
 }
+
 GraduationService *ServiceLocator::graduationService() const noexcept {
     return m_graduationService;
 }
+
 
 void ServiceLocator::setTelemetryLogger(TelemetryLogger *telemetryLogger) {
     m_telemetryLogger = telemetryLogger;
 }
 
+
+
 TelemetryLogger * ServiceLocator::telemetryLogger() const noexcept {
     return m_telemetryLogger;
 }
+
+
 
 void ServiceLocator::setUserDialogService(UserDialogService *userDialogService) {
     m_userDialogService = userDialogService;
 }
 
+
+
+
 UserDialogService *ServiceLocator::userDialogService() const noexcept {
     return m_userDialogService;
 }
+
+
+
+
+

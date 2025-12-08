@@ -49,7 +49,7 @@ void ControlWidget::setupConnections()
     auto *pressureController = ServiceLocator::instance().pressureController();
     connect(pressureController, &PressureControllerBase::started, this, [this] { lockTabs(true); });
     connect(pressureController, &PressureControllerBase::interrupted, this, [this] { lockTabs(false); });
-    connect(pressureController, &PressureControllerBase::successfullyStopped, this, [this] { lockTabs(false); });
+    connect(pressureController, &PressureControllerBase::resultReady, this, [this] { lockTabs(false); });
 }
 
 void ControlWidget::lockTabs(bool locked)

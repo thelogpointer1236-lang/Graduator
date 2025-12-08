@@ -232,12 +232,12 @@ void PressureControllerStand4::start() {
     QMetaObject::invokeMethod(g540Driver(), "start", Qt::QueuedConnection);
     forwardPressure(); // 2
     gs->graduator().switchToBackward();
-    gs->requestTableUpdate();
+    gs->requestUpdateResultAndTable();
     backwardPressure(); // 3
     g540Driver()->stop();
-    gs->requestTableUpdate();
+    gs->requestUpdateResultAndTable();
     m_dP_target = 0;
     m_isRunning = false;
-    emit successfullyStopped();
+    emit resultReady();
 }
 

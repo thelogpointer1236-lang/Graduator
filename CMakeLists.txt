@@ -69,7 +69,6 @@ set(SRC_FILES
         src/gui/models/StatusBarModel.cpp
         src/ApplicationBuilder.cpp
         src/core/services/stubs/PressureSensor.cpp
-        src/core/services/stubs/VideoCaptureProcessor.cpp
         src/core/services/graduationService/PressureAngleGraduator.cpp
         src/core/services/graduationService/BatchGraduator.cpp
         src/core/services/PartyManager.cpp

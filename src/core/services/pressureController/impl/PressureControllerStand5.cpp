@@ -93,7 +93,6 @@ void PressureControllerStand5::start() {
     backwardPressure(); // 3
     g540Driver()->stop();
     m_isRunning = false;
-    emit successfullyStopped();
 }
 bool PressureControllerStand5::isReadyToStart(QString &err) const {
     if (!PressureControllerBase::isReadyToStart(err)) return false;

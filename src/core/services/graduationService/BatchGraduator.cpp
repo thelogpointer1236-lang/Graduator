@@ -52,10 +52,10 @@ void BatchGraduator::setLoessFrac(double frac) {
 
 std::vector<std::vector<NodeResult>> BatchGraduator::graduate() const {
     std::vector<std::vector<NodeResult>> out;
-    out.reserve(m_calibrators.size());
+    out.resize(m_calibrators.size());
 
-    for (auto const& calib : m_calibrators) {
-        out.push_back(calib.graduate());
+    for (size_t i = 0; i < m_calibrators.size(); ++i) {
+        out[i] = m_calibrators[i].graduate();
     }
 
     return out;

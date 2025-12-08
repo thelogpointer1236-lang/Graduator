@@ -61,18 +61,21 @@ void PressureSensor::start()
         // Период 60 секунд
         const double period = 60.0;
         const double halfPeriod = period / 2.0; // 30 секунд
+        const double minPressure = -10.0;
         const double maxPressure = 260.0;
 
         double phase = std::fmod(timestampSec, period);
 
         double pressureKPa = 0.0;
+
         if (phase < halfPeriod) {
-            // рост 0 → 250 за 30 секунд
-            pressureKPa = (phase / halfPeriod) * maxPressure;
+            // рост: -10 → 260
+            pressureKPa = minPressure + (phase / halfPeriod) * (maxPressure - minPressure);
         } else {
-            // спад 250 → 0 за следующие 30 секунд
-            pressureKPa = ((period - phase) / halfPeriod) * maxPressure;
+            // спад: 260 → -10
+            pressureKPa = minPressure + ((period - phase) / halfPeriod) * (maxPressure - minPressure);
         }
+
 
         // (Опционально) добавить шум ±5
         // pressureKPa += QRandomGenerator::global()->bounded(-5.0, 5.0);

@@ -42,7 +42,7 @@ void ManualWidget::connectSignals()
     auto *pressureController = ServiceLocator::instance().pressureController();
     connect(pressureController, &PressureControllerBase::interrupted,
             this, &ManualWidget::updateUiState);
-    connect(pressureController, &PressureControllerBase::successfullyStopped,
+    connect(pressureController, &PressureControllerBase::resultReady,
             this, &ManualWidget::updateUiState);
 }
 

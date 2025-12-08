@@ -54,7 +54,7 @@ void AutomaticWidget::connectSignals()
                 m_startButton->setEnabled(true);
                 m_stopButton->setEnabled(false);
             });
-    connect(graduationService, &GraduationService::successfullyStopped,
+    connect(graduationService, &GraduationService::ended,
             this, [this]() {
                 m_startButton->setEnabled(true);
                 m_stopButton->setEnabled(false);
@@ -72,35 +72,25 @@ void AutomaticWidget::onCalibrationModeChanged(int index)
 void AutomaticWidget::onStartClicked()
 {
     auto *gs = ServiceLocator::instance().graduationService();
-    if (gs->isRunning()) return;
+    if (gs->state() == GraduationService::State::Running) return;
 
-    if (gs->isResultReady() && !gs->isResultSaved()) {
-        const auto reply = QMessageBox::warning(
+    QString err;
+    gs->prepare(err);
+    if (!err.isEmpty()) {
+        QMessageBox::critical(
             this,
-            tr("Graduation"),
-            tr("The previous graduation result was not saved. Continue and clear the table?"),
-            QMessageBox::Yes | QMessageBox::No,
-            QMessageBox::No
+            tr("Failed to start calibration"),
+            err,
+            tr("Ok")
         );
-        if (reply == QMessageBox::No) {
-            return;
-        }
-    }
-    if (QString err; !gs->isReadyToRun(err)) {
-        // QMessageBox::critical(
-        //     this,
-        //     tr("Failed to start calibration"),
-        //     err,
-        //     tr("Ok")
-        // );
-        ServiceLocator::instance().logger()->critical(err);
         return;
     }
+
     gs->start();
 }
 
 void AutomaticWidget::onStopClicked()
 {
     auto *gs = ServiceLocator::instance().graduationService();
-    if (gs->isRunning()) gs->interrupt();
+    if (gs->state() == GraduationService::State::Running) gs->interrupt();
 }

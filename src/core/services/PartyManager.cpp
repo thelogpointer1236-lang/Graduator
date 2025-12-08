@@ -64,7 +64,7 @@ bool PartyManager::savePartyResult(const PartyResult &result, QString &err) {
 
     auto *graduationService = ServiceLocator::instance().graduationService();
     auto *partyManager = ServiceLocator::instance().partyManager();
-    graduationService->markResultSaved();
+    // graduationService->markResultSaved();
     partyManager->incrementPartyNumber();
 
     return true;

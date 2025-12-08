@@ -1,6 +1,4 @@
-﻿#ifndef USE_STUB_IMPLEMENTATIONS
-
-#include "VideoCaptureProcessor.h"
+﻿#include "VideoCaptureProcessor.h"
 #include "FrameGrabberCB.h"
 #include "core/services/ServiceLocator.h"
 #include <QtDebug>
@@ -398,6 +396,3 @@ bool VideoCaptureProcessor::getVideoProcAmpRange(long prop, long& min, long& max
     HRESULT hr = m_pVideoProcAmp->GetRange(prop, &min, &max, &step, &defVal, &flags);
     return SUCCEEDED(hr);
 }
-
-
-#endif

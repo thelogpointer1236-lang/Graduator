@@ -73,28 +73,54 @@ QVariant StatusBarModel::data(const QModelIndex &idx, int role) const {
     const int col = idx.column();
 
     //
-    // COLUMN 0 — SYSTEM STATE
+    // COLUMN 0 — SYSTEM STATE (new FSM-based version)
     //
     if (col == 0) {
-        bool running = service.isRunning();
+
+        const auto st = service.state();   // Новый метод
         QString text;
         QColor back = COLOR_NEUTRAL;
         QColor front = COLOR_TEXT_INV;
 
-        if (running) {
-            text = tr("Calibration in progress");
-            back = COLOR_OK;
-        } else {
-            QString err;
-            bool ready = service.isReadyToRun(err);
-            text = ready ? tr("System ready to operate") : err;
-            back = ready ? COLOR_OK : COLOR_ERR;
+        switch (st) {
+
+            case GraduationService::State::Running:
+                text = tr("Calibration in progress");
+                back = COLOR_OK;
+                break;
+
+            case GraduationService::State::Prepared:
+                text = tr("System prepared to start");
+                back = COLOR_OK;
+                break;
+
+            case GraduationService::State::Finished:
+                if (service.isResultReady()) {
+                    text = tr("Calibration finished (unsaved result)");
+                    back = COLOR_WARN;
+                } else {
+                    text = tr("Calibration finished");
+                    back = COLOR_OK;
+                }
+                break;
+
+            case GraduationService::State::Interrupted:
+                text = tr("Calibration interrupted");
+                back = COLOR_ERR;
+                break;
+
+            case GraduationService::State::Idle:
+            default:
+                text = tr("Idle");
+                back = COLOR_NEUTRAL;
+                break;
         }
 
-        if (role == Qt::DisplayRole) return text;
+        // Apply Qt roles
+        if (role == Qt::DisplayRole)    return text;
         if (role == Qt::BackgroundRole) return bg(back);
         if (role == Qt::ForegroundRole) return fg(front);
-        if (role == Qt::FontRole) return boldFont();
+        if (role == Qt::FontRole)       return boldFont();
 
         return {};
     }

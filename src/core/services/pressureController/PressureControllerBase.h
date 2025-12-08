@@ -12,7 +12,7 @@ class PressureControllerBase : public QObject {
     Q_OBJECT
 signals:
     void interrupted();
-    void successfullyStopped();
+    void resultReady();
     void started();
 
 public:
