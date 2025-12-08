@@ -52,6 +52,9 @@ public:
 
     void requestUpdateResultAndTable();
 
+    // Обновление результата
+    void updateResult();
+
 signals:
     // События жизненного цикла
     void started();
@@ -81,8 +84,7 @@ private:
     void clearForNewRun();
     void clearResultOnly();
 
-    // Обновление результата после успешного завершения
-    void updateResult();
+
 
 private:
     // Текущее состояние

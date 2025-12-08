@@ -57,6 +57,7 @@ bool GraduationService::prepare(QString &err)
 
     pc->setGaugePressurePoints(m_gaugeModel.pressureValues());
     pc->setPressureUnit(m_pressureUnit);
+    pc->updatePressure(0, ps->getLastPressure().getValue(m_pressureUnit));
 
     if (!pc->isReadyToStart(err))
         return false;
@@ -127,6 +128,8 @@ void GraduationService::onPressureControllerResultReady()
 
     disconnectObjects();
 
+    m_elapsedTimer.invalidate();
+
     updateResult();
     m_state = State::Finished;
 
@@ -167,6 +170,8 @@ void GraduationService::updateResult()
 
     m_currentResult.durationSeconds = getElapsedTimeSeconds();
     m_resultReady = true;
+
+    requestUpdateResultAndTable();
 }
 
 // ======================================================
@@ -231,6 +236,7 @@ void GraduationService::clearForNewRun()
     m_currentResult = PartyResult{};
     m_graduator.clear();
     m_elapsedTimer.invalidate();
+    emit tableUpdateRequired();
     emit resultAvailabilityChanged(false);
 }
 
