@@ -1,7 +1,10 @@
 ﻿#include "GraduationService.h"
 #include "core/services/ServiceLocator.h"
+#include "core/services/pressureController/impl/utils.h"
 #include <QThread>
 #include <QDebug>
+
+#include <algorithm>
 
 namespace {
     constexpr qreal kSensorTimeoutSec = 2.0;
@@ -59,6 +62,15 @@ bool GraduationService::prepare(QString &err)
         return false;
     }
 
+    const auto &pressureValues = m_gaugeModel.pressureValues();
+    const auto maxPressureIt = std::max_element(pressureValues.begin(), pressureValues.end());
+    const double gaugeUpperLimit = maxPressureIt != pressureValues.end() ? *maxPressureIt : 0.0;
+
+    double preloadFactor = 0.0;
+    if (!tryGetPreloadFactor(m_pressureUnit, gaugeUpperLimit, preloadFactor, &err)) {
+        return false;
+    }
+
     if (!ps->isRunning()) {
         err = QString::fromWCharArray(L"Датчик давления не запущен.");
         return false;
@@ -66,6 +78,7 @@ bool GraduationService::prepare(QString &err)
 
     pc->setGaugePressurePoints(m_gaugeModel.pressureValues());
     pc->setPressureUnit(m_pressureUnit);
+    pc->setPreloadFactor(preloadFactor);
     pc->updatePressure(0, ps->getLastPressure().getValue(m_pressureUnit));
 
     if (!pc->isReadyToStart(err))
