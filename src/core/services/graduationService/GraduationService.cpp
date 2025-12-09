@@ -3,10 +3,19 @@
 #include <QThread>
 #include <QDebug>
 
+namespace {
+    constexpr qreal kSensorTimeoutSec = 2.0;
+    constexpr int   kWatchdogIntervalMs = 500;
+}
+
 GraduationService::GraduationService(QObject *parent)
     : QObject(parent),
-      m_graduator(8)
+      m_graduator(8),
+      m_watchdogTimer(this)
 {
+    m_watchdogTimer.setInterval(kWatchdogIntervalMs);
+    connect(&m_watchdogTimer, &QTimer::timeout,
+            this, &GraduationService::checkSensorsActivity);
 }
 
 GraduationService::~GraduationService() {
@@ -92,6 +101,9 @@ bool GraduationService::start()
 
     m_state = State::Running;
     m_elapsedTimer.start();
+    m_lastPressureTimestamp = getElapsedTimeSeconds();
+    m_lastAngleTimestamp = m_lastPressureTimestamp;
+    m_watchdogTimer.start();
     emit started();
     return true;
 }
@@ -106,6 +118,7 @@ void GraduationService::interrupt()
         return;
 
     auto* pc = ServiceLocator::instance().pressureController();
+    stopWatchdog();
     disconnectObjects();
     pc->interrupt();
 
@@ -126,6 +139,7 @@ void GraduationService::onPressureControllerResultReady()
     if (m_state != State::Running)
         return;
 
+    stopWatchdog();
     disconnectObjects();
 
     m_elapsedTimer.invalidate();
@@ -158,6 +172,7 @@ void GraduationService::onPressureMeasured(qreal t, Pressure p)
     qreal val = p.getValue(m_pressureUnit);
     ServiceLocator::instance().pressureController()->updatePressure(t, val);
     m_graduator.addPressureSample(t, val);
+    m_lastPressureTimestamp = t;
 }
 
 void GraduationService::onAngleMeasured(qint32 idx, qreal t, qreal a)
@@ -166,6 +181,33 @@ void GraduationService::onAngleMeasured(qint32 idx, qreal t, qreal a)
         return;
 
     m_graduator.addAngleSample(idx, t, a);
+    m_lastAngleTimestamp = t;
+}
+
+void GraduationService::checkSensorsActivity()
+{
+    if (m_state != State::Running)
+        return;
+
+    const qreal now = getElapsedTimeSeconds();
+    const bool pressureStalled = (now - m_lastPressureTimestamp) > kSensorTimeoutSec;
+    const bool angleStalled = (now - m_lastAngleTimestamp) > kSensorTimeoutSec;
+
+    if (!pressureStalled && !angleStalled)
+        return;
+
+    QString reason;
+    if (pressureStalled && angleStalled) {
+        reason = QString::fromWCharArray(L"Угол и давление перестали измеряться.");
+    } else if (pressureStalled) {
+        reason = QString::fromWCharArray(L"Давление перестало измеряться.");
+    } else {
+        reason = QString::fromWCharArray(L"Угол перестал измеряться.");
+    }
+
+    if (auto *logger = ServiceLocator::instance().logger())
+        logger->error(reason);
+    interrupt();
 }
 
 void GraduationService::onPressureControllerInterrupted()
@@ -204,20 +246,30 @@ void GraduationService::disconnectObjects()
 
 void GraduationService::clearForNewRun()
 {
+    stopWatchdog();
     m_resultReady = false;
     m_currentResult = PartyResult{};
     m_graduator.clear();
     m_elapsedTimer.invalidate();
+    m_lastPressureTimestamp = 0.0;
+    m_lastAngleTimestamp = 0.0;
     emit tableUpdateRequired();
     emit resultAvailabilityChanged(false);
 }
 
 void GraduationService::clearResultOnly()
 {
+    stopWatchdog();
     m_resultReady = false;
     m_currentResult = PartyResult{};
     m_graduator.clear();
     emit resultAvailabilityChanged(false);
+}
+
+void GraduationService::stopWatchdog()
+{
+    if (m_watchdogTimer.isActive())
+        m_watchdogTimer.stop();
 }
 
 // ======================================================
