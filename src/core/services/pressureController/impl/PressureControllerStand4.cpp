@@ -6,10 +6,10 @@
 #include "utils.h"
 
 #define interrupt \
-    m_isRunning = false; \
+    {m_isRunning = false; \
     CameraProcessor::restoreDefaultCapRate(); \
     emit interrupted(); \
-    return;
+    return;}
 
 #define MODE_INFERENCE               0
 #define MODE_FORWARD                 1
@@ -295,9 +295,12 @@ void PressureControllerStand4::preloadPressure()
 {
     const qreal p_preload = getPreloadPressure();
 
-    if (currentPressure() < p_preload)
+    if (currentPressure() < p_preload) {
         g540Driver()->setFlapsState(G540FlapsState::OpenInput);
-    else
+    }
+    else {
+        interrupt;
+    }
 
 
     while (currentPressure() < p_preload) {
