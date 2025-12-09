@@ -3,6 +3,7 @@
 
 #include <QObject>
 #include <QElapsedTimer>
+#include <QTimer>
 
 #include "Graduator.h"
 #include "core/types/GaugeModel.h"
@@ -72,6 +73,8 @@ private slots:
     void onPressureMeasured(qreal t, Pressure p);
     void onAngleMeasured(qint32 idx, qreal t, qreal angle);
 
+    void checkSensorsActivity();
+
     // События контроллера давления
     void onPressureControllerResultReady();
     void onPressureControllerInterrupted();
@@ -86,6 +89,8 @@ private:
     void clearForNewRun();
     void clearResultOnly();
 
+    void stopWatchdog();
+
 
 
 private:
@@ -94,6 +99,11 @@ private:
 
     // Таймер длительности градуировки
     QElapsedTimer m_elapsedTimer;
+
+    // Контроль активности датчиков
+    QTimer m_watchdogTimer;
+    qreal m_lastPressureTimestamp = 0.0;
+    qreal m_lastAngleTimestamp = 0.0;
 
     // Основной вычислитель
     grad::Graduator m_graduator;
