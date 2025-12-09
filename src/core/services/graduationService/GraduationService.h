@@ -1,8 +1,9 @@
-﻿#ifndef GRADUATOR_GRADUATIONSERVICE_H
+#ifndef GRADUATOR_GRADUATIONSERVICE_H
 #define GRADUATOR_GRADUATIONSERVICE_H
 
 #include <QObject>
 #include <QElapsedTimer>
+#include <QTimer>
 
 #include "Graduator.h"
 #include "core/types/GaugeModel.h"
@@ -81,6 +82,11 @@ private:
     // Управление состояниями
     void connectObjects();
     void disconnectObjects();
+    void startWatchdog();
+    void stopWatchdog();
+    void resetWatchdogTimestamps();
+    void onWatchdogTimeout();
+    void handleMeasurementLoss(const QString &message);
 
     // Очистка при новом запуске
     void clearForNewRun();
@@ -105,6 +111,11 @@ private:
     // Готовый результат
     PartyResult m_currentResult;
     bool m_resultReady = false;
+
+    // Контроль получения измерений
+    QTimer m_watchdogTimer;
+    qreal m_lastPressureTimestamp = 0.0;
+    qreal m_lastAngleTimestamp = 0.0;
 };
 
 #endif // GRADUATOR_GRADUATIONSERVICE_H

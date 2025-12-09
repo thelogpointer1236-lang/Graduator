@@ -1,12 +1,20 @@
-﻿#include "GraduationService.h"
+#include "GraduationService.h"
 #include "core/services/ServiceLocator.h"
 #include <QThread>
 #include <QDebug>
+
+namespace {
+    constexpr int kWatchdogIntervalMs = 250;
+    constexpr qreal kPressureTimeoutSec = 2.0;
+    constexpr qreal kAngleTimeoutSec = 2.0;
+}
 
 GraduationService::GraduationService(QObject *parent)
     : QObject(parent),
       m_graduator(8)
 {
+    m_watchdogTimer.setInterval(kWatchdogIntervalMs);
+    connect(&m_watchdogTimer, &QTimer::timeout, this, &GraduationService::onWatchdogTimeout);
 }
 
 GraduationService::~GraduationService() {
@@ -92,6 +100,8 @@ bool GraduationService::start()
 
     m_state = State::Running;
     m_elapsedTimer.start();
+    resetWatchdogTimestamps();
+    startWatchdog();
     emit started();
     return true;
 }
@@ -106,6 +116,7 @@ void GraduationService::interrupt()
         return;
 
     auto* pc = ServiceLocator::instance().pressureController();
+    stopWatchdog();
     disconnectObjects();
     pc->interrupt();
 
@@ -127,6 +138,7 @@ void GraduationService::onPressureControllerResultReady()
         return;
 
     disconnectObjects();
+    stopWatchdog();
 
     m_elapsedTimer.invalidate();
 
@@ -156,6 +168,7 @@ void GraduationService::onPressureMeasured(qreal t, Pressure p)
         return;
 
     qreal val = p.getValue(m_pressureUnit);
+    m_lastPressureTimestamp = t;
     ServiceLocator::instance().pressureController()->updatePressure(t, val);
     m_graduator.addPressureSample(t, val);
 }
@@ -165,6 +178,7 @@ void GraduationService::onAngleMeasured(qint32 idx, qreal t, qreal a)
     if (m_state != State::Running)
         return;
 
+    m_lastAngleTimestamp = t;
     m_graduator.addAngleSample(idx, t, a);
 }
 
@@ -202,12 +216,60 @@ void GraduationService::disconnectObjects()
     disconnect(loc.pressureController(), nullptr, this, nullptr);
 }
 
+void GraduationService::startWatchdog()
+{
+    m_watchdogTimer.start();
+}
+
+void GraduationService::stopWatchdog()
+{
+    if (m_watchdogTimer.isActive()) {
+        m_watchdogTimer.stop();
+    }
+}
+
+void GraduationService::resetWatchdogTimestamps()
+{
+    const qreal now = getElapsedTimeSeconds();
+    m_lastPressureTimestamp = now;
+    m_lastAngleTimestamp = now;
+}
+
+void GraduationService::onWatchdogTimeout()
+{
+    if (m_state != State::Running)
+        return;
+
+    const qreal now = getElapsedTimeSeconds();
+
+    if (now - m_lastPressureTimestamp > kPressureTimeoutSec) {
+        handleMeasurementLoss(QString::fromWCharArray(L"Давление перестало измеряться. Градуировка остановлена."));
+        return;
+    }
+
+    if (now - m_lastAngleTimestamp > kAngleTimeoutSec) {
+        handleMeasurementLoss(QString::fromWCharArray(L"Угол перестал измеряться. Градуировка остановлена."));
+        return;
+    }
+}
+
+void GraduationService::handleMeasurementLoss(const QString &message)
+{
+    stopWatchdog();
+    if (auto *logger = ServiceLocator::instance().logger()) {
+        logger->error(message);
+    }
+    interrupt();
+}
+
 void GraduationService::clearForNewRun()
 {
     m_resultReady = false;
     m_currentResult = PartyResult{};
     m_graduator.clear();
     m_elapsedTimer.invalidate();
+    stopWatchdog();
+    resetWatchdogTimestamps();
     emit tableUpdateRequired();
     emit resultAvailabilityChanged(false);
 }
@@ -217,6 +279,7 @@ void GraduationService::clearResultOnly()
     m_resultReady = false;
     m_currentResult = PartyResult{};
     m_graduator.clear();
+    stopWatchdog();
     emit resultAvailabilityChanged(false);
 }
 
