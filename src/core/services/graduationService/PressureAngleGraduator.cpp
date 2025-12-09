@@ -209,6 +209,8 @@ double PressureAngleGraduator::currentAngle() const {
 
 void PressureAngleGraduator::clear() {
     m_angleSeries_.clear();
+    m_results_.clear();
+    m_lastAnglesCount_ = 0;
     m_debugData_ = DebugData{};
 }
 

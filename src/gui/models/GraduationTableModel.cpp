@@ -4,12 +4,14 @@
 #include "core/types/GaugeModel.h"
 #include "core/services/ServiceLocator.h"
 #include "defines.h"
+
 namespace {
     const GaugeModel *gaugeModel() {
         const int idx = ServiceLocator::instance().configManager()->get<int>(CFG_KEY_CURRENT_GAUGE_MODEL, -1);
         return ServiceLocator::instance().gaugeCatalog()->findByIdx(idx);
     }
 }
+
 GraduationTableModel::GraduationTableModel(QObject *parent) : QAbstractTableModel(parent) {
     m_gaugeModel = gaugeModel();
     connect(ServiceLocator::instance().configManager(), &ConfigManager::valueChanged,
@@ -45,9 +47,11 @@ int GraduationTableModel::rowCount(const QModelIndex &parent) const {
     const int cnt = m_gaugeModel->pressureValues().size();
     return cnt + 4;
 }
+
 int GraduationTableModel::columnCount(const QModelIndex &parent) const {
     return m_cameraStr.size() * 2;
 }
+
 QVariant GraduationTableModel::data(const QModelIndex &index, int role) const {
     if (role != Qt::DisplayRole || !m_gaugeModel)
         return {};
@@ -56,10 +60,10 @@ QVariant GraduationTableModel::data(const QModelIndex &index, int role) const {
     const int col = index.column();
     const int camIdx = m_cameraStr[(col) / 2].digitValue() - 1;
     if (camIdx >= 8) return QVariant();
+    const bool isForward = (col) % 2 == 0;
 
     // Graduation data
     if (row < pp_size) {
-        const bool isForward = (col) % 2 == 0;
         const auto &data = isForward ? m_partyResult.forward : m_partyResult.backward;
         if (camIdx >= data.size() || row >= data[camIdx].size())
             return {};
@@ -70,12 +74,31 @@ QVariant GraduationTableModel::data(const QModelIndex &index, int role) const {
     // Additional data
     if (row < rowCount()) {
         const int infoRow = row - pp_size;
-        if (infoRow == 0) {
-            return QVariant(ServiceLocator::instance().cameraProcessor()->lastAngleForCamera(camIdx));
+        switch (infoRow) {
+            case 0: {
+                const auto &data = isForward ? m_partyResult.forward : m_partyResult.backward;
+                if (camIdx < data.size() && data[camIdx].size() == m_gaugeModel->pressureValues().size())
+                return QVariant::fromValue(data[camIdx].back().angle - data[camIdx].front().angle);
+                break;
+            }
+            case 1: {
+                const auto &data = isForward ? m_partyResult.nolinForward : m_partyResult.nolinBackward;
+                if (camIdx < data.size())
+                return QVariant::fromValue(data[camIdx]);
+                break;
+            }
+            case 2:
+                return QVariant::fromValue(ServiceLocator::instance().graduationService()->angleMeasCountForCamera(camIdx, isForward));
+            case 3:
+                return QVariant::fromValue(ServiceLocator::instance().cameraProcessor()->lastAngleForCamera(camIdx));
+            default:
+                return QVariant();
+
         }
     }
     return QVariant();
 }
+
 QVariant GraduationTableModel::headerData(int section, Qt::Orientation orientation, int role) const {
     if (role != Qt::DisplayRole) return {};
     static const QString infoRows[] = {
@@ -100,16 +123,20 @@ QVariant GraduationTableModel::headerData(int section, Qt::Orientation orientati
 bool GraduationTableModel::setData(const QModelIndex &index, const QVariant &value, int role) {
     return QAbstractTableModel::setData(index, value, role);
 }
+
 Qt::ItemFlags GraduationTableModel::flags(const QModelIndex &index) const {
     return QAbstractTableModel::flags(index);
 }
 
 void GraduationTableModel::updateIndicators() {
-    beginResetModel(); endResetModel();
+    QModelIndex topLeft = index(m_gaugeModel->pressureValues().size(), 0);
+    QModelIndex bottomRight = index(m_gaugeModel->pressureValues().size() + 4 - 1, columnCount() - 1);
+    emit dataChanged(topLeft, bottomRight, {Qt::DisplayRole});
 }
 
 void GraduationTableModel::updateScale() {
-    beginResetModel();
     m_partyResult = ServiceLocator::instance().graduationService()->getPartyResult();
-    endResetModel();
+    QModelIndex topLeft = index(0, 0);
+    QModelIndex bottomRight = index(m_gaugeModel->pressureValues().size() - 1, columnCount() - 1);
+    emit dataChanged(topLeft, bottomRight, {Qt::DisplayRole});
 }

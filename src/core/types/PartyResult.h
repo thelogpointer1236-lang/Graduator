@@ -7,8 +7,13 @@
 
 struct PartyResult {
     GaugeModel gaugeModel;
+
     std::vector<std::vector<NodeResult>> forward;
     std::vector<std::vector<NodeResult>> backward;
+
+    std::vector<double> nolinForward;
+    std::vector<double> nolinBackward;
+
     std::vector<const DebugData*> debugDataForward;
     std::vector<const DebugData*> debugDataBackward;
     double durationSeconds;

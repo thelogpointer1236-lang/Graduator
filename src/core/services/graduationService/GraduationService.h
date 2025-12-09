@@ -55,6 +55,8 @@ public:
     // Обновление результата
     void updateResult();
 
+    int angleMeasCountForCamera(qint32 idx, bool isForward) const;
+
 signals:
     // События жизненного цикла
     void started();

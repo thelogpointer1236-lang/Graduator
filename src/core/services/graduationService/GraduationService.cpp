@@ -139,39 +139,11 @@ void GraduationService::onPressureControllerResultReady()
     m_state = State::Idle;
 }
 
-void GraduationService::updateResult()
-{
-    m_currentResult = PartyResult{};
-    m_currentResult.gaugeModel = m_gaugeModel;
-
-    m_currentResult.forward          = m_graduator.graduateForward();
-    m_currentResult.debugDataForward = m_graduator.allDebugDataForward();
-
-    if (!m_graduator.isForward()) {
-        m_currentResult.backward          = m_graduator.graduateBackward();
-        m_currentResult.debugDataBackward = m_graduator.allDebugDataBackward();
-    } else {
-        m_currentResult.backward          = m_currentResult.forward;
-        m_currentResult.debugDataBackward = m_currentResult.debugDataForward;
-    }
-
-    // Коррекция forward/backward
-    size_t cams = std::min(m_currentResult.forward.size(),
-                           m_currentResult.backward.size());
-    for (size_t cam = 0; cam < cams; ++cam) {
-        auto &back = m_currentResult.backward[cam];
-        auto &fwd  = m_currentResult.forward[cam];
-        if (!back.empty() && !fwd.empty()) {
-            back[0] = fwd[0];
-            if (!qIsFinite(back.back().angle))
-                back.back() = fwd.back();
-        }
-    }
-
-    m_currentResult.durationSeconds = getElapsedTimeSeconds();
-    m_resultReady = true;
-
-    requestUpdateResultAndTable();
+int GraduationService::angleMeasCountForCamera(qint32 idx, bool isForward) const {
+    if (m_state != State::Running) return 0;
+    decltype(auto) ac = isForward ? m_graduator.anglesCountForward() : m_graduator.anglesCountBackward();
+    if (idx >= ac.size()) return 0;
+    return ac[idx];
 }
 
 // ======================================================
@@ -244,6 +216,7 @@ void GraduationService::clearResultOnly()
 {
     m_resultReady = false;
     m_currentResult = PartyResult{};
+    m_graduator.clear();
     emit resultAvailabilityChanged(false);
 }
 
@@ -274,3 +247,94 @@ void GraduationService::requestUpdateResultAndTable()
 
     emit tableUpdateRequired();
 }
+
+
+
+
+
+
+namespace {
+    static std::vector<double> computeNonlinearity(
+        const std::vector<std::vector<NodeResult>> &allCams)
+    {
+        std::vector<double> result;
+        result.reserve(allCams.size());
+
+        for (auto &cam : allCams) {
+            const size_t n = cam.size();
+            if (n < 2) {
+                result.push_back(std::numeric_limits<double>::quiet_NaN());
+                continue;
+            }
+
+            // avrDelta = (α_n − α_1) / (n − 1)
+            double a1 = cam.front().angle;
+            double an = cam.back().angle;
+            double avrDelta = (an - a1) / double(n - 1);
+
+            // maxD = max | (α_{i+1} − α_i) − avrDelta |
+            double maxD = 0.0;
+            for (size_t i = 0; i + 1 < n; ++i) {
+                double delta = cam[i + 1].angle - cam[i].angle;
+                double d = std::abs(delta - avrDelta);
+                if (d > maxD) maxD = d;
+            }
+
+            double NL = (avrDelta != 0.0)
+                            ? (maxD / std::abs(avrDelta)) * 100.0
+                            : std::numeric_limits<double>::quiet_NaN();
+
+            result.push_back(NL);
+        }
+
+        return result;
+    }
+
+}
+
+
+void GraduationService::updateResult()
+{
+    m_currentResult = PartyResult{};
+    m_currentResult.gaugeModel = m_gaugeModel;
+
+    auto fwd = m_graduator.graduateForward();
+    auto dbgFwd = m_graduator.allDebugDataForward();
+
+    auto back = m_graduator.isForward()
+              ? fwd
+              : m_graduator.graduateBackward();
+
+    auto dbgBack = m_graduator.isForward()
+                 ? dbgFwd
+                 : m_graduator.allDebugDataBackward();
+
+    m_currentResult.forward          = std::move(fwd);
+    m_currentResult.backward         = std::move(back);
+    m_currentResult.debugDataForward = std::move(dbgFwd);
+    m_currentResult.debugDataBackward= std::move(dbgBack);
+
+    // Коррекция forward/backward
+    size_t cams = std::min(m_currentResult.forward.size(),
+                           m_currentResult.backward.size());
+    for (size_t cam = 0; cam < cams; ++cam) {
+        auto &fw  = m_currentResult.forward[cam];
+        auto &bk  = m_currentResult.backward[cam];
+        if (!fw.empty() && !bk.empty()) {
+            bk[0] = fw[0];
+            if (!qIsFinite(bk.back().angle))
+                bk.back() = fw.back();
+        }
+    }
+
+    // Нелинейность
+    m_currentResult.nolinForward  = computeNonlinearity(m_currentResult.forward);
+    if (m_currentResult.backward[0].size() == m_gaugeModel.pressureValues().size())
+        m_currentResult.nolinBackward = computeNonlinearity(m_currentResult.backward);
+
+    m_currentResult.durationSeconds = getElapsedTimeSeconds();
+    m_resultReady = true;
+
+    requestUpdateResultAndTable();
+}
+

@@ -46,9 +46,11 @@ PressureControllerBase::~PressureControllerBase()
 void PressureControllerBase::setGaugePressurePoints(const std::vector<qreal> &pressureValues) {
     m_gaugePressureValues = pressureValues;
 }
+
 void PressureControllerBase::setPressureUnit(PressureUnit unit) {
     m_pressureUnit = unit;
 }
+
 void PressureControllerBase::updatePressure(qreal time, qreal pressure) {
     m_pressure_history.emplace_back(pressure);
     m_time_history.emplace_back(time);
@@ -58,12 +60,15 @@ void PressureControllerBase::updatePressure(qreal time, qreal pressure) {
     }
     g540Driver()->updatePressure(pressure);
 }
+
 quint32 PressureControllerBase::getImpulsesCount() const {
     return m_G540Driver->impulsesCount();
 }
+
 quint32 PressureControllerBase::getImpulsesFreq() const {
     return m_G540Driver->frequency();
 }
+
 qreal PressureControllerBase::getCurrentPressureVelocity() const {
     if (m_pressure_history.size() < 2) {
         return 0.0;
@@ -75,33 +80,42 @@ qreal PressureControllerBase::getCurrentPressureVelocity() const {
     }
     return dp / dt;
 }
+
 qreal PressureControllerBase::getCurrentPressure() const {
     if (m_pressure_history.empty()) {
         return 0.0;
     }
     return m_pressure_history.back();
 }
+
 qreal PressureControllerBase::getTimeSinceStartSec() const {
     return m_G540Driver->timeSinceStartSec();
 }
+
 bool PressureControllerBase::isStartLimitTriggered() const {
     return m_G540Driver->isStartLimitTriggered();
 }
+
 bool PressureControllerBase::isEndLimitTriggered() const {
     return m_G540Driver->isEndLimitTriggered();
 }
+
 bool PressureControllerBase::isAnyLimitTriggered() const {
     return m_G540Driver->isAnyLimitTriggered();
 }
+
 void PressureControllerBase::openInletFlap() {
     m_G540Driver->setFlapsState(G540FlapsState::OpenInput);
 }
+
 void PressureControllerBase::openOutletFlap() {
     m_G540Driver->setFlapsState(G540FlapsState::OpenOutput);
 }
+
 void PressureControllerBase::closeBothFlaps() {
     m_G540Driver->setFlapsState(G540FlapsState::CloseBoth);
 }
+
 bool PressureControllerBase::isReadyToStart(QString &err) const {
     if (QString e; !g540Driver()->isReadyToStart(e)) {
         err = QString::fromWCharArray(L"Контроллер G540 не готов к работе.\n") + e;
@@ -110,9 +124,11 @@ bool PressureControllerBase::isReadyToStart(QString &err) const {
     }
     return true;
 }
+
 bool PressureControllerBase::isRunning() const {
     return m_isRunning;
 }
+
 void PressureControllerBase::interrupt() {
     if (!m_isRunning && !m_aboutToStop) {
         return;
@@ -124,22 +140,27 @@ void PressureControllerBase::interrupt() {
     m_aboutToStop = false;
     emit interrupted();
 }
+
 const std::vector<qreal> &PressureControllerBase::gaugePressureValues() const {
     return m_gaugePressureValues;
 }
+
 PressureUnit PressureControllerBase::pressureUnit() const {
     return m_pressureUnit;
 }
+
 qreal PressureControllerBase::currentPressure() const {
     if (m_pressure_history.empty()) {
         return 0.0;
     }
     return m_pressure_history.back();
 }
+
 G540Driver *PressureControllerBase::g540Driver() const { return m_G540Driver.get(); }
 bool PressureControllerBase::shouldStop() const noexcept {
     return QThread::currentThread()->isInterruptionRequested() || m_aboutToStop;
 }
+
 void PressureControllerBase::startGoToEnd() {
     m_isRunning = true;
     emit started();
@@ -154,6 +175,7 @@ void PressureControllerBase::startGoToEnd() {
     m_isRunning = false;
     emit interrupted();
 }
+
 void PressureControllerBase::startGoToStart() {
     m_isRunning = true;
     emit started();
