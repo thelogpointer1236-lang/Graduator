@@ -123,7 +123,7 @@ qreal PressureControllerStand4::getPreloadPressure() const
     if (gaugePressureValues().size() < 2)
         return 0.0;
 
-    return gaugePressureValues()[1] * getPreloadFactor();
+    return gaugePressureValues()[1] * preloadFactor();
 }
 
 qreal PressureControllerStand4::getNominalPressureVelocity() const

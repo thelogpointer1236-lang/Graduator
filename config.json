@@ -28,7 +28,11 @@
         "maxVelocityFactor": 4,
         "minVelocityFactor": 0.4,
         "nominalDurationSec": 100,
-        "preloadFactor": 0.9
+        "preloadFactor": {
+            "400": {"kgf/cm": 0.27},
+            "250": {"kgf/cm": 0.35},
+            "160": {"kgf/cm": 0.4}
+        }
     },
     "pressureSensor": {
         "comPort": "COM1",

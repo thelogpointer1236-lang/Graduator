@@ -7,12 +7,6 @@
                     emit interrupted(); \
                     return;
 
-namespace {
-    double preloadFactor() {
-        return ServiceLocator::instance().configManager()->get<double>(CFG_KEY_PRESSURE_PRELOAD_FACTOR);
-    }
-}
-
 PressureControllerStand5::PressureControllerStand5(QObject *parent) : PressureControllerBase(parent) {
 }
 
