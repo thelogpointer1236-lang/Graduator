@@ -297,6 +297,11 @@ const PartyResult& GraduationService::getPartyResult() const {
     return m_currentResult;
 }
 
+void GraduationService::setStrongNode(bool strong) {
+    m_strongNode = strong;
+    m_currentResult.strongNode = strong;
+}
+
 qreal GraduationService::getElapsedTimeSeconds() const {
     return m_elapsedTimer.isValid()
             ? m_elapsedTimer.elapsed() / 1000.0
@@ -362,6 +367,10 @@ void GraduationService::updateResult()
 {
     m_currentResult = PartyResult{};
     m_currentResult.gaugeModel = m_gaugeModel;
+    m_currentResult.strongNode = m_strongNode;
+    if (auto *partyManager = ServiceLocator::instance().partyManager()) {
+        m_currentResult.precisionClass = partyManager->currentPrecisionValue();
+    }
 
     auto fwd = m_graduator.graduateForward();
     auto dbgFwd = m_graduator.allDebugDataForward();

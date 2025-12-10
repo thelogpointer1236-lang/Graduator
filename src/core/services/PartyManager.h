@@ -40,6 +40,7 @@ public:
     int currentPressureUnitIndex() const;
 
     int currentPrecisionIndex() const;
+    double currentPrecisionValue() const;
 
     int currentDisplacementIndex() const;
 

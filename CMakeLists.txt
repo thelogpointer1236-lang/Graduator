@@ -81,6 +81,7 @@ set(SRC_FILES
         src/core/utils/Derivator.cpp
         src/core/utils/Mediator.cpp
         src/core/services/TelemetryLogger.cpp
+        src/core/types/PartyResult.cpp
 )
 
 set(HEADER_FILES

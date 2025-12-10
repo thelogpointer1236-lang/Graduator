@@ -1,6 +1,7 @@
-﻿#include "GraduationTableModel.h"
+#include "GraduationTableModel.h"
 #include <iostream>
 #include <QtMath>
+#include <QColor>
 #include "core/types/GaugeModel.h"
 #include "core/services/ServiceLocator.h"
 #include "defines.h"
@@ -53,7 +54,7 @@ int GraduationTableModel::columnCount(const QModelIndex &parent) const {
 }
 
 QVariant GraduationTableModel::data(const QModelIndex &index, int role) const {
-    if (role != Qt::DisplayRole || !m_gaugeModel)
+    if (!m_gaugeModel)
         return {};
     const int pp_size = m_gaugeModel->pressureValues().size();
     const int row = index.row();
@@ -62,6 +63,20 @@ QVariant GraduationTableModel::data(const QModelIndex &index, int role) const {
     if (camIdx >= 8) return QVariant();
     const bool isForward = (col) % 2 == 0;
 
+    if (role == Qt::BackgroundRole) {
+        if (const auto *issue = m_validationResult.issueFor(camIdx, isForward, row)) {
+            if (issue->severity == PartyValidationIssue::Severity::Error) {
+                return QColor(Qt::red);
+            }
+            if (issue->severity == PartyValidationIssue::Severity::Warning) {
+                return QColor(Qt::blue);
+            }
+        }
+        return {};
+    }
+
+    if (role != Qt::DisplayRole)
+        return {};
     // Graduation data
     if (row < pp_size) {
         const auto &data = isForward ? m_partyResult.forward : m_partyResult.backward;
@@ -131,12 +146,13 @@ Qt::ItemFlags GraduationTableModel::flags(const QModelIndex &index) const {
 void GraduationTableModel::updateIndicators() {
     QModelIndex topLeft = index(m_gaugeModel->pressureValues().size(), 0);
     QModelIndex bottomRight = index(m_gaugeModel->pressureValues().size() + 4 - 1, columnCount() - 1);
-    emit dataChanged(topLeft, bottomRight, {Qt::DisplayRole});
+    emit dataChanged(topLeft, bottomRight, {Qt::DisplayRole, Qt::BackgroundRole});
 }
 
 void GraduationTableModel::updateScale() {
     m_partyResult = ServiceLocator::instance().graduationService()->getPartyResult();
+    m_validationResult = m_partyResult.validate();
     QModelIndex topLeft = index(0, 0);
-    QModelIndex bottomRight = index(m_gaugeModel->pressureValues().size() - 1, columnCount() - 1);
-    emit dataChanged(topLeft, bottomRight, {Qt::DisplayRole});
+    QModelIndex bottomRight = index(rowCount() - 1, columnCount() - 1);
+    emit dataChanged(topLeft, bottomRight, {Qt::DisplayRole, Qt::BackgroundRole});
 }
