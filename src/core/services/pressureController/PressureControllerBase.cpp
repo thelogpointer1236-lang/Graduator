@@ -122,7 +122,7 @@ void PressureControllerBase::closeBothFlaps() {
 
 bool PressureControllerBase::isReadyToStart(QString &err) const {
     if (QString e; !g540Driver()->isReadyToStart(e)) {
-        err = QString::fromWCharArray(L"Контроллер G540 не готов к работе.\n") + e;
+        err = tr("Контроллер G540 не готов к работе.\n") + e;
         ServiceLocator::instance().logger()->error(err);
         return false;
     }

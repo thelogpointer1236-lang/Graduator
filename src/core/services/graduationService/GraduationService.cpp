@@ -32,7 +32,7 @@ GraduationService::~GraduationService() {
 bool GraduationService::prepare(QString &err)
 {
     if (m_state != State::Idle) {
-        err = QString::fromWCharArray(L"Сервис уже инициализирован.");
+        err = tr("Сервис уже инициализирован.");
         return false;
     }
 
@@ -44,13 +44,13 @@ bool GraduationService::prepare(QString &err)
     auto& catalog = *ServiceLocator::instance().gaugeCatalog();
 
     if (gaugeIdx < 0 || gaugeIdx >= catalog.all().size()) {
-        err = QString::fromWCharArray(L"Не задана модель манометра.");
+        err = tr("Не задана модель манометра.");
         return false;
     }
 
     m_gaugeModel = catalog.all()[gaugeIdx];
     if (m_gaugeModel.pressureValues().size() < 2) {
-        err = QString::fromWCharArray(L"Модель манометра некорректна.");
+        err = tr("Модель манометра некорректна.");
         return false;
     }
 
@@ -58,7 +58,7 @@ bool GraduationService::prepare(QString &err)
         cfg.get<int>("current.pressureUnit", static_cast<int>(PressureUnit::Unknown))
     );
     if (m_pressureUnit == PressureUnit::Unknown) {
-        err = QString::fromWCharArray(L"Не задана единица давления.");
+        err = tr("Не задана единица давления.");
         return false;
     }
 
@@ -72,7 +72,7 @@ bool GraduationService::prepare(QString &err)
     }
 
     if (!ps->isRunning()) {
-        err = QString::fromWCharArray(L"Датчик давления не запущен.");
+        err = tr("Датчик давления не запущен.");
         return false;
     }
 

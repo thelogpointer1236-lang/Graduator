@@ -5,6 +5,7 @@
 
 #include <QJsonObject>
 #include <QJsonValue>
+#include <QObject>
 #include <QtGlobal>
 
 namespace {
@@ -28,33 +29,33 @@ QString pressureUnitKey(PressureUnit unit) {
 bool tryGetPreloadFactor(PressureUnit unit, double gaugeUpperLimit, double &outFactor, QString *err) {
     auto *configManager = ServiceLocator::instance().configManager();
     if (!configManager) {
-        if (err) *err = QString::fromWCharArray(L"Конфигурационный файл не найден.");
+        if (err) *err = QObject::tr("Конфигурационный файл не найден.");
         return false;
     }
 
     const QJsonValue preloadConfig = configManager->getValue(CFG_KEY_PRESSURE_PRELOAD_FACTOR);
     if (!preloadConfig.isObject()) {
-        if (err) *err = QString::fromWCharArray(L"Некорректно задан коэффициент преднагрузки в настройках.");
+        if (err) *err = QObject::tr("Некорректно задан коэффициент преднагрузки в настройках.");
         return false;
     }
 
     const QString unitName = pressureUnitKey(unit);
     if (unitName.isEmpty()) {
-        if (err) *err = QString::fromWCharArray(L"Не выбрана корректная единица измерения для коэффициента преднагрузки.");
+        if (err) *err = QObject::tr("Не выбрана корректная единица измерения для коэффициента преднагрузки.");
         return false;
     }
 
     const QString gaugeKey = QString::number(static_cast<int>(qRound(gaugeUpperLimit)));
     const auto preloadByGauge = preloadConfig.toObject();
     if (!preloadByGauge.contains(gaugeKey) || !preloadByGauge.value(gaugeKey).isObject()) {
-        if (err) *err = QString::fromWCharArray(L"Не задан коэффициент преднагрузки для предела %1.").arg(gaugeKey);
+        if (err) *err = QObject::tr("Не задан коэффициент преднагрузки для предела %1.").arg(gaugeKey);
         return false;
     }
 
     const auto unitObject = preloadByGauge.value(gaugeKey).toObject();
     const auto unitValue = unitObject.value(unitName);
     if (!unitValue.isDouble()) {
-        if (err) *err = QString::fromWCharArray(L"Не задан коэффициент преднагрузки для предела %1 в единице %2.")
+        if (err) *err = QObject::tr("Не задан коэффициент преднагрузки для предела %1 в единице %2.")
                                       .arg(gaugeKey, unitName);
         return false;
     }

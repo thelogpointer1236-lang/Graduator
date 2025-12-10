@@ -35,12 +35,12 @@ Pressure PressureSensor::getLastPressure() const {
 }
 bool PressureSensor::openCOM(const QString &comPort, QString &error) {
     if (comPort.isEmpty()) {
-        error = QString::fromWCharArray(L"В функцию openCOM передано пустое значение COM-порта.");
+        error = tr("В функцию openCOM передано пустое значение COM-порта.");
         return false;
     }
     m_comPort = comPort;
     if (m_hSerial != INVALID_HANDLE_VALUE) {
-        error = QString::fromStdWString(L"COM-порт " + comPort.toStdWString() + L" уже открыт.");
+        error = tr("COM-порт %1 уже открыт.").arg(comPort);
         return false;
     }
     m_hSerial = CreateFileW(
@@ -53,14 +53,14 @@ bool PressureSensor::openCOM(const QString &comPort, QString &error) {
         nullptr);
     if (m_hSerial == INVALID_HANDLE_VALUE) {
         const DWORD herr = GetLastError();
-        error = QString::fromWCharArray(L"Не удалось открыть COM-порт %1, HRESULT: 0x%2").arg(m_comPort).arg(herr);
+        error = tr("Не удалось открыть COM-порт %1, HRESULT: 0x%2").arg(m_comPort).arg(herr);
         return false;
     }
     // Настройка параметров COM-порта
     DCB dcbSerialParams = {0};
     dcbSerialParams.DCBlength = sizeof(dcbSerialParams);
     if (!GetCommState(m_hSerial, &dcbSerialParams)) {
-        error = QString::fromWCharArray(L"Не удалось получить DCB (LPDCB) состояние COM-порта");
+        error = tr("Не удалось получить DCB (LPDCB) состояние COM-порта");
         closeCOM();
         return false;
     }
@@ -69,8 +69,8 @@ bool PressureSensor::openCOM(const QString &comPort, QString &error) {
     dcbSerialParams.StopBits = ONESTOPBIT;
     dcbSerialParams.Parity = NOPARITY;
     if (!SetCommState(m_hSerial, &dcbSerialParams)) {
-        error = QString::fromWCharArray(
-            L"Не удалось установить DCB состояние COM-порта (CBR_9600, ONESTOPBIT, NOPARITY)");
+        error = tr(
+            "Не удалось установить DCB состояние COM-порта (CBR_9600, ONESTOPBIT, NOPARITY)");
         closeCOM();
         return false;
     }
@@ -84,7 +84,7 @@ bool PressureSensor::openCOM(const QString &comPort, QString &error) {
     SetCommTimeouts(m_hSerial, &timeouts);
     // Очистка буферов
     PurgeComm(m_hSerial, PURGE_RXCLEAR | PURGE_TXCLEAR);
-    ServiceLocator::instance().logger()->debug(QString::fromWCharArray(L"COM-порт %1 успешно открыт").arg(m_comPort));
+    ServiceLocator::instance().logger()->debug(tr("COM-порт %1 успешно открыт").arg(m_comPort));
     return true;
 }
 void PressureSensor::stop() {
@@ -97,7 +97,7 @@ void PressureSensor::stop() {
     }
     m_aboutToStop = false;
     ServiceLocator::instance().logger()->debug(
-        QString::fromWCharArray(L"Опрос датчика на порту %1 остановлен").arg(m_comPort));
+        tr("Опрос датчика на порту %1 остановлен").arg(m_comPort));
 }
 bool PressureSensor::isRunning() const {
     return m_isRunning;
@@ -106,27 +106,27 @@ void PressureSensor::closeCOM() {
     if (m_hSerial != INVALID_HANDLE_VALUE) {
         CloseHandle(m_hSerial);
         m_hSerial = INVALID_HANDLE_VALUE;
-        ServiceLocator::instance().logger()->debug(QString::fromWCharArray(L"COM-порт %1 закрыт").arg(m_comPort));
+        ServiceLocator::instance().logger()->debug(tr("COM-порт %1 закрыт").arg(m_comPort));
     }
 }
 void PressureSensor::start() {
     if (m_isRunning) {
         ServiceLocator::instance().logger()->warn(
-            QString::fromWCharArray(L"Опрос датчика на порту %1 уже запущен").arg(m_comPort));
+            tr("Опрос датчика на порту %1 уже запущен").arg(m_comPort));
         return;
     }
     // Проверка, что индексы данных находятся в пределах ответа
     if (const bool isNotValidIndices = std::any_of(m_pressureByteIndices.begin(), m_pressureByteIndices.end(),
                                                    [&](const int index) { return index >= m_responseLength; });
         m_unitByteIndex >= m_responseLength || isNotValidIndices) {
-        ServiceLocator::instance().logger()->error(QString::fromWCharArray(
-            L"Индексы давления или единиц измерения вне диапазона ответа на порту %1, требуется проверка настроек").
+        ServiceLocator::instance().logger()->error(tr(
+            "Индексы давления или единиц измерения вне диапазона ответа на порту %1, требуется проверка настроек").
             arg(m_comPort));
         return;
     }
     m_isRunning = true;
     ServiceLocator::instance().logger()->debug(
-        QString::fromWCharArray(L"Опрос датчика на порту %1 запущен").arg(m_comPort));
+        tr("Опрос датчика на порту %1 запущен").arg(m_comPort));
     int delayMs = getDelayMilliseconds();
     while (true) {
         if (m_aboutToStop || QThread::currentThread()->isInterruptionRequested()) {
@@ -134,7 +134,7 @@ void PressureSensor::start() {
         }
         if (QString err; !pollOnce(err)) {
             ServiceLocator::instance().logger()->error(
-                QString::fromWCharArray(L"Ошибка опроса датчика на порту %1: %2").arg(m_comPort, err));
+                tr("Ошибка опроса датчика на порту %1: %2").arg(m_comPort, err));
             break;
         }
         QThread::msleep(delayMs);
@@ -146,7 +146,7 @@ bool PressureSensor::pollOnce(QString &error) {
     DWORD bytesWritten = 0;
     if (!WriteFile(m_hSerial, m_requestBytes.data(), static_cast<DWORD>(m_requestBytes.size()), &bytesWritten,
                    nullptr)) {
-        error = QString::fromWCharArray(L"Ошибка отправки запроса на порт %1. Отправлено %2/%3 байт. Код ошибки: 0x%4").
+        error = tr("Ошибка отправки запроса на порт %1. Отправлено %2/%3 байт. Код ошибки: 0x%4").
                 arg(m_comPort).arg(bytesWritten).arg(m_requestBytes.size()).
                 arg(GetLastError(), 8, 16, QLatin1Char('0'));
         return false;
@@ -154,14 +154,14 @@ bool PressureSensor::pollOnce(QString &error) {
     // 2. Чтение ответа
     DWORD bytesRead = 0;
     if (!ReadFile(m_hSerial, m_responseBuffer.data(), m_responseLength, &bytesRead, nullptr)) {
-        error = QString::fromWCharArray(L"Ошибка чтения ответа с порта %1. Код ошибки: 0x%2").arg(m_comPort).arg(
+        error = tr("Ошибка чтения ответа с порта %1. Код ошибки: 0x%2").arg(m_comPort).arg(
             GetLastError(), 8, 16, QLatin1Char('0'));
         return false;
     }
     // 3. Проверка длины ответа
     if (bytesRead != m_responseLength) {
         ServiceLocator::instance().logger()->debug(
-            QString::fromWCharArray(L"Неверный ответ от устройства на порту %1. Получено %2 байт, ожидалось %3").
+            tr("Неверный ответ от устройства на порту %1. Получено %2 байт, ожидалось %3").
             arg(m_comPort).arg(bytesRead).arg(m_responseLength));
         return true;
     }
@@ -192,7 +192,7 @@ bool PressureSensor::pollOnce(QString &error) {
     std::memcpy(&pressureValue, nativeBytes.data(), sizeof(float));
     if (!qIsFinite(pressureValue)) {
         ServiceLocator::instance().logger()->debug(
-            QString::fromWCharArray(L"Получено некорректное значение давления с порта %1").arg(m_comPort));
+            tr("Получено некорректное значение давления с порта %1").arg(m_comPort));
         return true;
     }
     // 6. Извлечение единицы измерения
@@ -219,7 +219,7 @@ bool PressureSensor::pollOnce(QString &error) {
             break;
         default:
             ServiceLocator::instance().logger()->debug(
-                QString::fromWCharArray(L"Получено недопустимое значение единицы измерения с порта %1: 0x%2").
+                tr("Получено недопустимое значение единицы измерения с порта %1: 0x%2").
                 arg(m_comPort).arg(unitByte, 2, 16, QLatin1Char('0')));
             return true;
     }

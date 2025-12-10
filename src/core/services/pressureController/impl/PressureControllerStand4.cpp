@@ -71,9 +71,9 @@ void PressureControllerStand4::setMode(int modeIdx)
 QStringList PressureControllerStand4::getModes() const
 {
     return {
-        QString::fromWCharArray(L"Прицел"),
-        QString::fromWCharArray(L"Прямой ход"),
-        QString::fromWCharArray(L"Прямой и обратный ход")
+        tr("Прицел"),
+        tr("Прямой ход"),
+        tr("Прямой и обратный ход")
     };
 }
 
@@ -100,15 +100,15 @@ bool PressureControllerStand4::isReadyToStart(QString &err) const
         return false;
 
     if (gaugePressureValues().size() < 2) {
-        err = QString::fromWCharArray(
-            L"Недостаточно точек шкалы давления для работы контроллера."
+        err = tr(
+            "Недостаточно точек шкалы давления для работы контроллера."
         );
         return false;
     }
 
     if (currentPressure() > getPreloadPressure()) {
-        err = QString::fromWCharArray(
-            L"Текущее давление превысило давление преднагрузки."
+        err = tr(
+            "Текущее давление превысило давление преднагрузки."
         );
         return false;
     }
