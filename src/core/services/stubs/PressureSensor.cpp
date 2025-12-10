@@ -24,7 +24,7 @@ bool PressureSensor::openCOM(const QString &comPort, QString &error) {
     m_comPort = comPort;
     error.clear();
     if (auto *logger = ServiceLocator::instance().logger()) {
-        logger->info(QString::fromWCharArray(L"Используется заглушка датчика давления для порта %1").arg(m_comPort));
+        logger->info(tr("Используется заглушка датчика давления для порта %1").arg(m_comPort));
     }
     return true;
 }

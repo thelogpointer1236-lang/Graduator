@@ -1,8 +1,10 @@
 ﻿#include "LPTDriver.h"
 
+#include <QObject>
+
 LPTDriver::LPTDriver() : m_lib("WinRing0x64"), m_loaded(false) {
     if (!m_lib.load()) {
-        m_lastError = QString::fromWCharArray(L"Не удалось загрузить WinRing0x64.dll");
+        m_lastError = QObject::tr("Не удалось загрузить WinRing0x64.dll");
         return;
     }
 
@@ -11,8 +13,8 @@ LPTDriver::LPTDriver() : m_lib("WinRing0x64"), m_loaded(false) {
     m_writeIoPortByte = reinterpret_cast<WriteIoPortByte_t *>(m_lib.resolve("WriteIoPortByte"));
 
     if (!m_initializeOls || !m_readIoPortByte || !m_writeIoPortByte) {
-        m_lastError = QString::fromWCharArray(
-            L"Не удалось разрешить функции InitializeOls, ReadIoPortByte, WriteIoPortByte из WinRing0x64.dll");
+        m_lastError = QObject::tr(
+            "Не удалось разрешить функции InitializeOls, ReadIoPortByte, WriteIoPortByte из WinRing0x64.dll");
         m_lib.unload();
         return;
     }
@@ -28,8 +30,8 @@ bool LPTDriver::isLoaded() const { return m_loaded; }
 bool LPTDriver::initialize() const {
     if (!m_loaded || !m_initializeOls) {
         if (m_lastError.isEmpty())
-            m_lastError = QString::fromWCharArray(
-                L"WinRing0x64.dll не загружена или отсутствуют необходимые функции");
+            m_lastError = QObject::tr(
+                "WinRing0x64.dll не загружена или отсутствуют необходимые функции");
         return false;
     }
 
@@ -38,16 +40,16 @@ bool LPTDriver::initialize() const {
             m_lastError = "";
             return true;
         case 0:
-            m_lastError = QString::fromWCharArray(L"WinRing0x64: Не удалось загрузить драйвер WinRing0");
+            m_lastError = QObject::tr("WinRing0x64: Не удалось загрузить драйвер WinRing0");
             return true; // TODO: Для релиза исправить на false
         case -1:
-            m_lastError = QString::fromWCharArray(L"WinRing0x64: Нет прав администратора для доступа к порту");
+            m_lastError = QObject::tr("WinRing0x64: Нет прав администратора для доступа к порту");
             return false;
         case -2:
-            m_lastError = QString::fromWCharArray(L"WinRing0x64: Несовместимая версия ОС");
+            m_lastError = QObject::tr("WinRing0x64: Несовместимая версия ОС");
             return false;
         default:
-            m_lastError = QString::fromWCharArray(L"WinRing0x64: Неизвестная ошибка при инициализации драйвера");
+            m_lastError = QObject::tr("WinRing0x64: Неизвестная ошибка при инициализации драйвера");
             return false;
     }
 }

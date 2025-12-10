@@ -233,7 +233,7 @@ QVariant GraduationTableModel::headerData(int section,
         const bool forward = isForwardColumn(section);
 
         return QString("%1%2")
-                .arg(forward ? L"⤒" : L"⤓")
+                .arg(forward ? tr("⤒") : tr("⤓"))
                 .arg(camNum);
     }
 

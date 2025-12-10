@@ -154,7 +154,7 @@ void VideoCaptureProcessor::init(void *hwnd, int cameraIndex) {
     hr = m_pMoniker->BindToObject(NULL, NULL, IID_PPV_ARGS(&m_pSrcFilter));
     if (FAILED(hr)) { checkHR(hr, "BindToObject failed"); cleanup();}
 
-    hr = m_pGraph->AddFilter(m_pSrcFilter, L"Video Capture Source");
+    hr = m_pGraph->AddFilter(m_pSrcFilter, reinterpret_cast<LPCWSTR>(tr("Video Capture Source").utf16()));
     if (FAILED(hr)) { checkHR(hr, "AddFilter Source failed"); cleanup();}
 
 
@@ -171,7 +171,7 @@ void VideoCaptureProcessor::init(void *hwnd, int cameraIndex) {
     hr = CoCreateInstance(CLSID_SampleGrabber, NULL, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&m_pSampleGrabberFilter));
     if (FAILED(hr)) { checkHR(hr, "Create SampleGrabber failed"); cleanup();}
 
-    hr = m_pGraph->AddFilter(m_pSampleGrabberFilter, L"Sample Grabber");
+    hr = m_pGraph->AddFilter(m_pSampleGrabberFilter, reinterpret_cast<LPCWSTR>(tr("Sample Grabber").utf16()));
     if (FAILED(hr)) { checkHR(hr, "AddFilter SampleGrabber failed"); cleanup();}
 
     hr = m_pSampleGrabberFilter->QueryInterface(IID_PPV_ARGS(&m_pSampleGrabber));
@@ -198,7 +198,7 @@ void VideoCaptureProcessor::init(void *hwnd, int cameraIndex) {
     hr = CoCreateInstance(CLSID_VideoRenderer, NULL, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&m_pVideoRenderer));
     if (FAILED(hr)) { checkHR(hr, "Create VideoRenderer failed"); cleanup();}
 
-    hr = m_pGraph->AddFilter(m_pVideoRenderer, L"Video Renderer");
+    hr = m_pGraph->AddFilter(m_pVideoRenderer, reinterpret_cast<LPCWSTR>(tr("Video Renderer").utf16()));
     if (FAILED(hr)) { checkHR(hr, "AddFilter VideoRenderer failed"); cleanup();}
 
     hr = m_pCapture->RenderStream(&PIN_CATEGORY_CAPTURE, &MEDIATYPE_Video,
