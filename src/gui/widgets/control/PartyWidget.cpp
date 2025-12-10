@@ -102,6 +102,12 @@ void PartyWidget::onSaveClicked()
 
 void PartyWidget::onStrongNodeToggled(bool checked)
 {
+    if (auto *graduationService = ServiceLocator::instance().graduationService()) {
+        graduationService->setStrongNode(checked);
+        if (graduationService->isResultReady()) {
+            graduationService->requestUpdateResultAndTable();
+        }
+    }
 }
 
 void PartyWidget::setPartyNumber(int number)

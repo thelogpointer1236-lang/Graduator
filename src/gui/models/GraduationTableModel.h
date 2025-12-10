@@ -1,4 +1,4 @@
-﻿#ifndef GRADUATOR_GRADUATIONTABLEMODEL_H
+#ifndef GRADUATOR_GRADUATIONTABLEMODEL_H
 #define GRADUATOR_GRADUATIONTABLEMODEL_H
 #include <QAbstractTableModel>
 #include <QTimer>
@@ -24,5 +24,6 @@ private:
     QString m_cameraStr;
     QTimer m_updateTimer;
     PartyResult m_partyResult;
+    PartyValidationResult m_validationResult;
 };
 #endif //GRADUATOR_GRADUATIONTABLEMODEL_H

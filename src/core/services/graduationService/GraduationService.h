@@ -46,6 +46,9 @@ public:
     // 5) Результат
     const PartyResult& getPartyResult() const;
 
+    void setStrongNode(bool strong);
+    bool strongNode() const { return m_strongNode; }
+
     // Для внешнего доступа к вычислителю
     grad::Graduator& graduator() { return m_graduator; }
 
@@ -115,6 +118,8 @@ private:
     // Готовый результат
     PartyResult m_currentResult;
     bool m_resultReady = false;
-};
+
+    bool m_strongNode = false;
+}; 
 
 #endif // GRADUATOR_GRADUATIONSERVICE_H

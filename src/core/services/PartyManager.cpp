@@ -2,6 +2,8 @@
 #include "defines.h"
 #include "ServiceLocator.h"
 #include <QtMath>
+#include <limits>
+#include <algorithm>
 
 PartyManager::PartyManager(int standNumber, QObject *parent)
     : QObject(parent)
@@ -26,7 +28,16 @@ bool PartyManager::savePartyResult(const PartyResult &result, QString &err) {
         return false;
     }
 
-    for (int camIdx = 0; camIdx < result.forward.size(); ++camIdx) {
+    const PartyValidationResult validation = result.validate();
+    const int camCount = std::min(result.forward.size(), result.backward.size());
+    for (int camIdx = 0; camIdx < camCount; ++camIdx) {
+        const bool skipCam = std::any_of(validation.issues.begin(), validation.issues.end(), [camIdx](const PartyValidationIssue &issue) {
+            return issue.cameraIndex == camIdx && issue.category == PartyValidationIssue::Category::InvalidValue;
+        });
+        if (skipCam) {
+            continue;
+        }
+
         if (result.forward[camIdx].size() != result.gaugeModel.pressureValues().size() ||
             result.backward[camIdx].size() != result.gaugeModel.pressureValues().size()) {
             continue;
@@ -153,6 +164,17 @@ int PartyManager::currentPressureUnitIndex() const {
 
 int PartyManager::currentPrecisionIndex() const {
     return ServiceLocator::instance().configManager()->get<int>(CFG_KEY_CURRENT_PRECISION_CLASS, 0);
+}
+
+double PartyManager::currentPrecisionValue() const {
+    const int idx = currentPrecisionIndex();
+    if (idx < 0 || idx >= m_availablePrecisions.size()) {
+        return std::numeric_limits<double>::quiet_NaN();
+    }
+
+    bool ok = false;
+    const double value = m_availablePrecisions.at(idx).toDouble(&ok);
+    return ok ? value : std::numeric_limits<double>::quiet_NaN();
 }
 
 int PartyManager::currentDisplacementIndex() const {
