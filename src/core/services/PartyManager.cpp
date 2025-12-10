@@ -30,6 +30,7 @@ bool PartyManager::savePartyResult(const PartyResult &result, QString &err) {
 
     const PartyValidationResult validation = result.validate();
     const int camCount = std::min(result.forward.size(), result.backward.size());
+    bool anyCameraSaved = false;
     for (int camIdx = 0; camIdx < camCount; ++camIdx) {
         const bool skipCam = std::any_of(validation.issues.begin(), validation.issues.end(), [camIdx](const PartyValidationIssue &issue) {
             return issue.cameraIndex == camIdx && issue.category == PartyValidationIssue::Category::InvalidValue;
@@ -71,6 +72,12 @@ bool PartyManager::savePartyResult(const PartyResult &result, QString &err) {
                 .arg(minutes, 2, 10, QChar('0'))
                 .arg(seconds, 2, 10, QChar('0'));
         file.close();
+        anyCameraSaved = true;
+    }
+
+    if (!anyCameraSaved) {
+        err = tr("Cannot save result: all cameras are invalid or missing measurements.");
+        return false;
     }
 
     auto *graduationService = ServiceLocator::instance().graduationService();
