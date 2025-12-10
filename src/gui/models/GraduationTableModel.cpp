@@ -17,6 +17,14 @@ namespace {
 constexpr int kInfoRowCount = 4;
 constexpr int kUpdateIntervalMs = 1000/30;  // Обновление индикаторов ~30 раз в секунду
 
+    // Цвета ошибок
+    const QColor kErrorBg(200, 50, 50);      // тёплый красный, хорошо виден
+    const QColor kErrorFg(Qt::white);        // белый текст для контраста
+
+    // Цвета предупреждений
+    const QColor kWarnBg(255, 200, 80);      // янтарный, не режет глаз
+    const QColor kWarnFg(30, 30, 30);        // почти чёрный текст для контраста
+
 const GaugeModel* currentGaugeModel() {
     const int idx = ServiceLocator::instance().configManager()
                         ->get<int>(CFG_KEY_CURRENT_GAUGE_MODEL, -1);
@@ -120,17 +128,31 @@ QVariant GraduationTableModel::data(const QModelIndex &index, int role) const {
 
     const bool forward = isForwardColumn(col);
 
-    // Цвет фона при наличии ошибок/предупреждений
-    if (role == Qt::BackgroundRole) {
-        if (const auto *issue = m_validationResult.issueFor(camIdx, forward, row)) {
+    if (const auto *issue = m_validationResult.issueFor(camIdx, forward, row)) {
+
+        // Подсветка ошибок/предупреждений — фон
+        if (role == Qt::BackgroundRole) {
             switch (issue->severity) {
                 case PartyValidationIssue::Severity::Error:
-                    return QColor(Qt::red);
+                    return kErrorBg;
                 case PartyValidationIssue::Severity::Warning:
-                    return QColor(Qt::blue);
+                    return kWarnBg;
+                default:
+                    return {};
             }
         }
-        return {};
+
+        // Цвет текста
+        if (role == Qt::ForegroundRole) {
+            switch (issue->severity) {
+                case PartyValidationIssue::Severity::Error:
+                    return kErrorFg;
+                case PartyValidationIssue::Severity::Warning:
+                    return kWarnFg;
+                default:
+                    return {};
+            }
+        }
     }
 
     if (role != Qt::DisplayRole)
