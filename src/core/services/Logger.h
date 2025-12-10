@@ -5,9 +5,11 @@
 #include <QTextStream>
 #include <QDateTime>
 #include <QMutex>
+
 enum class LogLevel { Debug, Info, Warning, Error, Critical };
 class Logger final : public QObject {
     Q_OBJECT
+
 public:
     explicit Logger(QObject *parent = nullptr);
     bool init(const QString &logFilePath);
@@ -25,6 +27,7 @@ public:
     void critical(const wchar_t *msg);
 
     QString logFilePath() const;
+
 signals:
     void newLogEntry(LogLevel level, const QString &text);
 

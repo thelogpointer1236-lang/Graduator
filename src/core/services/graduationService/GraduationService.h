@@ -106,7 +106,7 @@ private:
     // Контроль активности датчиков
     QTimer m_watchdogTimer;
     qreal m_lastPressureTimestamp = 0.0;
-    qreal m_lastAngleTimestamp = 0.0;
+    std::map<int, qreal> m_lastAngleTimestamps;
 
     // Основной вычислитель
     grad::Graduator m_graduator;

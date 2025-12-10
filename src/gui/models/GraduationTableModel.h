@@ -1,5 +1,6 @@
 #ifndef GRADUATOR_GRADUATIONTABLEMODEL_H
 #define GRADUATOR_GRADUATIONTABLEMODEL_H
+
 #include <QAbstractTableModel>
 #include <QTimer>
 
@@ -10,20 +11,37 @@ class GraduationTableModel final : public QAbstractTableModel {
     Q_OBJECT
 public:
     explicit GraduationTableModel(QObject *parent = nullptr);
+
     int rowCount(const QModelIndex &parent = QModelIndex()) const override;
     int columnCount(const QModelIndex &parent = QModelIndex()) const override;
+
     QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const override;
-    QVariant headerData(int section, Qt::Orientation orientation, int role = Qt::DisplayRole) const override;
-    bool setData(const QModelIndex &index, const QVariant &value, int role = Qt::EditRole) override;
+    QVariant headerData(int section, Qt::Orientation orientation,
+                        int role = Qt::DisplayRole) const override;
+
+    bool setData(const QModelIndex &index, const QVariant &value,
+                 int role = Qt::EditRole) override;
+
     Qt::ItemFlags flags(const QModelIndex &index) const override;
+
 private slots:
     void updateIndicators();
     void updateScale();
+
 private:
-    const class GaugeModel *m_gaugeModel;
-    QString m_cameraStr;
+    const class GaugeModel *m_gaugeModel = nullptr;
+
+    QString m_cameraStr;            // "12345678" — перечень камер
     QTimer m_updateTimer;
+
     PartyResult m_partyResult;
     PartyValidationResult m_validationResult;
+
+    // Helpers
+    int pressureRowCount() const;
+    int infoRowCount() const;
+    bool isForwardColumn(int col) const;
+    int cameraIndexFromColumn(int col) const;
 };
-#endif //GRADUATOR_GRADUATIONTABLEMODEL_H
+
+#endif // GRADUATOR_GRADUATIONTABLEMODEL_H

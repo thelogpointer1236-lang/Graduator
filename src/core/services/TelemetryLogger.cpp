@@ -231,7 +231,7 @@ void TelemetryLogger::saveTelemetryData()
 
 void TelemetryLogger::savePartyResult(const PartyResult &result)
 {
-    if (m_dailyFolder.isEmpty() || !result.isValid())
+    if (m_dailyFolder.isEmpty())
         return;
 
     QDir dir(m_dailyFolder);
@@ -372,10 +372,10 @@ void TelemetryLogger::finishLoggingSession(bool savePartyResultFlag)
         auto &locator = ServiceLocator::instance();
         auto graduationService = locator.graduationService();
         if (graduationService) {
-            PartyResult result = graduationService->getPartyResult();
-            if (result.isValid()) {
-                savePartyResult(result);
-            }
+            // PartyResult result = graduationService->getPartyResult();
+            // if (result.isValid()) {
+            //     savePartyResult(result);
+            // }
         }
     }
 

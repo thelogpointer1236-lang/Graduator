@@ -7,7 +7,7 @@
 #include <algorithm>
 
 namespace {
-    constexpr qreal kSensorTimeoutSec = 2.0;
+    constexpr qreal kSensorTimeoutSec = 2.5;
     constexpr int   kWatchdogIntervalMs = 500;
 }
 
@@ -115,7 +115,9 @@ bool GraduationService::start()
     m_state = State::Running;
     m_elapsedTimer.start();
     m_lastPressureTimestamp = getElapsedTimeSeconds();
-    m_lastAngleTimestamp = m_lastPressureTimestamp;
+    for (auto& [idx, _] : m_lastAngleTimestamps) {
+        m_lastAngleTimestamps[idx] = m_lastPressureTimestamp;
+    }
     m_watchdogTimer.start();
     emit started();
     return true;
@@ -194,7 +196,7 @@ void GraduationService::onAngleMeasured(qint32 idx, qreal t, qreal a)
         return;
 
     m_graduator.addAngleSample(idx, t, a);
-    m_lastAngleTimestamp = t;
+    m_lastAngleTimestamps[idx] = t;
 }
 
 void GraduationService::checkSensorsActivity()
@@ -204,23 +206,34 @@ void GraduationService::checkSensorsActivity()
 
     const qreal now = getElapsedTimeSeconds();
     const bool pressureStalled = (now - m_lastPressureTimestamp) > kSensorTimeoutSec;
-    const bool angleStalled = (now - m_lastAngleTimestamp) > kSensorTimeoutSec;
 
-    if (!pressureStalled && !angleStalled)
+    bool anyCameraStalled = false;
+    int stalledCameraIdx = -1;
+
+    for (auto& [idx, _] : m_lastAngleTimestamps) {
+        if ((now - m_lastAngleTimestamps[idx]) > kSensorTimeoutSec) {
+            anyCameraStalled = true;
+            stalledCameraIdx = idx;
+            break;
+        }
+    }
+
+    if (!pressureStalled && !anyCameraStalled)
         return;
 
     QString reason;
-    if (pressureStalled && angleStalled) {
-        reason = QString::fromWCharArray(L"Угол и давление перестали измеряться.");
+    if (pressureStalled && anyCameraStalled) {
+        reason = QString("Pressure and camera %1 have stopped being measured.").arg(stalledCameraIdx + 1);
     } else if (pressureStalled) {
-        reason = QString::fromWCharArray(L"Давление перестало измеряться.");
+        reason = QString("Pressure has stopped being measured.");
     } else {
-        reason = QString::fromWCharArray(L"Угол перестал измеряться.");
+        reason = QString("Camera %1 has stopped being measured.").arg(stalledCameraIdx + 1);
     }
 
-    if (auto *logger = ServiceLocator::instance().logger())
-        logger->error(reason);
     interrupt();
+
+    ServiceLocator::instance().userDialogService()
+        ->requestUserInput("The Graduation process has been interrupted", reason, {});
 }
 
 void GraduationService::onPressureControllerInterrupted()
@@ -265,7 +278,9 @@ void GraduationService::clearForNewRun()
     m_graduator.clear();
     m_elapsedTimer.invalidate();
     m_lastPressureTimestamp = 0.0;
-    m_lastAngleTimestamp = 0.0;
+    for (auto& [idx, _] : m_lastAngleTimestamps) {
+        m_lastAngleTimestamps[idx] = 0.0;
+    }
     emit tableUpdateRequired();
     emit resultAvailabilityChanged(false);
 }
