@@ -108,10 +108,10 @@ private:
     QFile* m_pressureFile{nullptr};
 
     /// Накопленные измерения угла: [канал -> вектор (t, angle)]
-    std::map<int, std::vector<std::pair<qreal, qreal>>> m_angleMeasurements;
+    std::map<int, std::vector<QString>> m_angleMeasurements;
 
     /// Накопленные измерения давления: вектор (t, pressure)
-    std::vector<std::pair<qreal, qreal>> m_pressureMeasurements;
+    std::vector<QString> m_pressureMeasurements;
 
     /// Флаг: идёт ли сейчас активная сессия градуировки (логирование включено)
     bool m_isLoggingActive{false};

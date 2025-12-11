@@ -23,23 +23,26 @@ protected:
 
 private:
     // Основные шаги
-    void preloadPressure();
-    void forwardPressure();
-    void backwardPressure();
+    bool preloadPressure();
+    bool forwardPressure();
+    bool backwardPressure();
+
+
 
     // Вспомогательные вычисления
     qreal getPreloadPressure() const;
     qreal getNominalPressureVelocity() const;
     qreal getMaxPressureVelocity() const;
     qreal getMinPressureVelocity() const;
-
+    double m_frequency;
+    double m_divider = 1;
+    void updateFreq(double p_cur, double p_target,
+                    double dp_cur, double dp_target,
+                    double div_min, double div_max,
+                    double freq_min, double freq_max
+                    );
     // Логика узлов и гистерезиса
-    bool isInThreshold(double p, double node, double percent) const;
-    bool updateSlowModeByNode(double p_cur);
-
-    // Логика управляющих частотой
-    int computeFrequency(double p_cur, double p_target, int f_max);
-    int computeDynamicDivider(double p_cur, double dp_cur) const;
+    bool isPressureNearToNode(double left, double right);
 
     // Вспомогательные рутинные функции
     void applyCameraRateIfNearNode(double p_cur);

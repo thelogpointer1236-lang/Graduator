@@ -218,10 +218,10 @@ QVariant GraduationTableModel::headerData(int section,
         return {};
 
     static const QString infoTitles[kInfoRowCount] = {
-        QObject::tr("Common"),
-        QObject::tr("Nonlinear"),
-        QObject::tr("Quantity"),
-        QObject::tr("Current angle")
+        tr("Common"),
+        tr("Nonlinear"),
+        tr("Quantity"),
+        tr("Current angle")
     };
 
     if (orient == Qt::Horizontal) {

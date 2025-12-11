@@ -112,21 +112,27 @@ void TelemetryLogger::onGraduationInterrupted()
 
 void TelemetryLogger::onPressureMeasured(qreal t, Pressure p)
 {
-    // Копим значения давления во внутреннем буфере.
-    // Они будут сброшены на диск при ближайшем тике таймера.
     if (!m_isLoggingActive)
         return;
 
-    m_pressureMeasurements.emplace_back(t, p.getValue(m_pressureUnit));
+    auto* pc = ServiceLocator::instance().pressureController();
+
+    m_pressureMeasurements.push_back(
+        QString("%1,%2,%3,%4,%5")
+                .arg(t)
+                .arg(p.getValue(m_pressureUnit))
+                .arg(pc->getCurrentPressureVelocity())
+                .arg(pc->getImpulsesFreq())
+                .arg(pc->getImpulsesCount())
+    );
 }
 
 void TelemetryLogger::onAngleMeasured(qint32 i, qreal t, qreal a)
 {
-    // Копим значения угла по каналу i во внутреннем буфере.
     if (!m_isLoggingActive)
         return;
 
-    m_angleMeasurements[i].emplace_back(t, a);
+    m_angleMeasurements[i].push_back(QString("%1,%2").arg(t).arg(a));
 }
 
 void TelemetryLogger::ensureFilesOpened()
@@ -157,7 +163,7 @@ void TelemetryLogger::openPressureFile()
     // Если файл создаётся впервые — пишем заголовок CSV
     if (!existed) {
         QTextStream ts(m_pressureFile);
-        ts << "t,pressure\n";
+        ts << "t,p,dp,fimp,cimp\n";
     }
 }
 
@@ -180,7 +186,7 @@ void TelemetryLogger::openAngleFile(int idx)
     // Если файл создаётся впервые — пишем заголовок CSV
     if (!existed) {
         QTextStream ts(file);
-        ts << "t,angle\n";
+        ts << "t,a\n";
     }
 
     m_angleFiles[idx] = file;
@@ -202,8 +208,8 @@ void TelemetryLogger::saveTelemetryData()
     // --- Давление ---
     if (m_pressureFile && !m_pressureMeasurements.empty()) {
         QTextStream ts(m_pressureFile);
-        for (const auto &p : m_pressureMeasurements)
-            ts << p.first << "," << p.second << "\n";
+        for (const auto &str : m_pressureMeasurements)
+            ts << str << "\n";
     }
 
     // --- Углы ---
@@ -221,8 +227,8 @@ void TelemetryLogger::saveTelemetryData()
             continue;
 
         QTextStream ts(file);
-        for (const auto &a : vec)
-            ts << a.first << "," << a.second << "\n";
+        for (const auto &str : vec)
+            ts << str << "\n";
     }
 
     // После успешной записи очищаем буферы, чтобы не накапливать лишнее в памяти

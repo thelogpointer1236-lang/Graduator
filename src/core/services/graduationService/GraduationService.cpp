@@ -223,17 +223,17 @@ void GraduationService::checkSensorsActivity()
 
     QString reason;
     if (pressureStalled && anyCameraStalled) {
-        reason = QString("Pressure and camera %1 have stopped being measured.").arg(stalledCameraIdx + 1);
+        reason = tr("Pressure and camera %1 have stopped being measured.").arg(stalledCameraIdx + 1);
     } else if (pressureStalled) {
-        reason = QString("Pressure has stopped being measured.");
+        reason = tr("Pressure has stopped being measured.");
     } else {
-        reason = QString("Camera %1 has stopped being measured.").arg(stalledCameraIdx + 1);
+        reason = tr("Camera %1 has stopped being measured.").arg(stalledCameraIdx + 1);
     }
 
     interrupt();
 
     ServiceLocator::instance().userDialogService()
-        ->requestUserInput("The Graduation process has been interrupted", reason, {});
+        ->requestUserInput(tr("The Graduation process has been interrupted"), reason, {});
 }
 
 void GraduationService::onPressureControllerInterrupted()
