@@ -1,5 +1,6 @@
 ﻿#include "StatusBarModel.h"
 #include "core/services/ServiceLocator.h"
+#include "core/types/PressureUnit.h"
 
 StatusBarModel::StatusBarModel(QObject *parent)
     : QAbstractItemModel(parent)
@@ -61,6 +62,24 @@ namespace {
     static const QColor COLOR_TEXT(Qt::black);      // текст по умолчанию
     static const QColor COLOR_TEXT_INV(Qt::white);  // инвертированный
     static const QColor COLOR_NEUTRAL("#616161");   // серый
+
+    static QString pressureUnitToString(PressureUnit unit)
+    {
+        switch (unit) {
+            case PressureUnit::Pa: return QObject::tr("Pa");
+            case PressureUnit::kPa: return QObject::tr("kPa");
+            case PressureUnit::MPa: return QObject::tr("MPa");
+            case PressureUnit::Bar: return QObject::tr("Bar");
+            case PressureUnit::Kgf: return QObject::tr("kgf/cm");
+            case PressureUnit::KgfM2: return QObject::tr("kgf/m");
+            case PressureUnit::Atm: return QObject::tr("atm");
+            case PressureUnit::mmHg: return QObject::tr("mmHg");
+            case PressureUnit::mmH2O: return QObject::tr("mmH2O");
+            case PressureUnit::Unknown: break;
+        }
+
+        return QObject::tr("kgf/cm");
+    }
 }
 
 QVariant StatusBarModel::data(const QModelIndex &idx, int role) const {
@@ -146,13 +165,17 @@ QVariant StatusBarModel::data(const QModelIndex &idx, int role) const {
     // COLUMN 2 — PRESSURE
     //
     if (col == 2) {
-        double p1 = ps.getLastPressure().toKgf();
-        double p2 = pc.getTargetPressure();
+        const PressureUnit unit = service.pressureUnit();
+        const PressureUnit effectiveUnit = unit == PressureUnit::Unknown ? PressureUnit::Kgf : unit;
+        const QString unitStr = pressureUnitToString(effectiveUnit);
+        const double p1 = ps.getLastPressure().getValue(effectiveUnit);
+        const double p2 = pc.getTargetPressure();
 
         if (role == Qt::DisplayRole)
-            return tr("%1 / %2 kgf")
+            return tr("%1 / %2 %3")
                     .arg(p1, 0, 'f', 2)
-                    .arg(p2, 0, 'f', 2);
+                    .arg(p2, 0, 'f', 2)
+                    .arg(unitStr);
 
         if (role == Qt::ForegroundRole)
             return fg(p1 > p2 ? COLOR_ERR : COLOR_TEXT);
@@ -168,13 +191,17 @@ QVariant StatusBarModel::data(const QModelIndex &idx, int role) const {
     // COLUMN 3 — PRESSURE SPEED
     //
     if (col == 3) {
-        double s1 = pc.getCurrentPressureVelocity();
-        double s2 = pc.getTargetPressureVelocity();
+        const PressureUnit unit = service.pressureUnit();
+        const PressureUnit effectiveUnit = unit == PressureUnit::Unknown ? PressureUnit::Kgf : unit;
+        const QString unitStr = pressureUnitToString(effectiveUnit);
+        const double s1 = pc.getCurrentPressureVelocity();
+        const double s2 = pc.getTargetPressureVelocity();
 
         if (role == Qt::DisplayRole)
-            return tr("%1 / %2 kgf/s")
+            return tr("%1 / %2 %3/s")
                     .arg(s1, 0, 'f', 2)
-                    .arg(s2, 0, 'f', 2);
+                    .arg(s2, 0, 'f', 2)
+                    .arg(unitStr);
 
         if (role == Qt::ForegroundRole)
             return fg(s1 > s2 ? COLOR_ERR : COLOR_TEXT);

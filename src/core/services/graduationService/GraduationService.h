@@ -42,6 +42,7 @@ public:
     // 4) Состояние
     qreal getElapsedTimeSeconds() const;
     bool isResultReady() const;
+    PressureUnit pressureUnit() const { return m_pressureUnit; }
 
     // 5) Результат
     const PartyResult& getPartyResult() const;
