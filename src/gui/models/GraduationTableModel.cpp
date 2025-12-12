@@ -25,6 +25,10 @@ constexpr int kUpdateIntervalMs = 1000/30;  // Обновление индика
     const QColor kWarnBg(255, 200, 80);      // янтарный, не режет глаз
     const QColor kWarnFg(30, 30, 30);        // почти чёрный текст для контраста
 
+    // Цвета информационных подсветок (например, диапазон угла)
+    const QColor kInfoBg(120, 180, 255);     // спокойный синий фон
+    const QColor kInfoFg(Qt::black);         // контрастный тёмный текст
+
 const GaugeModel* currentGaugeModel() {
     const int idx = ServiceLocator::instance().configManager()
                         ->get<int>(CFG_KEY_CURRENT_GAUGE_MODEL, -1);
@@ -132,6 +136,11 @@ QVariant GraduationTableModel::data(const QModelIndex &index, int role) const {
 
         // Подсветка ошибок/предупреждений — фон
         if (role == Qt::BackgroundRole) {
+            // Подсветка диапазона угла — спокойный синий
+            if (issue->category == PartyValidationIssue::Category::AngleRange) {
+                return kInfoBg;
+            }
+
             switch (issue->severity) {
                 case PartyValidationIssue::Severity::Error:
                     return kErrorBg;
@@ -144,6 +153,10 @@ QVariant GraduationTableModel::data(const QModelIndex &index, int role) const {
 
         // Цвет текста
         if (role == Qt::ForegroundRole) {
+            if (issue->category == PartyValidationIssue::Category::AngleRange) {
+                return kInfoFg;
+            }
+
             switch (issue->severity) {
                 case PartyValidationIssue::Severity::Error:
                     return kErrorFg;

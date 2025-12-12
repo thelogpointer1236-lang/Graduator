@@ -9,6 +9,8 @@
 namespace {
     constexpr double kMinAngleDeg = 260.0;
     constexpr double kMaxAngleDeg = 280.0;
+    constexpr double kStrongMinAngleDeg = 250.0;
+    constexpr double kStrongMaxAngleDeg = 290.0;
 
     double toDegrees(double radians) {
         return qRadiansToDegrees(radians);
@@ -50,16 +52,23 @@ PartyValidationResult PartyResult::validate() const {
             }
 
             // Диапазон угла
-            if (!strongNode && nodes.size() >= 2) {
-                const double angleDeg = toDegrees(nodes.back().angle - nodes.front().angle);
-                if (angleDeg < kMinAngleDeg || angleDeg > kMaxAngleDeg) {
+            if (nodes.size() >= 2) {
+                const double angleDeg = std::abs(toDegrees(nodes.back().angle - nodes.front().angle));
+
+                const double minAllowed = strongNode ? kStrongMinAngleDeg : kMinAngleDeg;
+                const double maxAllowed = strongNode ? kStrongMaxAngleDeg : kMaxAngleDeg;
+
+                if (angleDeg < minAllowed || angleDeg > maxAllowed) {
                     PartyValidationIssue issue;
                     issue.cameraIndex = static_cast<int>(cam);
                     issue.forward = isForward;
                     issue.row = static_cast<int>(nodeCount); // строка "Common"
-                    issue.severity = PartyValidationIssue::Severity::Error;
+                    issue.severity = PartyValidationIssue::Severity::Warning;
                     issue.category = PartyValidationIssue::Category::AngleRange;
-                    issue.message = QString::fromWCharArray(L"Общий угол вне диапазона 260–280°.");
+                    const auto message = strongNode
+                        ? QString::fromWCharArray(L"Общий угол вне диапазона 250–290° (крепкий узел).")
+                        : QString::fromWCharArray(L"Общий угол вне диапазона 260–280°.");
+                    issue.message = message;
                     validation.issues.push_back(issue);
                 }
             }
