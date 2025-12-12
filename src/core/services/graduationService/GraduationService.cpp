@@ -169,7 +169,6 @@ void GraduationService::onPressureControllerResultReady()
 }
 
 int GraduationService::angleMeasCountForCamera(qint32 idx, bool isForward) const {
-    if (m_state != State::Running) return 0;
     decltype(auto) ac = isForward ? m_graduator.anglesCountForward() : m_graduator.anglesCountBackward();
     if (idx >= ac.size()) return 0;
     return ac[idx];
