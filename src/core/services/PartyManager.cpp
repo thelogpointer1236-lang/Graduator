@@ -6,6 +6,7 @@
 #include <limits>
 #include <algorithm>
 #include <QMessageBox>
+#include <QDebug>
 
 PartyManager::PartyManager(int standNumber, QObject *parent)
     : QObject(parent)
@@ -13,6 +14,11 @@ PartyManager::PartyManager(int standNumber, QObject *parent)
     , m_partyNumber(0)
 {
     initializeAvailableOptions();
+
+    QString err;
+    if (!updateCurrentPath(err)) {
+        qWarning() << "Failed to initialize party path:" << err;
+    }
 }
 
 // ============================================================================
