@@ -90,11 +90,15 @@ bool isNearToPressureNode(double p_cur, double thr_l, double thr_r, const std::v
         return true;
     }
 
-    if (p_cur > nodes.back())
+    if (p_cur > nodes.back()) {
+        if (nearing_) *nearing_ = 1.0;
         return true;
+    }
 
-    if (p_cur < nodes.front())
+    if (p_cur < nodes.front()) {
+        if (nearing_) *nearing_ = 0.0;
         return false;
+    }
 
     // Найти ближайший узел (при желании заменим на binary_search)
     double closest = nodes[0];
@@ -111,8 +115,10 @@ bool isNearToPressureNode(double p_cur, double thr_l, double thr_r, const std::v
     // Определяем какой порог использовать — слева или справа
     double thr = (p_cur >= closest ? thr_r : thr_l);
 
-    if (min_dist >= thr)
+    if (min_dist >= thr) {
+        if (nearing_) *nearing_ = 0.0;
         return false;
+    }
 
     nearing = 1.0 - min_dist / thr;
 

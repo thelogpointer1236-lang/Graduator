@@ -17,10 +17,8 @@ public:
     // FSM — состояние сервиса
     enum class State {
         Idle,
-        Prepared,
         Running,
-        Finished,
-        Interrupted
+        Prepared
     };
 
     explicit GraduationService(QObject *parent = nullptr);
@@ -31,7 +29,7 @@ public:
     // ---------------------------------------------------------
 
     // 1) Этап подготовки: загружает модель, проверяет конфиг, готовит контекст
-    bool prepare(QString &err);
+    bool prepare(QString *err = nullptr);
 
     // 2) Этап запуска: запускает алгоритм только после успешного prepare()
     bool start();

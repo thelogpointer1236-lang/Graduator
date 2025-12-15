@@ -10,6 +10,8 @@
 #include <QHBoxLayout>
 #include <QTabWidget>
 
+#include "core/services/ServiceLocator.h"
+
 namespace {
      constexpr int StatusBarHeight = 50;
      constexpr int ControlWidgetHeight = 280;
@@ -74,6 +76,12 @@ QTabWidget* MainWidget::createTabWidget() {
      tabWidget->addTab(cameraSettingsTab, tr("Cameras"));
      // tabWidget->addTab(partiesPage, tr("Parties"));
      tabWidget->addTab(logAndConfigTab, tr("Additional Settings"));
+
+     connect(tabWidget, &QTabWidget::currentChanged, this, [](int index) {
+          if (index == 0) {
+               ServiceLocator::instance().graduationService()->prepare();
+          }
+     });
 
      return tabWidget;
 }

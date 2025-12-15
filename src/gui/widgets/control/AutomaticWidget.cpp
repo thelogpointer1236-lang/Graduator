@@ -75,7 +75,7 @@ void AutomaticWidget::onStartClicked()
     if (gs->state() == GraduationService::State::Running) return;
 
     QString err;
-    gs->prepare(err);
+    gs->prepare(&err);
     if (!err.isEmpty()) {
         QMessageBox::critical(
             this,

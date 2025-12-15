@@ -238,14 +238,17 @@ void SettingsWidget::onAutoOpenCamerasChanged(bool checked) {
 
 void SettingsWidget::onGaugeTypeChanged(int index) {
     ServiceLocator::instance().configManager()->setValue(CFG_KEY_CURRENT_GAUGE_MODEL, index);
+    ServiceLocator::instance().graduationService()->prepare();
 }
 
 void SettingsWidget::onPressureUnitChanged(int index) {
     ServiceLocator::instance().partyManager()->setCurrentPressureUnit(index);
+    ServiceLocator::instance().graduationService()->prepare();
 }
 
 void SettingsWidget::onPrecisionClassChanged(int index) {
     ServiceLocator::instance().partyManager()->setCurrentPrecision(index);
+    ServiceLocator::instance().graduationService()->prepare();
 }
 
 void SettingsWidget::onPrinterChanged(int index) {

@@ -50,10 +50,6 @@ void PressureControllerBase::setPressureUnit(PressureUnit unit) {
     m_pressureUnit = unit;
 }
 
-void PressureControllerBase::setPreloadFactor(qreal factor) {
-    m_preloadFactor = factor;
-}
-
 void PressureControllerBase::updatePressure(qreal time, qreal pressure) {
     m_pressure_history.emplace_back(pressure);
     m_time_history.emplace_back(time);
@@ -150,10 +146,6 @@ const std::vector<qreal> &PressureControllerBase::gaugePressureValues() const {
 
 PressureUnit PressureControllerBase::pressureUnit() const {
     return m_pressureUnit;
-}
-
-qreal PressureControllerBase::preloadFactor() const {
-    return m_preloadFactor;
 }
 
 qreal PressureControllerBase::currentPressure() const {

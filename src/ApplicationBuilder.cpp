@@ -215,6 +215,7 @@ void ApplicationBuilder::initTelemetryLogger() {
 void ApplicationBuilder::applySettings() {
     auto* cfg = ServiceLocator::instance().configManager();
     auto* camera = ServiceLocator::instance().cameraProcessor();
+    auto* gs = ServiceLocator::instance().graduationService();
 
     if (cfg->get<bool>(CFG_KEY_SYS_AUTOOPEN, false)) {
         camera->setCameraString(cfg->get<QString>(CFG_KEY_SYS_CAMERA_STR));
@@ -225,4 +226,6 @@ void ApplicationBuilder::applySettings() {
     camera->setAimColor(cfg->get<QColor>(CFG_KEY_AIM_COLOR, QColor("#FF0000")));
     camera->setAimRadius(cfg->get<int>(CFG_KEY_AIM_RADIUS, 30));
     CameraProcessor::restoreDefaultCapRate(); // Раз в 4 кадра
+
+    gs->prepare();
 }

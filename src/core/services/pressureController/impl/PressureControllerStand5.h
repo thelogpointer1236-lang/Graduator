@@ -14,6 +14,7 @@ public:
     bool isReadyToStart(QString &err) const override;
 protected:
     void onPressureUpdated(qreal time, qreal pressure) override;
+    qreal preloadFactor() const override;
 private:
     void preloadPressure();
     void forwardPressure();

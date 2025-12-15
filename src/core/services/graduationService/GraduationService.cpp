@@ -6,6 +6,8 @@
 
 #include <algorithm>
 
+#include "defines.h"
+
 namespace {
     constexpr qreal kSensorTimeoutSec = 2.5;
     constexpr int   kWatchdogIntervalMs = 500;
@@ -29,64 +31,90 @@ GraduationService::~GraduationService() {
 // 1. PREPARE PHASE
 // ======================================================
 
-bool GraduationService::prepare(QString &err)
+bool GraduationService::prepare(QString *err_)
 {
-    if (m_state != State::Idle) {
-        err = tr("Сервис уже инициализирован.");
-        return false;
-    }
-
     auto* pc = ServiceLocator::instance().pressureController();
     auto* ps = ServiceLocator::instance().pressureSensor();
     auto& cfg = *ServiceLocator::instance().configManager();
-
-    const int gaugeIdx = cfg.get<int>("current.gaugeModel", -1);
     auto& catalog = *ServiceLocator::instance().gaugeCatalog();
 
+    QString err;
+
+    const int gaugeIdx = cfg.get<int>(CFG_KEY_CURRENT_GAUGE_MODEL, -1);
     if (gaugeIdx < 0 || gaugeIdx >= catalog.all().size()) {
-        err = tr("Не задана модель манометра.");
-        return false;
+        err = tr("Gauge model is not specified.");
+        goto fail;
     }
 
     m_gaugeModel = catalog.all()[gaugeIdx];
     if (m_gaugeModel.pressureValues().size() < 2) {
-        err = tr("Модель манометра некорректна.");
-        return false;
+        err = tr("Gauge model is invalid.");
+        goto fail;
     }
 
     m_pressureUnit = static_cast<PressureUnit>(
-        cfg.get<int>("current.pressureUnit", static_cast<int>(PressureUnit::Unknown))
+        cfg.get<int>(CFG_KEY_CURRENT_PRESSURE_UNIT,
+                     static_cast<int>(PressureUnit::Unknown))
     );
     if (m_pressureUnit == PressureUnit::Unknown) {
-        err = tr("Не задана единица давления.");
-        return false;
+        err = tr("Pressure unit is not specified.");
+        goto fail;
     }
 
-    const auto &pressureValues = m_gaugeModel.pressureValues();
-    const auto maxPressureIt = std::max_element(pressureValues.begin(), pressureValues.end());
-    const double gaugeUpperLimit = maxPressureIt != pressureValues.end() ? *maxPressureIt : 0.0;
-
-    double preloadFactor = 0.0;
-    if (!tryGetPreloadFactor(m_pressureUnit, gaugeUpperLimit, preloadFactor, &err)) {
-        return false;
+    if (!ps) {
+        err = tr("Pressure sensor is not available.");
+        goto fail;
     }
 
     if (!ps->isRunning()) {
-        err = tr("Датчик давления не запущен.");
-        return false;
+        err = tr("Pressure sensor is not running.");
+        goto fail;
     }
 
-    pc->setGaugePressurePoints(m_gaugeModel.pressureValues());
-    pc->setPressureUnit(m_pressureUnit);
-    pc->setPreloadFactor(preloadFactor);
-    pc->updatePressure(0, ps->getLastPressure().getValue(m_pressureUnit));
+    if (!pc) {
+        err = tr("Pressure controller is not available.");
+        goto fail;
+    }
 
-    if (!pc->isReadyToStart(err))
-        return false;
+    const auto& pressureValues = m_gaugeModel.pressureValues();
+    const auto maxPressureIt =
+        std::max_element(pressureValues.begin(), pressureValues.end());
+
+    if (maxPressureIt == pressureValues.end() || *maxPressureIt <= 0.0) {
+        err = tr("Gauge pressure range is invalid.");
+        goto fail;
+    }
+
+    pc->setGaugePressurePoints(pressureValues);
+    pc->setPressureUnit(m_pressureUnit);
+
+    const double currentPressure = ps->getLastPressure().getValue(m_pressureUnit);
+
+    if (!std::isfinite(currentPressure)) {
+        err = tr("No valid pressure data available.");
+        goto fail;
+    }
+
+    pc->updatePressure(0, currentPressure);
+
+    if (qFuzzyIsNull(pc->preloadFactor())) {
+        err = tr("Preload factor is not set.");
+        goto fail;
+    }
+
+    if (!pc->isReadyToStart(err)) {
+        goto fail;
+    }
 
     m_state = State::Prepared;
+    if (err_) err_->clear();
     return true;
+
+fail:
+    if (err_) *err_ = err;
+    return false;
 }
+
 
 // ======================================================
 // 2. START PHASE
@@ -137,7 +165,7 @@ void GraduationService::interrupt()
     disconnectObjects();
     pc->interrupt();
 
-    m_state = State::Interrupted;
+    m_state = State::Idle;
     m_elapsedTimer.invalidate();
     clearResultOnly(); // НЕ вызов updateResult!
 
@@ -160,7 +188,7 @@ void GraduationService::onPressureControllerResultReady()
     m_elapsedTimer.invalidate();
 
     updateResult();
-    m_state = State::Finished;
+    m_state = State::Idle;
 
     emit ended();
     emit resultAvailabilityChanged(true);
@@ -325,7 +353,7 @@ qreal GraduationService::getElapsedTimeSeconds() const {
 void GraduationService::requestUpdateResultAndTable()
 {
     // Разрешено обновлять таблицу только когда результат есть
-    if (m_state == State::Finished && m_resultReady) {
+    if (m_state == State::Idle && m_resultReady) {
         updateResult();
     }
 

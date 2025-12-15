@@ -33,6 +33,11 @@ void PressureControllerStand5::onPressureUpdated(qreal time, qreal pressure) {
     Q_UNUSED(time)
     Q_UNUSED(pressure)
 }
+
+qreal PressureControllerStand5::preloadFactor() const {
+    return 0.5;
+}
+
 // Набор предварительного давления
 void PressureControllerStand5::preloadPressure() {
     const qreal p_preload = getPreloadPressure();

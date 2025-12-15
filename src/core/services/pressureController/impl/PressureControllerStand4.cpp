@@ -34,7 +34,64 @@ QStringList PressureControllerStand4::getModes() const
     };
 }
 
+qreal PressureControllerStand4::preloadFactor() const {
+    qreal back = gaugePressureValues().back();
+    if (qFuzzyCompare(back, 600)) {
+        if (pressureUnit() == PressureUnit::Kgf || pressureUnit() == PressureUnit::Atm)
+            return 0.26;
+    }
+    if (qFuzzyCompare(back, 60)) {
+        if (pressureUnit() == PressureUnit::MPa)
+            return 0.26;
+    }
 
+    if (qFuzzyCompare(back, 400)) {
+        if (pressureUnit() == PressureUnit::Kgf || pressureUnit() == PressureUnit::Atm)
+            return 0.26;
+    }
+    if (qFuzzyCompare(back, 40)) {
+        if (pressureUnit() == PressureUnit::MPa)
+            return 0.26;
+    }
+
+    if (qFuzzyCompare(back, 250)) {
+        if (pressureUnit() == PressureUnit::Kgf || pressureUnit() == PressureUnit::Atm)
+            return 0.35;
+    }
+    if (qFuzzyCompare(back, 25)) {
+        if (pressureUnit() == PressureUnit::MPa)
+            return 0.35;
+    }
+
+    if (qFuzzyCompare(back, 160)) {
+        if (pressureUnit() == PressureUnit::Kgf || pressureUnit() == PressureUnit::Atm)
+            return 0.87;
+    }
+    if (qFuzzyCompare(back, 16)) {
+        if (pressureUnit() == PressureUnit::MPa)
+            return 0.87;
+    }
+
+    if (qFuzzyCompare(back, 100)) {
+        if (pressureUnit() == PressureUnit::Kgf || pressureUnit() == PressureUnit::Atm)
+            return 0.87;
+    }
+    if (qFuzzyCompare(back, 10)) {
+        if (pressureUnit() == PressureUnit::MPa)
+            return 0.87;
+    }
+
+    if (qFuzzyCompare(back, 60)) {
+        if (pressureUnit() == PressureUnit::Kgf || pressureUnit() == PressureUnit::Atm)
+            return 0.87;
+    }
+    if (qFuzzyCompare(back, 6)) {
+        if (pressureUnit() == PressureUnit::MPa)
+            return 0.87;
+    }
+
+    return 0.0;
+}
 
 qreal PressureControllerStand4::getTargetPressure() const
 {
@@ -337,11 +394,7 @@ void PressureControllerStand4::start()
 {
     Q_ASSERT(QThread::currentThread() != qApp->thread());
 
-    m_isRunning = true;
-    emit started();
-
     auto *gs = ServiceLocator::instance().graduationService();
-
     auto finalize = [this, gs](bool success) {
         g540Driver()->stop();
         CameraProcessor::restoreDefaultCapRate();
@@ -354,6 +407,15 @@ void PressureControllerStand4::start()
         else
             emit interrupted();
     };
+
+    if (qFuzzyIsNull(preloadFactor())) {
+        ServiceLocator::instance().logger()->error("preloadFactor is null");
+        finalize(false);
+    }
+
+
+    m_isRunning = true;
+    emit started();
 
     gs->graduator().switchToForward();
 

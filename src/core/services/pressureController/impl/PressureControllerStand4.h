@@ -20,6 +20,7 @@ public:
 
 protected:
     void onPressureUpdated(qreal time, qreal pressure) override;
+    qreal preloadFactor() const override;
 
 private:
     // Основные шаги

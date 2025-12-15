@@ -21,7 +21,7 @@ public:
     G540Driver *g540Driver() const;
     void setGaugePressurePoints(const std::vector<qreal> &pressureValues);
     void setPressureUnit(PressureUnit unit);
-    void setPreloadFactor(qreal factor);
+    virtual qreal preloadFactor() const = 0;
     void updatePressure(qreal time, qreal pressure);
     virtual QStringList getModes() const = 0;
     virtual qreal getTargetPressure() const = 0;
@@ -51,7 +51,7 @@ protected:
     virtual void onPressureUpdated(qreal time, qreal pressure) = 0;
     const std::vector<qreal> &gaugePressureValues() const;
     PressureUnit pressureUnit() const;
-    qreal preloadFactor() const;
+
     qreal currentPressure() const;
     bool shouldStop() const noexcept;
 
@@ -60,7 +60,6 @@ private:
     QThread *m_G540DriverThread = nullptr;
     std::vector<qreal> m_gaugePressureValues;
     PressureUnit m_pressureUnit{};
-    qreal m_preloadFactor = 0.0;
     std::atomic<bool> m_aboutToStop{false};
 
 protected:

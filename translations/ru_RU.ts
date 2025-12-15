@@ -501,6 +501,51 @@
    </context>
    <context>
       <name>GraduationService</name>
+<message>
+<source>Gauge model is not specified.</source>
+<translation>Не указана модель манометра.</translation>
+</message>
+
+<message>
+<source>Gauge model is invalid.</source>
+<translation>Модель манометра некорректна.</translation>
+</message>
+
+<message>
+<source>Pressure unit is not specified.</source>
+<translation>Не указана единица измерения давления.</translation>
+</message>
+
+<message>
+<source>Pressure sensor is not available.</source>
+<translation>Датчик давления недоступен.</translation>
+</message>
+
+<message>
+<source>Pressure sensor is not running.</source>
+<translation>Датчик давления не запущен.</translation>
+</message>
+
+<message>
+<source>Pressure controller is not available.</source>
+<translation>Контроллер давления недоступен.</translation>
+</message>
+
+<message>
+<source>Gauge pressure range is invalid.</source>
+<translation>Диапазон давления манометра некорректен.</translation>
+</message>
+
+<message>
+<source>No valid pressure data available.</source>
+<translation>Отсутствуют корректные данные давления.</translation>
+</message>
+
+<message>
+<source>Preload factor is not set.</source>
+<translation>Коэффициент предварительной нагрузки не задан для данного прибора и единицы измерения.</translation>
+</message>
+
       <message>
          <source>Сервис уже инициализирован.</source>
          <translation>Сервис уже инициализирован.</translation>

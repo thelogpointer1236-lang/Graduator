@@ -113,21 +113,6 @@ QVariant StatusBarModel::data(const QModelIndex &idx, int role) const {
                 back = COLOR_OK;
                 break;
 
-            case GraduationService::State::Finished:
-                if (service.isResultReady()) {
-                    text = tr("Calibration finished (unsaved result)");
-                    back = COLOR_WARN;
-                } else {
-                    text = tr("Calibration finished");
-                    back = COLOR_OK;
-                }
-                break;
-
-            case GraduationService::State::Interrupted:
-                text = tr("Calibration interrupted");
-                back = COLOR_ERR;
-                break;
-
             case GraduationService::State::Idle:
             default:
                 text = tr("Idle");
