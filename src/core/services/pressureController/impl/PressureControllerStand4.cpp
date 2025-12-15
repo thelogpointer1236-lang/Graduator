@@ -1,57 +1,14 @@
 ﻿#include "PressureControllerStand4.h"
 
+#include <QApplication>
 #include <QThread>
 #include <QDebug>
 #include "core/services/ServiceLocator.h"
 #include "utils.h"
 
-#define interrupt \
-    {m_isRunning = false; \
-    CameraProcessor::restoreDefaultCapRate(); \
-    emit interrupted(); \
-    return false;}
-
 #define MODE_INFERENCE               0
 #define MODE_FORWARD                 1
 #define MODE_FORWARD_AND_BACKWARD    2
-
-namespace {
-
-double calculateFrequency(double maxFrequency,
-                          double currentPressure,
-                          double limitPressure)
-{
-    if (currentPressure >= limitPressure)
-        return maxFrequency / 4.0;
-
-    if (currentPressure <= 0)
-        return maxFrequency;
-
-    double ratio = currentPressure / limitPressure;
-    double delta = (maxFrequency * 3.0 / 4.0) * ratio;
-
-    return maxFrequency - delta;
-}
-
-bool isNearToPressureNode(const std::vector<double> &nodes,
-                          double p,
-                          double percentThreshold)
-{
-    if (nodes.size() < 2)
-        return true;
-
-    double step = nodes[1] - nodes[0];
-    double threshold = std::abs(step * percentThreshold / 100.0);
-
-    for (double node : nodes)
-        if (std::abs(p - node) <= threshold)
-            return true;
-
-    return false;
-}
-
-} // namespace
-
 
 
 PressureControllerStand4::PressureControllerStand4(QObject *parent)
@@ -91,8 +48,6 @@ qreal PressureControllerStand4::getTargetPressureVelocity() const
 {
     return m_dP_target;
 }
-
-
 
 bool PressureControllerStand4::isReadyToStart(QString &err) const
 {
@@ -152,24 +107,42 @@ void PressureControllerStand4::onPressureUpdated(qreal time, qreal pressure)
     Q_UNUSED(pressure)
 }
 
-
-
-// ---------------------------------------------------------------------------
-// Узловая логика с гистерезисом (7.5% вход, 3.5% выход)
-// ---------------------------------------------------------------------------
-
-bool PressureControllerStand4::isInThreshold(double p, double node, double percent) const
-{
-    double step = gaugePressureValues()[1] - gaugePressureValues()[0];
-    double threshold = std::abs(step * percent / 100.0);
-    return std::abs(p - node) <= threshold;
-}
-
-
 // ---------------------------------------------------------------------------
 // Логика расчёта частоты
 // ---------------------------------------------------------------------------
 
+void PressureControllerStand4::updateFreq(double pCur, double pTarget,
+                                          double dpCur, double dpTarget,
+                                          double divMin, double divMax,
+                                          double freqMin, double freqMax)
+{
+    if (qFuzzyIsNull(pTarget)) {
+        m_frequency = freqMin;
+        return;
+    }
+
+    constexpr double kUpperDeadZone = 1.7;
+    constexpr double kLowerDeadZone = 0.7;
+    constexpr double kDividerStepPercent = 1.0;
+
+    const double absDpCur    = qAbs(dpCur);
+    const double absDpTarget = qAbs(dpTarget);
+    const double dividerStep = (divMax - divMin) * kDividerStepPercent / 100.0;
+
+    if (absDpCur > kUpperDeadZone * absDpTarget) {
+        m_divider += dividerStep;
+    }
+    else if (absDpCur < kLowerDeadZone * absDpTarget) {
+        m_divider -= dividerStep;
+    }
+
+    m_divider = qBound(divMin, m_divider, divMax);
+
+    const double freqBase =
+        (freqMax - freqMin) * (pCur / pTarget) + freqMin;
+
+    m_frequency = qBound(freqMin, freqBase / m_divider, freqMax);
+}
 
 
 // ---------------------------------------------------------------------------
@@ -178,7 +151,7 @@ bool PressureControllerStand4::isInThreshold(double p, double node, double perce
 
 void PressureControllerStand4::applyCameraRateIfNearNode(double p_cur)
 {
-    if (isNearToPressureNode(gaugePressureValues(), p_cur, 7.5)) {
+    if (m_nearToPressureNode) {
         CameraProcessor::setCapRate(1);
     } else {
         CameraProcessor::restoreDefaultCapRate();
@@ -187,6 +160,7 @@ void PressureControllerStand4::applyCameraRateIfNearNode(double p_cur)
 
 bool PressureControllerStand4::handleBadVelocity(int &bad_dp_count, double dp_cur)
 {
+    // if (currentPressure() > gaugePressureValues().back() / 2
     if (dp_cur < m_dP_target / 10)
         ++bad_dp_count;
     else if (bad_dp_count > 0)
@@ -215,13 +189,9 @@ bool PressureControllerStand4::handleBadVelocity(int &bad_dp_count, double dp_cu
     return false;
 }
 
-void PressureControllerStand4::updateFlapsForBackward(double p_cur)
-{
-    if (p_cur <= getPreloadPressure() && p_cur < gaugePressureValues()[1])
-        g540Driver()->setFlapsState(G540FlapsState::OpenOutput);
+void PressureControllerStand4::updateNearingToPressureNode(double thr_l, double thr_r) {
+    m_nearToPressureNode = isNearToPressureNode(currentPressure(), thr_l, thr_r, gaugePressureValues(), &m_nearingToPressureNode);
 }
-
-
 
 // ---------------------------------------------------------------------------
 // Преднагрузка
@@ -235,7 +205,7 @@ bool PressureControllerStand4::preloadPressure()
         g540Driver()->setFlapsState(G540FlapsState::OpenInput);
     }
     else {
-        interrupt;
+        return false;
     }
 
 
@@ -245,7 +215,7 @@ bool PressureControllerStand4::preloadPressure()
 
         if (shouldStop()) {
             g540Driver()->setFlapsState(G540FlapsState::OpenOutput);
-            interrupt;
+            return false;
         }
 
         QThread::msleep(15);
@@ -253,37 +223,6 @@ bool PressureControllerStand4::preloadPressure()
 
     g540Driver()->setFlapsState(G540FlapsState::CloseBoth);
     return true;
-}
-
-
-void PressureControllerStand4::updateFreq(double p_cur, double p_target,
-                double dp_cur, double dp_target,
-                double div_min, double div_max,
-                double freq_min, double freq_max
-                ){
-    if (dp_target>0){
-        // прямой ход
-
-    }
-    else{
-        // обратный ход
-    }
-    double abs_dp_cur=qAbs(dp_cur);
-    double abs_dp_target=qAbs(dp_target);
-
-    if (abs_dp_cur>1.3*abs_dp_target) /* +0.3 - зона не чувствительности */
-        m_divider += 1.0*(div_max-div_min)/100.0;
-
-    if (abs_dp_cur<0.7*abs_dp_target) /* -0.3 - зона не чувствительности */
-        m_divider -= 1.0*(div_max-div_min)/100.0;
-
-    m_divider=qBound(div_min,m_divider,div_max);
-    double freq_base=(freq_max-freq_min)*(p_cur/p_target)+freq_min;
-    m_frequency = freq_base/m_divider;
-    m_frequency=qBound(freq_min,m_frequency,freq_max);
-
-    qDebug() << "m_divider =" << m_divider << "; m_frequency =" << m_frequency;
-
 }
 
 
@@ -305,28 +244,38 @@ bool PressureControllerStand4::forwardPressure()
     while (currentPressure() < p_target) {
 
         if (shouldStop()) {
-            g540Driver()->stop();
-            interrupt;
+            return false;
         }
 
         const double p_cur = currentPressure();
         const double dp_cur = getCurrentPressureVelocity();
-        const double dp_req = getNominalPressureVelocity();
+        double dp_target = getNominalPressureVelocity() * 4;
 
-        int freq;
+
+        updateNearingToPressureNode(7.5, 7.5);
+
         if (m_currentMode == MODE_INFERENCE) {
-            freq = f_max;
+            m_frequency = f_max;
         }
         else {
-            updateFreq(p_cur, p_target, dp_cur, dp_req, 0.05, 15.0, f_min, f_max);
-            freq = m_frequency;
+            double nearing;
+            bool isNear = isNearToPressureNode(p_cur, 20.0, 10.0, gaugePressureValues(), &nearing);
+            if (!isNear) {
+                updateFreq(p_cur, p_target, dp_cur, dp_target, 0.1, 3.0, f_min, f_max);
+            }
+            else {
+                dp_target = lerp(dp_target, dp_target / 5.0, nearing);
+                updateFreq(p_cur, p_target, dp_cur, dp_target / 5.0, 0.1, 3.0, f_min, f_max);
+            }
         }
+
+        m_dP_target = dp_target;
 
         if (!handleBadVelocity(bad_dp_count, dp_cur)) {
-            interrupt;
+            return false;
         }
 
-        g540Driver()->setFrequency(freq);
+        g540Driver()->setFrequency(m_frequency);
 
         QThread::msleep(90);
     }
@@ -341,36 +290,40 @@ bool PressureControllerStand4::forwardPressure()
 
 bool PressureControllerStand4::backwardPressure()
 {
-    const qreal p_target = getTargetPressure();
     const int f_max      = g540Driver()->maxFrequency();
+
+    m_dP_target = getNominalPressureVelocity() * 4.0;
 
     g540Driver()->setDirection(G540Direction::Backward);
 
-    while (currentPressure() > 10.0) {
-
+    while (!isEndLimitTriggered()) {
         if (shouldStop()) {
-            g540Driver()->stop();
-            interrupt;
+            return false;
         }
 
         const double p_cur = currentPressure();
 
-        if (m_currentMode == MODE_FORWARD_AND_BACKWARD) {
+        applyCameraRateIfNearNode(p_cur);
 
-            applyCameraRateIfNearNode(p_cur);
-            updateFlapsForBackward(p_cur);
+        double nearing;
+        bool isNear = isNearToPressureNode(p_cur, 15.0, 25.0, gaugePressureValues(), &nearing);
 
-            int freq = computeFrequency(p_cur, p_target, f_max);
-            g540Driver()->setFrequency(freq);
+        if (isNear) {
+            m_frequency = lerp(f_max, f_max / 8.0, nearing);
         }
         else {
-            g540Driver()->setFrequency(f_max);
+            m_frequency = f_max;
         }
 
+        g540Driver()->setFrequency(m_frequency);
         QThread::msleep(90);
     }
 
-    updateFlapsForBackward(currentPressure());
+    const double p_cur = currentPressure();
+    if (p_cur <= getPreloadPressure() && p_cur < gaugePressureValues()[1]) {
+        g540Driver()->setFlapsState(G540FlapsState::OpenOutput);
+    }
+
     return true;
 }
 
@@ -382,34 +335,48 @@ bool PressureControllerStand4::backwardPressure()
 
 void PressureControllerStand4::start()
 {
+    Q_ASSERT(QThread::currentThread() != qApp->thread());
+
     m_isRunning = true;
     emit started();
 
     auto *gs = ServiceLocator::instance().graduationService();
 
+    auto finalize = [this, gs](bool success) {
+        g540Driver()->stop();
+        CameraProcessor::restoreDefaultCapRate();
+        m_dP_target = 0;
+        m_isRunning = false;
+        gs->updateResult();
+
+        if (success)
+            emit resultReady();
+        else
+            emit interrupted();
+    };
+
     gs->graduator().switchToForward();
+
     if (!preloadPressure()) {
-        goto Done;
+        finalize(false);
+        return;
     }
 
     QMetaObject::invokeMethod(g540Driver(), "start", Qt::QueuedConnection);
+
     if (!forwardPressure()) {
-        goto Done;
+        finalize(false);
+        return;
     }
 
     gs->graduator().switchToBackward();
     gs->updateResult();
 
-    if(!backwardPressure()) {
-        goto Done;
+    if (!backwardPressure()) {
+        finalize(false);
+        return;
     }
 
-Done:
-    g540Driver()->stop();
-    gs->updateResult();
-
-    m_dP_target = 0;
-    m_isRunning = false;
-
-    emit resultReady();
+    finalize(true);
 }
+

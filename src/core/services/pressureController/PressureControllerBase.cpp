@@ -23,7 +23,6 @@ PressureControllerBase::~PressureControllerBase()
     }
 
     if (m_G540DriverThread) {
-
         // Удаляем объект в его собственном потоке
         if (m_G540Driver) {
             QMetaObject::invokeMethod(

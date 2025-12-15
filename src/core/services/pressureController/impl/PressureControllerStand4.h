@@ -34,25 +34,34 @@ private:
     qreal getNominalPressureVelocity() const;
     qreal getMaxPressureVelocity() const;
     qreal getMinPressureVelocity() const;
-    double m_frequency;
-    double m_divider = 1;
+
     void updateFreq(double p_cur, double p_target,
                     double dp_cur, double dp_target,
                     double div_min, double div_max,
                     double freq_min, double freq_max
                     );
-    // Логика узлов и гистерезиса
-    bool isPressureNearToNode(double left, double right);
 
     // Вспомогательные рутинные функции
     void applyCameraRateIfNearNode(double p_cur);
     bool handleBadVelocity(int &bad_dp_count, double dp_cur);
-    void updateFlapsForBackward(double p_cur);
+    void updateNearingToPressureNode(double thr_l, double thr_r);
 
 private:
     int   m_currentMode      = 0;
+
     qreal m_dP_target        = 0.0;
-    bool  m_nearNodeSlowMode = false;  // гистерезисный режим «медленно»
+
+    bool  m_nearToPressureNode = false;
+    double m_nearingToPressureNode = 0.0;
+
+    double m_frequency;
+    double m_divider = 0;
+
+    QElapsedTimer m_updateTimer;
+    qint64 m_lastNs = 0;
+
+    double m_overMs  = 0.0;   // сколько времени подряд "слишком большой dp"
+    double m_underMs = 0.0;   // сколько времени подряд "слишком маленький dp"
 };
 
 #endif // GRADUATOR_PRESSURECONTROLLERSTAND4_H
