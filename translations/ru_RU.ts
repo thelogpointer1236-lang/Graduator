@@ -14,6 +14,10 @@
          <source>Save</source>
          <translation>Сохранить</translation>
       </message>
+      <message>
+         <source>Saved party number</source>
+         <translation>Номер сохраненной партии</translation>
+      </message>
    </context>
    <context>
       <name>CameraGridWidget</name>

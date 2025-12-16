@@ -3,7 +3,6 @@
 #include "core/services/ServiceLocator.h"
 #include "core/types/PartyResult.h"
 
-#include <QVBoxLayout>
 #include <QHBoxLayout>
 #include <QFrame>
 #include <QLabel>
@@ -11,6 +10,7 @@
 #include <QCheckBox>
 #include <QPushButton>
 #include <QMessageBox>
+#include <QVBoxLayout>
 
 PartyWidget::PartyWidget(QWidget *parent)
     : QWidget(parent)
@@ -59,6 +59,12 @@ QHBoxLayout *PartyWidget::createPartyHeader()
 {
     auto *layout = new QHBoxLayout;
     layout->setContentsMargins(5, 5, 5, 5);
+
+    auto *labelsLayout = new QVBoxLayout;
+    labelsLayout->setContentsMargins(0, 0, 0, 0);
+
+    auto *currentPartyLayout = new QHBoxLayout;
+    currentPartyLayout->setContentsMargins(0, 0, 0, 0);
     auto *partyLabelText = new QLabel(tr("Number of party") + ": ", this);
     partyNumberLabel_ = new QLabel(QString::number(ServiceLocator::instance().partyManager()->partyNumber()), this);
     QFont font = partyNumberLabel_->font();
@@ -66,8 +72,19 @@ QHBoxLayout *PartyWidget::createPartyHeader()
     font.setBold(true);
     partyNumberLabel_->setFont(font);
     partyLabelText->setFont(font);
-    layout->addWidget(partyLabelText);
-    layout->addWidget(partyNumberLabel_);
+    currentPartyLayout->addWidget(partyLabelText);
+    currentPartyLayout->addWidget(partyNumberLabel_);
+    currentPartyLayout->addStretch();
+
+    savedPartyNumberLabel_ = new QLabel(this);
+    savedPartyNumberLabel_->setFont(font);
+    savedPartyNumberLabel_->setStyleSheet(QStringLiteral("color: green;"));
+    savedPartyNumberLabel_->setVisible(false);
+
+    labelsLayout->addLayout(currentPartyLayout);
+    labelsLayout->addWidget(savedPartyNumberLabel_);
+
+    layout->addLayout(labelsLayout);
     layout->addStretch();
     return layout;
 }
@@ -92,12 +109,14 @@ void PartyWidget::onSaveClicked()
         return;
     }
     auto *partyManager = ServiceLocator::instance().partyManager();
+    const int savedPartyNumber = partyManager->partyNumber();
     const PartyResult result = graduationService->getPartyResult();
     if (QString err; !partyManager->savePartyResult(result, err)) {
         QMessageBox::critical(this, tr("Saving"), tr("Failed to store the graduation result for the current party.") + "\n" + err);
         return;
     }
     QMessageBox::information(this, tr("Saving"), tr("The graduation result has been saved."));
+    showSavedPartyNumber(savedPartyNumber);
 }
 
 void PartyWidget::onStrongNodeToggled(bool checked)
@@ -114,6 +133,14 @@ void PartyWidget::setPartyNumber(int number)
 {
     if (partyNumberLabel_) {
         partyNumberLabel_->setText(QString::number(number));
+    }
+}
+
+void PartyWidget::showSavedPartyNumber(int number)
+{
+    if (savedPartyNumberLabel_) {
+        savedPartyNumberLabel_->setText(tr("Saved party number") + ": " + QString::number(number));
+        savedPartyNumberLabel_->setVisible(true);
     }
 }
 
