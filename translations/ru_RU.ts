@@ -772,4 +772,27 @@
          <translation>Процесс градуировки был прерван</translation>
       </message>
    </context>
+   <context>
+      <name>PartyManager</name>
+      <message>
+         <source>Cannot save result: all gauges contain errors or missing measurements.</source>
+         <translation>Не удалось сохранить результат: все манометры содержат ошибки или отсутствуют измерения.</translation>
+      </message>
+      <message>
+         <source>Save warning</source>
+         <translation>Предупреждение о сохранении</translation>
+      </message>
+      <message>
+         <source>All gauges were saved successfully except %1.</source>
+         <translation>Все манометры были успешно сохранены, кроме %1.</translation>
+      </message>
+      <message>
+         <source>Save result</source>
+         <translation>Результат сохранения</translation>
+      </message>
+      <message>
+         <source>All gauges were saved successfully.</source>
+         <translation>Все манометры были успешно сохранены.</translation>
+      </message>
+   </context>
 </TS>
