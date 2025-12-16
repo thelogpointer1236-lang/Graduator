@@ -20,6 +20,7 @@ private slots:
     void onSaveClicked();
     void onStrongNodeToggled(bool checked);
     void onResultAvailabilityChanged(bool available);
+    void showSavedPartyNumber(int number);
 
 private:
     class QHBoxLayout *createPartyHeader();
@@ -29,6 +30,7 @@ private:
     void setupConnections();
 
     QLabel *partyNumberLabel_ = nullptr;
+    QLabel *savedPartyNumberLabel_ = nullptr;
     QCheckBox *strongNodeCheck_ = nullptr;
     QPushButton *saveButton_ = nullptr;
 };
