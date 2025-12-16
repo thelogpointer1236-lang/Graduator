@@ -352,11 +352,6 @@ qreal GraduationService::getElapsedTimeSeconds() const {
 
 void GraduationService::requestUpdateResultAndTable()
 {
-    // Разрешено обновлять таблицу только когда результат есть
-    if (m_state == State::Idle && m_resultReady) {
-        updateResult();
-    }
-
     emit tableUpdateRequired();
 }
 

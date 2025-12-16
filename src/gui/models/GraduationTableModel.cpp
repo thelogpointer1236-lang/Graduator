@@ -136,11 +136,6 @@ QVariant GraduationTableModel::data(const QModelIndex &index, int role) const {
 
         // Подсветка ошибок/предупреждений — фон
         if (role == Qt::BackgroundRole) {
-            // Подсветка диапазона угла — спокойный синий
-            if (issue->category == PartyValidationIssue::Category::AngleRange) {
-                return kInfoBg;
-            }
-
             switch (issue->severity) {
                 case PartyValidationIssue::Severity::Error:
                     return kErrorBg;
@@ -217,7 +212,8 @@ QVariant GraduationTableModel::data(const QModelIndex &index, int role) const {
 
         // Последний измеренный угол камеры
         case 3:
-            return ServiceLocator::instance().cameraProcessor()
+            if (!forward)
+                return ServiceLocator::instance().cameraProcessor()
                     ->lastAngleForCamera(camIdx);
     }
 

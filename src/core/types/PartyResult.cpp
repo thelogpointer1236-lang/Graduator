@@ -53,7 +53,7 @@ PartyValidationResult PartyResult::validate() const {
 
             // Диапазон угла
             if (nodes.size() >= 2) {
-                const double angleDeg = std::abs(toDegrees(nodes.back().angle - nodes.front().angle));
+                const double angleDeg = std::abs(nodes.back().angle - nodes.front().angle);
 
                 const double minAllowed = strongNode ? kStrongMinAngleDeg : kMinAngleDeg;
                 const double maxAllowed = strongNode ? kStrongMaxAngleDeg : kMaxAngleDeg;

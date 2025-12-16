@@ -353,7 +353,7 @@ bool PressureControllerStand4::backwardPressure()
 
     g540Driver()->setDirection(G540Direction::Backward);
 
-    while (!isEndLimitTriggered()) {
+    while (currentPressure() > 10) {
         if (shouldStop()) {
             return false;
         }

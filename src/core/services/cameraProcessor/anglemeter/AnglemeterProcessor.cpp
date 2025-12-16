@@ -35,8 +35,8 @@ void AnglemeterProcessor::processImage(qint32 cameraIdx, qreal time, const quint
     Q_UNUSED(imgData);
 
     const double minAngle = 30.0;
-    const double maxAngle = 340.0;
-    const double period = 70.0;
+    const double maxAngle = 310.0;
+    const double period = 30.0;
     const double halfPeriod = period / 2.0;
     const double amplitude = maxAngle - minAngle;
 

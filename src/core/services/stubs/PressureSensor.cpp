@@ -59,7 +59,7 @@ void PressureSensor::start()
         }
 
         // Период 60 секунд
-        const double period = 60.0;
+        const double period = 30.0;
         const double halfPeriod = period / 2.0; // 30 секунд
         const double minPressure = -10.0;
         const double maxPressure = 260.0;
@@ -84,7 +84,7 @@ void PressureSensor::start()
 
         emit pressureMeasured(timestampSec, m_lastPressure);
 
-        QThread::msleep(100);
+        QThread::msleep(10);
     }
 
     m_isRunning = false;
