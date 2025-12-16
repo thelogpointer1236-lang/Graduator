@@ -7,6 +7,7 @@
 #include <algorithm>
 #include <QMessageBox>
 #include <QDebug>
+#include <QSet>
 
 PartyManager::PartyManager(int standNumber, QObject *parent)
     : QObject(parent)
@@ -30,24 +31,11 @@ bool PartyManager::savePartyResult(const PartyResult &result, QString &err)
     // 0. Глобальная валидация перед любыми действиями
     const PartyValidationResult validation = result.validate();
 
-    if (!validation.issues.empty()) {
-        // Формируем текст для показа пользователю
-        QStringList messages;
-        for (const auto &issue : validation.issues) {
-            messages << issue.message;   // предполагаю, что в структуре есть поле message
+    QSet<int> camerasWithErrors;
+    for (const auto &issue : validation.issues) {
+        if (issue.severity == PartyValidationIssue::Severity::Error && issue.cameraIndex >= 0) {
+            camerasWithErrors.insert(issue.cameraIndex);
         }
-
-        const QString fullText = messages.join("\n");
-
-        QMessageBox::critical(
-            nullptr,
-            tr("Ошибка сохранения"),
-            tr("Невозможно сохранить результат, так как обнаружены ошибки:\n\n%1")
-                .arg(fullText)
-        );
-
-        err = tr("Validation failed. See message box.");
-        return false;
     }
 
     // 1. Подтверждение сохранения результата
@@ -74,6 +62,7 @@ bool PartyManager::savePartyResult(const PartyResult &result, QString &err)
     }
 
     const int camCount = std::min(result.forward.size(), result.backward.size());
+    QStringList unsavedGauges;
     bool anyCameraSaved = false;
 
     for (int camIdx = 0; camIdx < camCount; ++camIdx) {
@@ -81,8 +70,10 @@ bool PartyManager::savePartyResult(const PartyResult &result, QString &err)
         // Можно удалить skipCam — теперь ошибки блокируют всё сохранение заранее.
         // Но если хочешь оставить — он просто не сыграет роли, так как ошибок уже не должно быть.
 
-        if (result.forward[camIdx].size() != result.gaugeModel.pressureValues().size() ||
+        if (camerasWithErrors.contains(camIdx) ||
+            result.forward[camIdx].size() != result.gaugeModel.pressureValues().size() ||
             result.backward[camIdx].size() != result.gaugeModel.pressureValues().size()) {
+            unsavedGauges << QString::number(camIdx + 1);
             continue;
         }
 
@@ -126,8 +117,17 @@ bool PartyManager::savePartyResult(const PartyResult &result, QString &err)
     }
 
     if (!anyCameraSaved) {
-        err = tr("Cannot save result: all cameras are invalid or missing measurements.");
+        err = tr("Cannot save result: all gauges contain errors or missing measurements.");
         return false;
+    }
+
+    if (!unsavedGauges.isEmpty()) {
+        QMessageBox::warning(
+            nullptr,
+            tr("Save warning"),
+            tr("All gauges were saved successfully except %1.").arg(unsavedGauges.join(", ")));
+    } else {
+        QMessageBox::information(nullptr, tr("Save result"), tr("All gauges were saved successfully."));
     }
 
     incrementPartyNumber();
