@@ -79,6 +79,7 @@ set(SRC_FILES
         src/core/utils/Mediator.cpp
         src/core/services/TelemetryLogger.cpp
         src/core/types/PartyResult.cpp
+        src/core/services/stubs/cast_anglemeter.cpp
 )
 
 set(HEADER_FILES

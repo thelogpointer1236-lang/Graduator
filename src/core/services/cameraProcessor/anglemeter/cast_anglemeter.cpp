@@ -1,4 +1,6 @@
-﻿#include "cast_anglemeter.h"
+#ifndef USE_STUB_IMPLEMENTATIONS
+
+#include "cast_anglemeter.h"
 #include <algorithm>
 #include <cmath>
 #include <cstdint>
@@ -1293,3 +1295,5 @@ void anglemeterFreeImage(const unsigned char* img) {
         }
     }
 }
+
+#endif
