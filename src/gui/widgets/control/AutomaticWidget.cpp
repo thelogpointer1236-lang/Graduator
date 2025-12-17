@@ -19,16 +19,12 @@ AutomaticWidget::~AutomaticWidget() = default;
 
 void AutomaticWidget::setupUi()
 {
-    auto *pressureController = ServiceLocator::instance().pressureController();
-    m_calibrationModeComboBox = new QComboBox(this);
-    m_calibrationModeComboBox->addItems(pressureController->getModes());
     m_startButton = new QPushButton(tr("Start"), this);
     m_stopButton = new QPushButton(tr("Stop"), this);
     m_startButton->setEnabled(true);
     m_stopButton->setEnabled(false);
 
     auto *mainLayout = new QVBoxLayout(this);
-    mainLayout->addWidget(m_calibrationModeComboBox);
     mainLayout->addWidget(m_startButton);
     mainLayout->addWidget(m_stopButton);
     mainLayout->addStretch();
@@ -38,8 +34,6 @@ void AutomaticWidget::setupUi()
 void AutomaticWidget::connectSignals()
 {
     auto *graduationService = ServiceLocator::instance().graduationService();
-    connect(m_calibrationModeComboBox, QOverload<int>::of(&QComboBox::currentIndexChanged),
-            this, &AutomaticWidget::onCalibrationModeChanged);
     connect(m_startButton, &QPushButton::clicked,
             this, &AutomaticWidget::onStartClicked);
     connect(m_stopButton, &QPushButton::clicked,
@@ -61,12 +55,6 @@ void AutomaticWidget::connectSignals()
             });
 
 
-}
-
-void AutomaticWidget::onCalibrationModeChanged(int index)
-{
-    auto *pc = ServiceLocator::instance().pressureController();
-    QMetaObject::invokeMethod(pc, "setMode", Qt::QueuedConnection, Q_ARG(int, index));
 }
 
 void AutomaticWidget::onStartClicked()

@@ -2,13 +2,25 @@
 #include "../anglemeter/cast_anglemeter.h"
 #include "core/services/ServiceLocator.h"
 #include <iostream>
+#include <QDebug>
+
 FrameGrabberCB::FrameGrabberCB(qint32 camIdx, qint32 imgWidth, qint32 imgHeight, QObject *parent)
     : QObject(parent)
       , m_camIdx(camIdx)
-      , m_refCount(1) {
+      , m_refCount(1)
+{
+    anglemeterCreate(&m_am);
+    anglemeterSetImageSize(m_am, 640, 480);
+    anglemeterSetAngleTransformation(m_am, [] (const float angleDeg) -> float {
+        float transformedAngle = std::fmodf(180.0f - angleDeg, 360.0f);
+        if (transformedAngle < 0.0f) transformedAngle += 360.0f;
+        return transformedAngle;
+
+    });
 }
 
 FrameGrabberCB::~FrameGrabberCB() {
+    anglemeterDestroy(m_am);
 }
 
 HRESULT FrameGrabberCB::QueryInterface(const IID &riid, void **ppv) {
@@ -48,11 +60,15 @@ HRESULT FrameGrabberCB::BufferCB(double SampleTime, BYTE *pBuffer, const long Bu
         if (capIdx % s_capRate == 0) {
             const BYTE *pixelData = pBuffer;
             const qreal timestampSec = ServiceLocator::instance().graduationService()->getElapsedTimeSeconds();
-#ifdef USE_STUB_IMPLEMENTATIONS
-            emit imageCaptured(m_camIdx, timestampSec, nullptr);
-#else
-            emit imageCaptured(m_camIdx, timestampSec, anglemeterCopyImage(pixelData));
-#endif
+
+            float angle;
+            anglemeterRestoreState(m_am);
+            bool ok = anglemeterGetArrowAngle(m_am, pixelData, &angle);
+
+            if (ok) {
+                // отнимаем 60 мс, так как задержка захвата кадра
+                emit angleMeasured(m_camIdx, timestampSec - 0.060, angle);
+            }
 
         }
         capIdx++;

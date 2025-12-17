@@ -33,9 +33,6 @@ namespace grad {
         std::vector<std::size_t> anglesCountForward() const;
         std::vector<std::size_t> anglesCountBackward() const;
 
-        std::vector<const DebugData*> allDebugDataForward() const;
-        std::vector<const DebugData*> allDebugDataBackward() const;
-
         void clear();
 
     private:

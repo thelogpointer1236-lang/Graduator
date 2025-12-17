@@ -5,19 +5,15 @@
 #include <stdexcept>
 class Pressure {
 public:
-    Pressure() : m_kpa(0.0), m_punit(PressureUnit::kPa) {
+    Pressure() : m_kpa(0.0), m_punit(PressureUnit::kpa) {
     }
     Pressure(double value, PressureUnit unit) { setValue(value, unit); }
     // фабрики
-    static Pressure fromPa(double value) { return Pressure(value, PressureUnit::Pa); }
-    static Pressure fromKPa(double value) { return Pressure(value, PressureUnit::kPa); }
-    static Pressure fromMPa(double value) { return Pressure(value, PressureUnit::MPa); }
-    static Pressure fromBar(double value) { return Pressure(value, PressureUnit::Bar); }
-    static Pressure fromKgf(double value) { return Pressure(value, PressureUnit::Kgf); }
-    static Pressure fromKgfM2(double value) { return Pressure(value, PressureUnit::KgfM2); }
-    static Pressure fromAtm(double value) { return Pressure(value, PressureUnit::Atm); }
-    static Pressure fromMmHg(double value) { return Pressure(value, PressureUnit::mmHg); }
-    static Pressure fromMmH2O(double value) { return Pressure(value, PressureUnit::mmH2O); }
+    static Pressure fromKPa(double value) { return Pressure(value, PressureUnit::kpa); }
+    static Pressure fromMPa(double value) { return Pressure(value, PressureUnit::mpa); }
+    static Pressure fromBar(double value) { return Pressure(value, PressureUnit::bar); }
+    static Pressure fromKgf(double value) { return Pressure(value, PressureUnit::kgf); }
+    static Pressure fromAtm(double value) { return Pressure(value, PressureUnit::atm); }
     // конверторы
     double toPa() const { return m_kpa * 1000.0; }
     double toKPa() const { return m_kpa; }
@@ -32,38 +28,26 @@ public:
     double getValue() const { return m_kpa; }
     double getValue(PressureUnit unit) const {
         switch (unit) {
-            case PressureUnit::Pa: return toPa();
-            case PressureUnit::kPa: return toKPa();
-            case PressureUnit::MPa: return toMPa();
-            case PressureUnit::Bar: return toBar();
-            case PressureUnit::Kgf: return toKgf();
-            case PressureUnit::KgfM2: return toKgfM2();
-            case PressureUnit::Atm: return toAtm();
-            case PressureUnit::mmHg: return toMmHg();
-            case PressureUnit::mmH2O: return toMmH2O();
+            case PressureUnit::kpa: return toKPa();
+            case PressureUnit::mpa: return toMPa();
+            case PressureUnit::bar: return toBar();
+            case PressureUnit::kgf: return toKgf();
+            case PressureUnit::atm: return toAtm();
             default: throw std::invalid_argument("Unknown unit");
         }
     }
     // сеттер
     void setValue(double value, PressureUnit unit) {
         switch (unit) {
-            case PressureUnit::Pa: m_kpa = value / 1000.0;
+            case PressureUnit::kpa: m_kpa = value;
                 break;
-            case PressureUnit::kPa: m_kpa = value;
+            case PressureUnit::mpa: m_kpa = value * 1000.0;
                 break;
-            case PressureUnit::MPa: m_kpa = value * 1000.0;
+            case PressureUnit::bar: m_kpa = value * 100.0;
                 break;
-            case PressureUnit::Bar: m_kpa = value * 100.0;
+            case PressureUnit::kgf: m_kpa = value * 98.0665;
                 break;
-            case PressureUnit::Kgf: m_kpa = value * 98.0665;
-                break;
-            case PressureUnit::KgfM2: m_kpa = value * 9.80665 / 1000.0;
-                break;
-            case PressureUnit::Atm: m_kpa = value * 101.325;
-                break;
-            case PressureUnit::mmHg: m_kpa = value * 133.322 / 1000.0;
-                break;
-            case PressureUnit::mmH2O: m_kpa = value * 9.80665 / 1000.0;
+            case PressureUnit::atm: m_kpa = value * 101.325;
                 break;
             default: throw std::invalid_argument("Unknown unit");
         }

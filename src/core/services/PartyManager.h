@@ -23,10 +23,10 @@ public:
     explicit PartyManager(int standNumber, QObject *parent = nullptr);
 
     // Основной метод сохранения результата
-    bool savePartyResult(const PartyResult& result, QString& err);
+    bool savePartyResult(const PartyResult& result);
 
     // Обновление каталога и номера партии
-    bool updateCurrentPath(QString& err);
+    bool updateCurrentPath();
 
     QString currentPath() const;
     int partyNumber() const;
@@ -52,10 +52,6 @@ public:
     const QStringList& getAvailablePrecisions() const;
     const QList<Displacement>& getAvailableDisplacements() const;
     const QList<Printer>& getAvailablePrinters() const;
-
-    // Новый механизм подтверждения сохранения результата.
-    // UI подписывается сюда, возвращает true/false.
-    std::function<bool(const QString& question)> confirmCallback;
 
 private:
     void initializeAvailableOptions();

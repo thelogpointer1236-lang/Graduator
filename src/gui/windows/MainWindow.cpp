@@ -31,9 +31,20 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
     setupNotifications();
 
     auto *userDialogService = ServiceLocator::instance().userDialogService();
-    if (!userDialogService) throw std::runtime_error("UserDialogService is not available in ServiceLocator");
-    connect(ServiceLocator::instance().userDialogService(), &UserDialogService::dialogRequested,
-    this, &MainWindow::onDialogRequested);
+    if (!userDialogService)
+        throw std::runtime_error("UserDialogService is not available in ServiceLocator");
+
+    connect(userDialogService, &UserDialogService::dialogRequested,
+            this, &MainWindow::onDialogRequested);
+
+    connect(userDialogService, &UserDialogService::infoRequested,
+            this, &MainWindow::onInfoRequested);
+
+    connect(userDialogService, &UserDialogService::warningRequested,
+            this, &MainWindow::onWarningRequested);
+
+    connect(userDialogService, &UserDialogService::errorRequested,
+            this, &MainWindow::onErrorRequested);
 }
 void MainWindow::closeEvent(QCloseEvent *event) {
     ServiceLocator::instance().configManager()->save();
@@ -90,3 +101,34 @@ void MainWindow::onDialogRequested(const QString &title, const QString &message,
 
     *response = QString();
 }
+
+void MainWindow::onInfoRequested(const QString &title,
+                                 const QString &message,
+                                 bool *response)
+{
+    QMessageBox::information(this, title, message, QMessageBox::Ok);
+    if (response) {
+        *response = true;
+    }
+}
+
+void MainWindow::onWarningRequested(const QString &title,
+                                    const QString &message,
+                                    bool *response)
+{
+    QMessageBox::warning(this, title, message, QMessageBox::Ok);
+    if (response) {
+        *response = true;
+    }
+}
+
+void MainWindow::onErrorRequested(const QString &title,
+                                  const QString &message,
+                                  bool *response)
+{
+    QMessageBox::critical(this, title, message, QMessageBox::Ok);
+    if (response) {
+        *response = true;
+    }
+}
+

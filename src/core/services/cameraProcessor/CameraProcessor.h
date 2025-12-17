@@ -1,6 +1,5 @@
 ﻿#ifndef GRADUATOR_CAMERAPROCESSOR_H
 #define GRADUATOR_CAMERAPROCESSOR_H
-#include "anglemeter/AnglemeterProcessor.h"
 #include "Camera.h"
 #include <QObject>
 #include <QString>
@@ -11,7 +10,7 @@
 class CameraProcessor final : public QObject {
     Q_OBJECT
 public:
-    explicit CameraProcessor(int anglemeterThreadsCount, int imgWidth, int imgHeight, QObject *parent = nullptr);
+    explicit CameraProcessor(QObject *parent = nullptr);
     ~CameraProcessor() override;
     void setCameraString(const QString &cameraStr);
     void setCameraIndices(std::vector<qint32> indices);
@@ -38,7 +37,6 @@ public:
     void emitCamerasChanged();
 
 private slots:
-    void enqueueImage(qint32 cameraIdx, qreal time, const quint8* imgData);
     void onAngleMeasured(qint32 idx, qreal time, qreal angle);
 
 signals:
@@ -47,10 +45,8 @@ signals:
     void camerasChanged();
 
 private:
-    void createAnglemeterWorkers(int anglemeterThreadsCount, int imgWidth, int imgHeight);
+
     std::vector<Camera> m_cameras;
-    std::vector<AnglemeterProcessor*> m_anglemeterProcessors;
-    std::vector<QThread*> m_anglemeterThreads;
     std::map<qint32, qreal> m_lastAngles;
     std::set<qint32> m_angleOvershootAcknowledged;
 };

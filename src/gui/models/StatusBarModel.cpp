@@ -62,24 +62,19 @@ namespace {
     static const QColor COLOR_TEXT(Qt::black);      // текст по умолчанию
     static const QColor COLOR_TEXT_INV(Qt::white);  // инвертированный
     static const QColor COLOR_NEUTRAL("#616161");   // серый
+}
 
-    static QString pressureUnitToString(PressureUnit unit)
-    {
-        switch (unit) {
-            case PressureUnit::Pa: return QObject::tr("Pa");
-            case PressureUnit::kPa: return QObject::tr("kPa");
-            case PressureUnit::MPa: return QObject::tr("MPa");
-            case PressureUnit::Bar: return QObject::tr("Bar");
-            case PressureUnit::Kgf: return QObject::tr("kgf/cm");
-            case PressureUnit::KgfM2: return QObject::tr("kgf/m");
-            case PressureUnit::Atm: return QObject::tr("atm");
-            case PressureUnit::mmHg: return QObject::tr("mmHg");
-            case PressureUnit::mmH2O: return QObject::tr("mmH2O");
-            case PressureUnit::Unknown: break;
-        }
-
-        return QObject::tr("kgf/cm");
+QString StatusBarModel::pressureUnitToString(PressureUnit unit) {
+    switch (unit) {
+        case PressureUnit::kpa: return tr("kPa");
+        case PressureUnit::mpa: return tr("MPa");
+        case PressureUnit::bar: return tr("Bar");
+        case PressureUnit::kgf: return tr("kgf/cm");
+        case PressureUnit::atm: return tr("atm");
+        case PressureUnit::unknown: break;
     }
+
+    return QObject::tr("kgf/cm");
 }
 
 QVariant StatusBarModel::data(const QModelIndex &idx, int role) const {
@@ -151,7 +146,7 @@ QVariant StatusBarModel::data(const QModelIndex &idx, int role) const {
     //
     if (col == 2) {
         const PressureUnit unit = service.pressureUnit();
-        const PressureUnit effectiveUnit = unit == PressureUnit::Unknown ? PressureUnit::Kgf : unit;
+        const PressureUnit effectiveUnit = unit == PressureUnit::unknown ? PressureUnit::kgf : unit;
         const QString unitStr = pressureUnitToString(effectiveUnit);
         const double p1 = ps.getLastPressure().getValue(effectiveUnit);
         const double p2 = pc.getTargetPressure();
@@ -177,7 +172,7 @@ QVariant StatusBarModel::data(const QModelIndex &idx, int role) const {
     //
     if (col == 3) {
         const PressureUnit unit = service.pressureUnit();
-        const PressureUnit effectiveUnit = unit == PressureUnit::Unknown ? PressureUnit::Kgf : unit;
+        const PressureUnit effectiveUnit = unit == PressureUnit::unknown ? PressureUnit::kgf : unit;
         const QString unitStr = pressureUnitToString(effectiveUnit);
         const double s1 = pc.getCurrentPressureVelocity();
         const double s2 = pc.getTargetPressureVelocity();

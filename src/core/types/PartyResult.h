@@ -11,13 +11,8 @@
 #include "Grad.h"
 
 struct PartyValidationIssue {
-    enum class Severity {
-        Info,
-        Warning,
-        Error
-    };
-
-    enum class Category {
+    enum class Error {
+        Ok,
         InvalidValue,
         AngleRange,
         Hysteresis
@@ -26,8 +21,7 @@ struct PartyValidationIssue {
     int cameraIndex = -1;
     bool forward = true;
     int row = -1;
-    Severity severity = Severity::Info;
-    Category category = Category::InvalidValue;
+    Error error = Error::Ok;
     QString message;
 };
 
@@ -37,7 +31,7 @@ struct PartyValidationResult {
 
     [[nodiscard]] bool ok() const {
         for (const auto &issue : issues) {
-            if (issue.severity == PartyValidationIssue::Severity::Error) {
+            if (issue.error != PartyValidationIssue::Error::Ok) {
                 return false;
             }
         }
@@ -63,8 +57,6 @@ struct PartyResult {
     std::vector<double> nolinForward;
     std::vector<double> nolinBackward;
 
-    std::vector<const DebugData*> debugDataForward;
-    std::vector<const DebugData*> debugDataBackward;
     double durationSeconds = 0.0;
 
     bool strongNode = false;
@@ -77,8 +69,6 @@ struct PartyResult {
         backward.clear();
         nolinForward.clear();
         nolinBackward.clear();
-        debugDataForward.clear();
-        debugDataBackward.clear();
         durationSeconds = 0.0;
         strongNode = false;
         precisionClass = std::numeric_limits<double>::quiet_NaN();

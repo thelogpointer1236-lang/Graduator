@@ -14,54 +14,27 @@ PartyManager::PartyManager(int standNumber, QObject *parent)
     , m_partyNumber(0)
 {
     initializeAvailableOptions();
-
-    QString err;
-    if (!updateCurrentPath(err)) {
-        qWarning() << "Failed to initialize party path:" << err;
-    }
+    updateCurrentPath();
 }
 
 // ============================================================================
 //                               SAVE RESULT
 // ============================================================================
 
-bool PartyManager::savePartyResult(const PartyResult &result, QString &err)
+bool PartyManager::savePartyResult(const PartyResult &result)
 {
-    // 0. Глобальная валидация перед любыми действиями
+    // 1. Глобальная валидация перед любыми действиями
     const PartyValidationResult validation = result.validate();
 
-    if (!validation.issues.empty()) {
-        // Формируем текст для показа пользователю
-        QStringList messages;
-        for (const auto &issue : validation.issues) {
-            messages << issue.message;   // предполагаю, что в структуре есть поле message
-        }
-
-        const QString fullText = messages.join("\n");
-
-        QMessageBox::critical(
-            nullptr,
-            tr("Ошибка сохранения"),
-            tr("Невозможно сохранить результат, так как обнаружены ошибки:\n\n%1")
-                .arg(fullText)
-        );
-
-        err = tr("Validation failed. See message box.");
-        return false;
-    }
-
-    // 1. Подтверждение сохранения результата
-    if (confirmCallback) {
-        if (!confirmCallback(tr("Вы уверены, что хотите сохранить результат?"))) {
-            err = tr("Сохранение отменено пользователем.");
-            return false;
+    QSet<int> camerasWithErrors;
+    for (const auto &issue : validation.issues) {
+        if (issue.error != PartyValidationIssue::Error::Ok && issue.cameraIndex >= 0) {
+            camerasWithErrors.insert(issue.cameraIndex);
         }
     }
 
     // 2. Обновляем путь + определяем номер партии
-    if (!updateCurrentPath(err)) {
-        return false;
-    }
+    updateCurrentPath();
 
     QDir folder(QString("%1/p%2-%3/")
                 .arg(m_currentPath)
@@ -69,11 +42,14 @@ bool PartyManager::savePartyResult(const PartyResult &result, QString &err)
                 .arg(currentDisplacementNumber()));
 
     if (!folder.exists() && !folder.mkpath(".")) {
-        err = QString("Cannot create path: %1").arg(folder.path());
+        ServiceLocator::instance().userDialogService()->error(
+            tr("Cannot create path"),
+            (tr("Cannot create path") + ": %1").arg(folder.path()));
         return false;
     }
 
     const int camCount = std::min(result.forward.size(), result.backward.size());
+    QStringList unsavedGauges;
     bool anyCameraSaved = false;
 
     for (int camIdx = 0; camIdx < camCount; ++camIdx) {
@@ -81,15 +57,19 @@ bool PartyManager::savePartyResult(const PartyResult &result, QString &err)
         // Можно удалить skipCam — теперь ошибки блокируют всё сохранение заранее.
         // Но если хочешь оставить — он просто не сыграет роли, так как ошибок уже не должно быть.
 
-        if (result.forward[camIdx].size() != result.gaugeModel.pressureValues().size() ||
+        if (camerasWithErrors.contains(camIdx) ||
+            result.forward[camIdx].size() != result.gaugeModel.pressureValues().size() ||
             result.backward[camIdx].size() != result.gaugeModel.pressureValues().size()) {
+            unsavedGauges << QString::number(camIdx + 1);
             continue;
         }
 
         QString fileName = folder.filePath(QString("scale%1.tbl").arg(camIdx + 1));
         QFile file(fileName);
         if (!file.open(QIODevice::WriteOnly | QIODevice::Text)) {
-            err = QString("Cannot open file for writing: %1").arg(fileName);
+            ServiceLocator::instance().userDialogService()->error(
+            tr("Cannot open file for writing"),
+            (tr("Cannot open file for writing") + ": %1").arg(fileName));
             return false;
         }
 
@@ -102,8 +82,8 @@ bool PartyManager::savePartyResult(const PartyResult &result, QString &err)
 
         for (int i = 0; i < pressures.size(); ++i) {
             const qreal p  = result.forward[camIdx][i].pressure;
-            const qreal fw = qRadiansToDegrees(result.forward[camIdx][i].angle);
-            const qreal bw = qRadiansToDegrees(result.backward[camIdx][i].angle);
+            const qreal fw = qDegreesToRadians(result.forward[camIdx][i].angle);
+            const qreal bw = qDegreesToRadians(result.backward[camIdx][i].angle);
 
             out << QString(" %1 %2 %3 %4 %5\n")
                    .arg(QString::asprintf("% .11E", p))
@@ -126,8 +106,19 @@ bool PartyManager::savePartyResult(const PartyResult &result, QString &err)
     }
 
     if (!anyCameraSaved) {
-        err = tr("Cannot save result: all cameras are invalid or missing measurements.");
+        ServiceLocator::instance().userDialogService()->error(
+            tr("Cannot save result"),
+        tr("Cannot save result: all gauges contain errors or missing measurements."));
         return false;
+    }
+
+    if (!unsavedGauges.isEmpty()) {
+        ServiceLocator::instance().userDialogService()->info(
+            tr("Save warning"),
+            tr("All gauges were saved successfully except %1.").arg(unsavedGauges.join(", ")));
+    } else {
+        ServiceLocator::instance().userDialogService()->info(
+            tr("Save result"), tr("All gauges were saved successfully."));
     }
 
     incrementPartyNumber();
@@ -139,7 +130,7 @@ bool PartyManager::savePartyResult(const PartyResult &result, QString &err)
 //                               PATH UPDATE
 // ============================================================================
 
-bool PartyManager::updateCurrentPath(QString &err)
+bool PartyManager::updateCurrentPath()
 {
     QString dateStr = QDate::currentDate().toString("dd.MM.yyyy");
 
@@ -165,7 +156,8 @@ bool PartyManager::updateCurrentPath(QString &err)
 
     QDir dir(fullPath);
     if (!dir.exists() && !dir.mkpath(".")) {
-        err = QString("Cannot create path: %1").arg(fullPath);
+        ServiceLocator::instance().userDialogService()->error(
+            tr("Cannot create path"), (tr("Cannot create path") + ": %1").arg(fullPath));
         return false;
     }
 
@@ -304,15 +296,11 @@ const QList<Printer>& PartyManager::getAvailablePrinters() const { return m_avai
 void PartyManager::initializeAvailableOptions()
 {
     m_availablePressureUnits = QStringList{
-        tr("Pa"),
         tr("kPa"),
         tr("MPa"),
         tr("Bar"),
-        tr("kgf/cm"),
-        tr("kgf/m"),
-        tr("atm"),
-        tr("mmHg"),
-        tr("mmH2O"),
+        tr("kgf"),
+        tr("atm")
     };
 
     {

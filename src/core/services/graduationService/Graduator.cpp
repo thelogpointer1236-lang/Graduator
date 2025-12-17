@@ -94,13 +94,6 @@ std::vector<std::size_t> Graduator::anglesCountBackward() const {
     return m_backward.anglesCount();
 }
 
-std::vector<const DebugData*> Graduator::allDebugDataForward() const {
-    return m_forward.allDebugData();
-}
-
-std::vector<const DebugData*> Graduator::allDebugDataBackward() const {
-    return m_backward.allDebugData();
-}
 
 void Graduator::clear() {
     m_forward.clear();

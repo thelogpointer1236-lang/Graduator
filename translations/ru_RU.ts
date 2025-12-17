@@ -1,21 +1,61 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <TS version="2.1" language="ru_RU">
-   <context>
-      <name>PartyWidget</name>
-      <message>
-         <source>Number of party</source>
-         <translation>Номер партии</translation>
-      </message>
-      <message>
-         <source>Strong mark</source>
-         <translation>Крепкий узел</translation>
-      </message>
-      <message>
-         <source>Save</source>
-         <translation>Сохранить</translation>
-      </message>
-   </context>
-   <context>
+    <context>
+        <name>PartyWidget</name>
+
+    <message>
+    <source>Graduation mode</source>
+<translation>Режим градуировки</translation>
+</message>
+
+<message>
+<source>Sight</source>
+<translation>Прицел</translation>
+</message>
+
+<message>
+<source>Direct stroke</source>
+<translation>Прямой ход</translation>
+</message>
+
+<message>
+<source>Direct and reverse stroke</source>
+<translation>Прямой и обратный ход</translation>
+</message>
+
+<message>
+<source>Number of party</source>
+<translation>Номер партии</translation>
+</message>
+
+<message>
+<source>Strong mark</source>
+<translation>Крепкий узел</translation>
+</message>
+
+<message>
+<source>Save</source>
+<translation>Сохранить</translation>
+</message>
+
+<message>
+<source>Saving</source>
+<translation>Сохранение</translation>
+</message>
+
+<message>
+<source>No valid graduation result is available for saving.</source>
+<translation>Отсутствует корректный результат градуировки для сохранения.</translation>
+</message>
+
+<message>
+<source>Saved party number</source>
+<translation>Сохранён номер партии</translation>
+</message>
+
+</context>
+
+<context>
       <name>CameraGridWidget</name>
       <message>
          <source>Camera</source>
@@ -55,17 +95,20 @@
          <translation>Ок</translation>
       </message>
    </context>
-   <context>
-      <name>ControlWidget</name>
-      <message>
-         <source>Automatic Mode</source>
-         <translation>Автоматический режим</translation>
-      </message>
-      <message>
-         <source>Manual Mode</source>
-         <translation>Ручное управление</translation>
-      </message>
-   </context>
+<context>
+<name>ControlWidget</name>
+
+<message>
+<source>Automatic mode</source>
+<translation>Автоматический режим</translation>
+</message>
+
+<message>
+<source>Manual mode</source>
+<translation>Ручной режим</translation>
+</message>
+</context>
+
    <context>
       <name>ControlWidget</name>
       <message>
@@ -772,4 +815,27 @@
          <translation>Процесс градуировки был прерван</translation>
       </message>
    </context>
+<context>
+<name>PartyManager</name>
+<message>
+<source>Cannot save result: all gauges contain errors or missing measurements.</source>
+<translation>Не удалось сохранить результат: все манометры содержат ошибки или отсутствуют измерения.</translation>
+</message>
+<message>
+<source>Save warning</source>
+<translation>Предупреждение о сохранении</translation>
+</message>
+<message>
+<source>All gauges were saved successfully except</source>
+<translation>Все манометры были успешно сохранены, кроме</translation>
+</message>
+<message>
+<source>Save result</source>
+<translation>Результат сохранения</translation>
+</message>
+<message>
+<source>All gauges were saved successfully.</source>
+<translation>Все манометры были успешно сохранены.</translation>
+</message>
+</context>
 </TS>

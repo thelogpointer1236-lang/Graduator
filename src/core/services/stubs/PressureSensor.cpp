@@ -62,7 +62,7 @@ void PressureSensor::start()
         const double period = 60.0;
         const double halfPeriod = period / 2.0; // 30 секунд
         const double minPressure = -10.0;
-        const double maxPressure = 260.0;
+        const double maxPressure = 266.0;
 
         double phase = std::fmod(timestampSec, period);
 

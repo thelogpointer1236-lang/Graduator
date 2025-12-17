@@ -112,7 +112,7 @@ private:
 
     // Модель прибора и единица давления
     GaugeModel   m_gaugeModel;
-    PressureUnit m_pressureUnit = PressureUnit::Unknown;
+    PressureUnit m_pressureUnit = PressureUnit::unknown;
 
     // Готовый результат
     PartyResult m_currentResult;

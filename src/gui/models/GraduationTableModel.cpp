@@ -17,17 +17,26 @@ namespace {
 constexpr int kInfoRowCount = 4;
 constexpr int kUpdateIntervalMs = 1000/30;  // Обновление индикаторов ~30 раз в секунду
 
-    // Цвета ошибок
-    const QColor kErrorBg(200, 50, 50);      // тёплый красный, хорошо виден
-    const QColor kErrorFg(Qt::white);        // белый текст для контраста
+    // Цвета ошибок — Background
 
-    // Цвета предупреждений
-    const QColor kWarnBg(255, 200, 80);      // янтарный, не режет глаз
-    const QColor kWarnFg(30, 30, 30);        // почти чёрный текст для контраста
+    // Некорректное значение — тёплый красный
+    const QColor kInvalidValueErrorBg(200, 50, 50);
 
-    // Цвета информационных подсветок (например, диапазон угла)
-    const QColor kInfoBg(120, 180, 255);     // спокойный синий фон
-    const QColor kInfoFg(Qt::black);         // контрастный тёмный текст
+    // Диапазон угла — синий
+    const QColor kAngleRangeErrorBg(60, 100, 200);
+
+    // Гистерезис — тёплый оранжевый
+    const QColor kHysteresisErrorBg(230, 140, 40);
+
+
+    // Цвета ошибок — Foreground
+
+    // Красный и синий требуют максимального контраста
+    const QColor kInvalidValueErrorFg(Qt::white);
+    const QColor kAngleRangeErrorFg(Qt::white);
+
+    // Оранжевый лучше читается с почти чёрным
+    const QColor kHysteresisErrorFg(30, 30, 30);
 
 const GaugeModel* currentGaugeModel() {
     const int idx = ServiceLocator::instance().configManager()
@@ -137,15 +146,15 @@ QVariant GraduationTableModel::data(const QModelIndex &index, int role) const {
         // Подсветка ошибок/предупреждений — фон
         if (role == Qt::BackgroundRole) {
             // Подсветка диапазона угла — спокойный синий
-            if (issue->category == PartyValidationIssue::Category::AngleRange) {
-                return kInfoBg;
-            }
-
-            switch (issue->severity) {
-                case PartyValidationIssue::Severity::Error:
-                    return kErrorBg;
-                case PartyValidationIssue::Severity::Warning:
-                    return kWarnBg;
+            switch (issue->error) {
+                case PartyValidationIssue::Error::Ok:
+                    return {};
+                case PartyValidationIssue::Error::AngleRange:
+                    return kAngleRangeErrorBg;
+                case PartyValidationIssue::Error::Hysteresis:
+                    return kHysteresisErrorBg;
+                case PartyValidationIssue::Error::InvalidValue:
+                    return kInvalidValueErrorBg;
                 default:
                     return {};
             }
@@ -153,15 +162,15 @@ QVariant GraduationTableModel::data(const QModelIndex &index, int role) const {
 
         // Цвет текста
         if (role == Qt::ForegroundRole) {
-            if (issue->category == PartyValidationIssue::Category::AngleRange) {
-                return kInfoFg;
-            }
-
-            switch (issue->severity) {
-                case PartyValidationIssue::Severity::Error:
-                    return kErrorFg;
-                case PartyValidationIssue::Severity::Warning:
-                    return kWarnFg;
+            switch (issue->error) {
+                case PartyValidationIssue::Error::Ok:
+                    return {};
+                case PartyValidationIssue::Error::AngleRange:
+                    return kAngleRangeErrorFg;
+                case PartyValidationIssue::Error::Hysteresis:
+                    return kHysteresisErrorFg;
+                case PartyValidationIssue::Error::InvalidValue:
+                    return kInvalidValueErrorFg;
                 default:
                     return {};
             }

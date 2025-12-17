@@ -99,7 +99,7 @@ private:
     QTimer m_savingTimer;
 
     /// Текущая единица измерения давления
-    PressureUnit m_pressureUnit{PressureUnit::Pa};
+    PressureUnit m_pressureUnit{PressureUnit::unknown};
 
     /// Файлы для углов по каналам
     std::map<int, QFile*> m_angleFiles;

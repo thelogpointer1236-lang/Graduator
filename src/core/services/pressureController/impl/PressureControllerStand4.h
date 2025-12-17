@@ -9,18 +9,16 @@ public:
     explicit PressureControllerStand4(QObject *parent = nullptr);
     ~PressureControllerStand4() override;
 
-    void setMode(int modeIdx) override;
-    QStringList getModes() const override;
-
     qreal getTargetPressure() const override;
     qreal getTargetPressureVelocity() const override;
 
     bool isReadyToStart(QString &err) const override;
     void start() override;
 
+   qreal preloadFactor() const override;
+
 protected:
     void onPressureUpdated(qreal time, qreal pressure) override;
-    qreal preloadFactor() const override;
 
 private:
     // Основные шаги
@@ -44,16 +42,16 @@ private:
 
     // Вспомогательные рутинные функции
     void applyCameraRateIfNearNode(double p_cur);
-    bool handleBadVelocity(int &bad_dp_count, double dp_cur);
     void updateNearingToPressureNode(double thr_l, double thr_r);
 
 private:
-    int   m_currentMode      = 0;
 
     qreal m_dP_target        = 0.0;
 
     bool  m_nearToPressureNode = false;
     double m_nearingToPressureNode = 0.0;
+
+    mutable std::vector<qreal> m_gaugePressureValuesInference;
 
     double m_frequency;
     double m_divider = 0;

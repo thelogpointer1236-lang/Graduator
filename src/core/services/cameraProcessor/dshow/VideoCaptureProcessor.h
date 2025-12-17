@@ -23,7 +23,7 @@ public:
     bool getVideoProcAmpRange(long prop, long& min, long& max);
 
 signals:
-    void imageCaptured(qint32 cameraIdx, qreal time, const quint8* imgData);
+    void angleMeasured(qint32 cameraIdx, qreal time, qreal angle);
 
 private:
     void checkHR(long hr, const QString &errorMessage);

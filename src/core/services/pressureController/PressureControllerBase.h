@@ -7,6 +7,12 @@
 #include "core/types/Pressure.h"
 #include "drivers/G540Driver.h"
 
+enum class PressureControllerMode {
+    Inference,
+    Forward,
+    ForwardBackward
+};
+
 
 class PressureControllerBase : public QObject {
     Q_OBJECT
@@ -23,7 +29,6 @@ public:
     void setPressureUnit(PressureUnit unit);
     virtual qreal preloadFactor() const = 0;
     void updatePressure(qreal time, qreal pressure);
-    virtual QStringList getModes() const = 0;
     virtual qreal getTargetPressure() const = 0;
     virtual qreal getTargetPressureVelocity() const = 0;
     quint32 getImpulsesCount() const;
@@ -39,13 +44,15 @@ public:
     void closeBothFlaps();
     virtual bool isReadyToStart(QString &err) const;
     bool isRunning() const;
-    Q_INVOKABLE void interrupt();
+
+    void setMode(PressureControllerMode mode);
+    PressureControllerMode getMode() const;
 
 public slots:
-    Q_INVOKABLE virtual void setMode(int modeIdx) = 0;
     Q_INVOKABLE virtual void startGoToEnd();
     Q_INVOKABLE virtual void startGoToStart();
     Q_INVOKABLE virtual void start() = 0;
+    Q_INVOKABLE void interrupt();
 
 protected:
     virtual void onPressureUpdated(qreal time, qreal pressure) = 0;
@@ -68,5 +75,6 @@ protected:
     std::vector<qreal> m_time_history;
     std::vector<int> m_c_imp_history;
     std::vector<int> m_freq_history;
+    PressureControllerMode m_mode = PressureControllerMode::Inference;
 };
 #endif //GRADUATOR_PRESSURECONTROLLER_H

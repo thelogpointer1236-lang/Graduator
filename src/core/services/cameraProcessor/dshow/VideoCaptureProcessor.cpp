@@ -189,8 +189,8 @@ void VideoCaptureProcessor::init(void *hwnd, int cameraIndex) {
     if (FAILED(hr)) { checkHR(hr, "SetMediaType failed"); cleanup();}
 
     m_grabberCB = new FrameGrabberCB(m_cameraIndex, 640, 480);
-    connect(m_grabberCB, &FrameGrabberCB::imageCaptured, this,
-            &VideoCaptureProcessor::imageCaptured, Qt::DirectConnection);
+    connect(m_grabberCB, &FrameGrabberCB::angleMeasured, this,
+            &VideoCaptureProcessor::angleMeasured, Qt::DirectConnection);
 
     hr = m_pSampleGrabber->SetCallback(m_grabberCB, 1);
     if (FAILED(hr)) { checkHR(hr, "SetCallback failed"); cleanup();}

@@ -36,7 +36,7 @@ public:
     STDMETHOD (BufferCB)(double SampleTime, BYTE *pBuffer, long BufferLen) override;
 
 signals:
-    void imageCaptured(qint32 cameraIdx, qreal time, const quint8* imgData);
+    void angleMeasured(qint32 cameraIdx, qreal time, qreal angle);
 
 public:
     static inline auto s_aimColor = RGBPixel(0, 0, 0);
@@ -48,6 +48,7 @@ public:
 private:
     LONG m_refCount;
     qint32 m_camIdx;
+    struct anglemeter_t* m_am;
 };
 
 #endif //FRAMEGRABBERCB_H

@@ -250,10 +250,6 @@ void TelemetryLogger::savePartyResult(const PartyResult &result)
             ts << "durationSeconds: " << result.durationSeconds << "\n";
             ts << "forward_paths: " << static_cast<int>(result.forward.size()) << "\n";
             ts << "backward_paths: " << static_cast<int>(result.backward.size()) << "\n";
-            ts << "debug_forward_records: " << static_cast<int>(result.debugDataForward.size()) << "\n";
-            ts << "debug_backward_records: " << static_cast<int>(result.debugDataBackward.size()) << "\n";
-            // TODO: при необходимости добавить сериализацию GaugeModel,
-            //       когда будет известен его интерфейс.
         }
     }
 
@@ -334,9 +330,6 @@ void TelemetryLogger::savePartyResult(const PartyResult &result)
         }
     };
 
-    // --- 4. Debug-данные (forward/backward) ---
-    saveDebugVector("party_debug_forward", result.debugDataForward);
-    saveDebugVector("party_debug_backward", result.debugDataBackward);
 }
 
 void TelemetryLogger::startLoggingSession()
@@ -347,7 +340,7 @@ void TelemetryLogger::startLoggingSession()
     auto &locator = ServiceLocator::instance();
 
     setPressureUnit(static_cast<PressureUnit>(
-        locator.configManager()->get<int>("current.pressureUnit", static_cast<int>(PressureUnit::Pa))
+        locator.configManager()->get<int>("current.pressureUnit", static_cast<int>(PressureUnit::unknown))
     ));
 
     // Подключаемся к датчикам только на время градуировки

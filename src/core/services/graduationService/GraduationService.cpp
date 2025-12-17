@@ -54,9 +54,9 @@ bool GraduationService::prepare(QString *err_)
 
     m_pressureUnit = static_cast<PressureUnit>(
         cfg.get<int>(CFG_KEY_CURRENT_PRESSURE_UNIT,
-                     static_cast<int>(PressureUnit::Unknown))
+                     static_cast<int>(PressureUnit::unknown))
     );
-    if (m_pressureUnit == PressureUnit::Unknown) {
+    if (m_pressureUnit == PressureUnit::unknown) {
         err = tr("Pressure unit is not specified.");
         goto fail;
     }
@@ -352,17 +352,8 @@ qreal GraduationService::getElapsedTimeSeconds() const {
 
 void GraduationService::requestUpdateResultAndTable()
 {
-    // Разрешено обновлять таблицу только когда результат есть
-    if (m_state == State::Idle && m_resultReady) {
-        updateResult();
-    }
-
     emit tableUpdateRequired();
 }
-
-
-
-
 
 
 namespace {
@@ -410,47 +401,63 @@ void GraduationService::updateResult()
     m_currentResult = PartyResult{};
     m_currentResult.gaugeModel = m_gaugeModel;
     m_currentResult.strongNode = m_strongNode;
-    if (auto *partyManager = ServiceLocator::instance().partyManager()) {
+
+    if (auto* partyManager = ServiceLocator::instance().partyManager()) {
         m_currentResult.precisionClass = partyManager->currentPrecisionValue();
     }
 
-    auto fwd = m_graduator.graduateForward();
-    auto dbgFwd = m_graduator.allDebugDataForward();
+    const auto mode = ServiceLocator::instance().pressureController()->getMode();
 
-    auto back = m_graduator.isForward()
-              ? fwd
-              : m_graduator.graduateBackward();
-
-    auto dbgBack = m_graduator.isForward()
-                 ? dbgFwd
-                 : m_graduator.allDebugDataBackward();
-
-    m_currentResult.forward          = std::move(fwd);
-    m_currentResult.backward         = std::move(back);
-    m_currentResult.debugDataForward = std::move(dbgFwd);
-    m_currentResult.debugDataBackward= std::move(dbgBack);
+    m_currentResult.forward = m_graduator.graduateForward();
+    m_currentResult.backward =
+        (m_graduator.isForward() ||
+         mode == PressureControllerMode::Inference ||
+         mode == PressureControllerMode::Forward)
+            ? decltype(m_currentResult.backward){}
+            : m_graduator.graduateBackward();
 
     // Коррекция forward/backward
-    size_t cams = std::min(m_currentResult.forward.size(),
-                           m_currentResult.backward.size());
+    const size_t cams = std::min(m_currentResult.forward.size(),
+                                 m_currentResult.backward.size());
     for (size_t cam = 0; cam < cams; ++cam) {
-        auto &fw  = m_currentResult.forward[cam];
-        auto &bk  = m_currentResult.backward[cam];
+        auto& fw = m_currentResult.forward[cam];
+        auto& bk = m_currentResult.backward[cam];
         if (!fw.empty() && !bk.empty()) {
-            bk[0] = fw[0];
-            if (!qIsFinite(bk.back().angle))
-                bk.back() = fw.back();
+            bk.front() = fw.front();
+            bk.back()  = fw.back();
         }
     }
 
-    // Нелинейность
-    m_currentResult.nolinForward  = computeNonlinearity(m_currentResult.forward);
-    if (m_currentResult.backward[0].size() == m_gaugeModel.pressureValues().size())
-        m_currentResult.nolinBackward = computeNonlinearity(m_currentResult.backward);
+    if (mode == PressureControllerMode::Forward) {
+        m_currentResult.backward.clear();
+    }
+
+    if (mode == PressureControllerMode::Inference) {
+        m_currentResult.backward.clear();
+
+        auto& v = m_currentResult.forward;
+        if (v.size() > 2) {
+            v.erase(v.begin() + 1, v.end() - 1);
+        }
+
+        m_currentResult.nolinForward.clear();
+        m_currentResult.nolinBackward.clear();
+    }
+    else {
+        // Нелинейность
+        m_currentResult.nolinForward = computeNonlinearity(m_currentResult.forward);
+
+        if (!m_currentResult.backward.empty() &&
+            m_currentResult.backward[0].size() == m_gaugeModel.pressureValues().size() &&
+            mode == PressureControllerMode::ForwardBackward) {
+            m_currentResult.nolinBackward = computeNonlinearity(m_currentResult.backward);
+        }
+    }
 
     m_currentResult.durationSeconds = getElapsedTimeSeconds();
     m_resultReady = true;
 
     requestUpdateResultAndTable();
 }
+
 

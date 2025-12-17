@@ -1,4 +1,4 @@
-#ifndef GRADUATOR_CAMERA_H
+﻿#ifndef GRADUATOR_CAMERA_H
 #define GRADUATOR_CAMERA_H
 #include <memory>
 #include <QSize>

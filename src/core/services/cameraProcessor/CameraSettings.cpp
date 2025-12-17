@@ -1,9 +1,7 @@
-#include "CameraSettings.h"
+﻿#include "CameraSettings.h"
 #include "dshow/VideoCaptureProcessor.h"
 #include <dshow.h> // Для VideoProcAmp_*
 #include <map>
-
-#include "anglemeter/AnglemeterProcessor.h"
 
 namespace
 {

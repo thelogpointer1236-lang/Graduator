@@ -1,5 +1,4 @@
 #ifndef GRADUATOR_CONTROLWIDGET_H
-
 #define GRADUATOR_CONTROLWIDGET_H
 
 #include <QWidget>

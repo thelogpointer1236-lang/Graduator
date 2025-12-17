@@ -8,6 +8,8 @@
 #include <QTimer>
 #include <QElapsedTimer>
 
+#include "core/types/PressureUnit.h"
+
 class StatusBarModel final : public QAbstractItemModel {
     Q_OBJECT
 
@@ -28,6 +30,7 @@ public:
     QVariant data(const QModelIndex &idx, int role) const override;
 
 private:
+    static QString pressureUnitToString(PressureUnit unit);
     QString formatTime(qint64 ms) const;
 
 };

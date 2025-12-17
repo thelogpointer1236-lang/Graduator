@@ -15,7 +15,6 @@ public:
     ~AutomaticWidget() override;
 
 private slots:
-    void onCalibrationModeChanged(int index);
     void onStartClicked();
     void onStopClicked();
 
@@ -23,7 +22,6 @@ private:
     void setupUi();
     void connectSignals();
 
-    QComboBox *m_calibrationModeComboBox = nullptr;
     QPushButton *m_startButton = nullptr;
     QPushButton *m_stopButton = nullptr;
 };

@@ -10,8 +10,8 @@
 #include <QTabBar>
 
 namespace {
-constexpr int PartyPanelStretch = 1;
-constexpr int TabsStretch = 1;
+    constexpr int PartyPanelStretch = 1;
+    constexpr int TabsStretch = 1;
 }
 
 ControlWidget::ControlWidget(QWidget *parent)

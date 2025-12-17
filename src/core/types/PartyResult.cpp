@@ -12,10 +12,6 @@ namespace {
     constexpr double kStrongMinAngleDeg = 250.0;
     constexpr double kStrongMaxAngleDeg = 290.0;
 
-    double toDegrees(double radians) {
-        return qRadiansToDegrees(radians);
-    }
-
     bool isFormed(const std::vector<NodeResult> &nodes, std::size_t expectedCount) {
         return nodes.size() == expectedCount;
     }
@@ -44,8 +40,7 @@ PartyValidationResult PartyResult::validate() const {
                     issue.cameraIndex = static_cast<int>(cam);
                     issue.forward = isForward;
                     issue.row = static_cast<int>(node);
-                    issue.severity = PartyValidationIssue::Severity::Error;
-                    issue.category = PartyValidationIssue::Category::InvalidValue;
+                    issue.error = PartyValidationIssue::Error::InvalidValue;
                     issue.message = QString::fromWCharArray(L"Недопустимое значение угла (nan/0). Манометр не будет сохранён.");
                     validation.issues.push_back(issue);
                 }
@@ -53,7 +48,7 @@ PartyValidationResult PartyResult::validate() const {
 
             // Диапазон угла
             if (nodes.size() >= 2) {
-                const double angleDeg = std::abs(toDegrees(nodes.back().angle - nodes.front().angle));
+                const double angleDeg = std::abs(nodes.back().angle - nodes.front().angle);
 
                 const double minAllowed = strongNode ? kStrongMinAngleDeg : kMinAngleDeg;
                 const double maxAllowed = strongNode ? kStrongMaxAngleDeg : kMaxAngleDeg;
@@ -63,8 +58,7 @@ PartyValidationResult PartyResult::validate() const {
                     issue.cameraIndex = static_cast<int>(cam);
                     issue.forward = isForward;
                     issue.row = static_cast<int>(nodeCount); // строка "Common"
-                    issue.severity = PartyValidationIssue::Severity::Warning;
-                    issue.category = PartyValidationIssue::Category::AngleRange;
+                    issue.error = PartyValidationIssue::Error::AngleRange;
                     const auto message = strongNode
                         ? QString::fromWCharArray(L"Общий угол вне диапазона 250–290° (крепкий узел).")
                         : QString::fromWCharArray(L"Общий угол вне диапазона 260–280°.");
@@ -89,10 +83,10 @@ PartyValidationResult PartyResult::validate() const {
             }
 
             const double forwardRangeDeg = (fw.size() >= 2)
-                                               ? toDegrees(fw.back().angle - fw.front().angle)
+                                               ? fw.back().angle - fw.front().angle
                                                : std::numeric_limits<double>::quiet_NaN();
             const double backwardRangeDeg = (bw.size() >= 2)
-                                                ? toDegrees(bw.back().angle - bw.front().angle)
+                                                ? bw.back().angle - bw.front().angle
                                                 : std::numeric_limits<double>::quiet_NaN();
 
             double baseRangeDeg = std::isfinite(forwardRangeDeg) ? forwardRangeDeg : backwardRangeDeg;
@@ -108,14 +102,13 @@ PartyValidationResult PartyResult::validate() const {
                     continue;
                 }
 
-                const double hysteresisDeg = std::abs(toDegrees(angleFw - angleBw));
+                const double hysteresisDeg = std::abs(angleFw - angleBw);
                 if (hysteresisDeg > allowedDiffDeg) {
                     PartyValidationIssue issue;
                     issue.cameraIndex = static_cast<int>(cam);
                     issue.forward = true;
                     issue.row = static_cast<int>(node);
-                    issue.severity = PartyValidationIssue::Severity::Warning;
-                    issue.category = PartyValidationIssue::Category::Hysteresis;
+                    issue.error = PartyValidationIssue::Error::Hysteresis;
                     issue.message = QString::fromWCharArray(L"Гистерезис превышает выбранный класс точности.");
                     validation.issues.push_back(issue);
                 }

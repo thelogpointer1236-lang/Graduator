@@ -41,7 +41,6 @@ set(SRC_FILES
         src/core/services/pressureController/PressureControllerBase.cpp
         src/core/services/pressureController/drivers/G540Driver.cpp
         src/core/services/pressureController/drivers/LPTDriver.cpp
-        src/core/services/pressureController/impl/PressureControllerStand5.cpp
         src/core/services/pressureController/impl/PressureControllerStand4.cpp
         src/core/services/pressureController/impl/utils.cpp
         src/gui/widgets/cameraGrid/AspectRatioLabel.cpp
@@ -72,8 +71,6 @@ set(SRC_FILES
         src/core/services/graduationService/PressureAngleGraduator.cpp
         src/core/services/graduationService/BatchGraduator.cpp
         src/core/services/PartyManager.cpp
-        src/core/services/cameraProcessor/anglemeter/AnglemeterProcessor.cpp
-        src/core/services/cameraProcessor/anglemeter/AnglemeterProcessor.cpp
         src/core/services/cameraProcessor/CameraSettings.cpp
         src/core/services/cameraProcessor/Camera.cpp
         src/gui/widgets/notifications/NotificationArea.cpp
@@ -96,7 +93,6 @@ set(HEADER_FILES
         src/core/services/pressureController/PressureControllerBase.h
         src/core/services/pressureController/drivers/G540Driver.h
         src/core/services/pressureController/drivers/LPTDriver.h
-        src/core/services/pressureController/impl/PressureControllerStand5.h
         src/core/services/pressureController/impl/PressureControllerStand4.h
         src/core/services/pressureController/impl/utils.h
         src/gui/widgets/cameraGrid/AspectRatioLabel.h
@@ -128,7 +124,6 @@ set(HEADER_FILES
         src/core/types/Grad.h
         src/core/services/cameraProcessor/Camera.h
         src/core/services/cameraProcessor/CameraSettings.h
-        src/core/services/cameraProcessor/anglemeter/AnglemeterProcessor.h
         src/gui/widgets/notifications/NotificationArea.h
         src/gui/widgets/notifications/NotificationWidget.h
         src/core/services/TelemetryLogger.h

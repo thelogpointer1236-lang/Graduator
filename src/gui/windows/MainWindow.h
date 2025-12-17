@@ -19,7 +19,22 @@ private:
     void setupNotifications();
 
 private slots:
-    void onDialogRequested(const QString &title, const QString &message, const QStringList &options, QString *response);
+    void onDialogRequested(const QString &title,
+                       const QString &message,
+                       const QStringList &options,
+                       QString *response);
+
+    void onInfoRequested(const QString &title,
+                         const QString &message,
+                         bool *response);
+
+    void onWarningRequested(const QString &title,
+                            const QString &message,
+                            bool *response);
+
+    void onErrorRequested(const QString &title,
+                          const QString &message,
+                          bool *response);
 
 private:
     QWidget *centralWidget_{};
