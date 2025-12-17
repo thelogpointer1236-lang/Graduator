@@ -13,8 +13,8 @@
 namespace {
 constexpr double kAnglePeriodSec = 60.0;
 constexpr double kHalfPeriodSec = kAnglePeriodSec / 2.0;
-constexpr double kMinAngleDeg = 0.0;
-constexpr double kMaxAngleDeg = 360.0;
+constexpr double kMinAngleDeg = 160.0;
+constexpr double kMaxAngleDeg = -140.0;
 
 struct ImageBuffer {
     std::unique_ptr<unsigned char[]> data;

@@ -133,10 +133,26 @@ const std::vector<NodeResult>& PressureAngleGraduator::graduate() const {
             sortedA[i] = localA[idx[i]];
         }
 
-        auto smoothA = loessSmooth(sortedP, sortedA, m_loessFrac_);
+        // выбрать 2 ближайшие точки к nodeP
+        std::vector<double> winP;
+        std::vector<double> winA;
 
-        // interpolate at nodeP
-        double estAngle = interpolateAt(sortedP, smoothA, nodeP);
+        for (std::size_t i = 0; i + 1 < sortedP.size(); ++i) {
+            if (nodeP >= sortedP[i] && nodeP <= sortedP[i + 1]) {
+                winP = { sortedP[i], sortedP[i + 1] };
+                winA = { sortedA[i], sortedA[i + 1] };
+                break;
+            }
+        }
+
+        // если nodeP вне диапазона — берём крайние две
+        if (winP.empty()) {
+            winP = { sortedP[sortedP.size() - 2], sortedP.back() };
+            winA = { sortedA[sortedA.size() - 2], sortedA.back() };
+        }
+
+        double estAngle = linearRegressionAt(winP, winA, nodeP);
+
 
         results.push_back(NodeResult{
             nodeP,
@@ -316,100 +332,36 @@ std::vector<double> PressureAngleGraduator::interpolate(
     return out;
 }
 
-// Simple LOESS implementation: for each x_i performs local weighted linear regression
-std::vector<double> PressureAngleGraduator::loessSmooth(
+double PressureAngleGraduator::linearRegressionAt(
     const std::vector<double>& x,
     const std::vector<double>& y,
-    double frac)
+    double xq)
 {
     const std::size_t n = x.size();
-    if (n != y.size() || n == 0) {
-        throw std::runtime_error("Invalid input size for loessSmooth.");
+    if (n < 2 || n != y.size()) {
+        throw std::runtime_error("linearRegressionAt: invalid input");
     }
 
-    if (frac <= 0.0 || frac > 1.0) {
-        throw std::runtime_error("frac must be in (0, 1].");
-    }
-
-    std::size_t q = static_cast<std::size_t>(std::ceil(frac * n));
-    if (q < 2) q = 2;
-    if (q > n) q = n;
-
-    std::vector<double> ySmooth(n);
-
-    // For each target point x[i]
+    double Sx = 0.0, Sy = 0.0, Sxx = 0.0, Sxy = 0.0;
     for (std::size_t i = 0; i < n; ++i) {
-        // build distances
-        struct DistIdx {
-            double dist;
-            std::size_t idx;
-        };
-        std::vector<DistIdx> distIdx;
-        distIdx.reserve(n);
-        for (std::size_t j = 0; j < n; ++j) {
-            distIdx.push_back(DistIdx{ std::fabs(x[j] - x[i]), j });
-        }
-
-        // sort by distance
-        std::sort(distIdx.begin(), distIdx.end(),
-                  [](DistIdx const& a, DistIdx const& b){
-                      return a.dist < b.dist;
-                  });
-
-        // take q nearest points
-        double dMax = distIdx[q-1].dist;
-        if (dMax <= 0.0) {
-            // all neighbors coincide in x -> just take y[i]
-            ySmooth[i] = y[i];
-            continue;
-        }
-
-        // weighted linear regression
-        double Sw = 0.0;
-        double Sx = 0.0;
-        double Sy = 0.0;
-        double Sxx = 0.0;
-        double Sxy = 0.0;
-
-        for (std::size_t k = 0; k < q; ++k) {
-            std::size_t j = distIdx[k].idx;
-            double d = distIdx[k].dist;
-            double u = d / dMax;
-            // tricube weight
-            double w = std::pow(1.0 - std::pow(u, 3.0), 3.0);
-
-            double xj = x[j];
-            double yj = y[j];
-
-            Sw  += w;
-            Sx  += w * xj;
-            Sy  += w * yj;
-            Sxx += w * xj * xj;
-            Sxy += w * xj * yj;
-        }
-
-        if (Sw == 0.0) {
-            ySmooth[i] = y[i];
-            continue;
-        }
-
-        double denom = Sw * Sxx - Sx * Sx;
-        double a = 0.0;
-        double b = 0.0;
-        if (std::fabs(denom) < 1e-12) {
-            // avoid degeneracy; fall back to weighted mean
-            a = Sy / Sw;
-            b = 0.0;
-        } else {
-            b = (Sw * Sxy - Sx * Sy) / denom;
-            a = (Sy - b * Sx) / Sw;
-        }
-
-        ySmooth[i] = a + b * x[i];
+        Sx  += x[i];
+        Sy  += y[i];
+        Sxx += x[i] * x[i];
+        Sxy += x[i] * y[i];
     }
 
-    return ySmooth;
+    double denom = n * Sxx - Sx * Sx;
+    if (std::fabs(denom) < 1e-12) {
+        return Sy / n; // fallback: среднее
+    }
+
+    double b = (n * Sxy - Sx * Sy) / denom;
+    double a = (Sy - b * Sx) / n;
+
+    return a + b * xq;
 }
+
+
 
 // Linear interpolation + edge clamping
 double PressureAngleGraduator::interpolateAt(

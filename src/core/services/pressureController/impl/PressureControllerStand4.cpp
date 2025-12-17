@@ -292,7 +292,11 @@ bool PressureControllerStand4::backwardPressure()
 
     g540Driver()->setDirection(G540Direction::Backward);
 
+#ifdef USE_STUB_IMPLEMENTATIONS
+    while (currentPressure() > 10) {
+#else
     while (!isStartLimitTriggered()) {
+#endif
         if (shouldStop()) {
             return false;
         }

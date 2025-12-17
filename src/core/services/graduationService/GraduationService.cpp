@@ -429,15 +429,17 @@ void GraduationService::updateResult()
     }
 
     if (mode == PressureControllerMode::Forward) {
-        m_currentResult.backward.clear();
+        m_currentResult.backward = m_currentResult.forward;
     }
 
     if (mode == PressureControllerMode::Inference) {
         m_currentResult.backward.clear();
 
         auto& v = m_currentResult.forward;
-        if (v.size() > 2) {
-            v.erase(v.begin() + 1, v.end() - 1);
+        for (auto& cam : v) {
+            if (cam.size() < 2) continue;
+            for (int i = 1; i < cam.size() - 1; ++i)
+                cam[i].angle = 0;
         }
 
         m_currentResult.nolinForward.clear();

@@ -55,12 +55,13 @@ namespace grad {
             const std::vector<double>& newTimes
         );
 
-        // LOESS smoother: y_smooth = f(x)
-        static std::vector<double> loessSmooth(
+
+        static double linearRegressionAt(
             const std::vector<double>& x,
             const std::vector<double>& y,
-            double frac
+            double xq
         );
+
 
         // Simple linear interpolation for a single query
         static double interpolateAt(

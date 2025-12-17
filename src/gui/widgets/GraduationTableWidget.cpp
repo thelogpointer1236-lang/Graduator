@@ -34,5 +34,22 @@ QTableView *GraduationTableWidget::createTableView()
     tableView->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
     tableView->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
     tableView->verticalHeader()->setSectionResizeMode(QHeaderView::Stretch);
+    // Запрет выделения
+    tableView->setSelectionMode(QAbstractItemView::NoSelection);
+
+    // Запрет редактирования
+    tableView->setEditTriggers(QAbstractItemView::NoEditTriggers);
+
+    // Убрать фокус (включая клики мышью/клавиатуру)
+    tableView->setFocusPolicy(Qt::NoFocus);
+
+    // Отключить сортировку и кликабельность заголовков
+    tableView->setSortingEnabled(false);
+    tableView->horizontalHeader()->setSectionsClickable(false);
+    tableView->verticalHeader()->setSectionsClickable(false);
+
+    // Отключить контекстное меню
+    tableView->setContextMenuPolicy(Qt::NoContextMenu);
+    tableView->viewport()->setAttribute(Qt::WA_TransparentForMouseEvents);
     return tableView;
 }

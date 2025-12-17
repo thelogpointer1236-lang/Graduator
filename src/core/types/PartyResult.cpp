@@ -35,13 +35,13 @@ PartyValidationResult PartyResult::validate() const {
             // Проверяем, что в сформированной колонке нет nan/0
             for (std::size_t node = 0; node < nodeCount; ++node) {
                 const double angle = nodes[node].angle;
-                if (!std::isfinite(angle) || qFuzzyIsNull(angle)) {
+                if (!std::isfinite(angle) || angle < -0.0001) {
                     PartyValidationIssue issue;
                     issue.cameraIndex = static_cast<int>(cam);
                     issue.forward = isForward;
                     issue.row = static_cast<int>(node);
                     issue.error = PartyValidationIssue::Error::InvalidValue;
-                    issue.message = QString::fromWCharArray(L"Недопустимое значение угла (nan/0). Манометр не будет сохранён.");
+                    issue.message = QString::fromWCharArray(L"Недопустимое значение угла (nan). Манометр не будет сохранён.");
                     validation.issues.push_back(issue);
                 }
             }
