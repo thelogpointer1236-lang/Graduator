@@ -19,7 +19,6 @@ namespace grad {
         void setNodePressures(const std::vector<double>& pressures);
         void setPressureWindow(double window);
         void setMinPoints(std::size_t minPoints);
-        void setLoessFrac(double frac);
 
         // Main API: compute pressure-angle table
         const std::vector<NodeResult>& graduate() const;
@@ -37,7 +36,6 @@ namespace grad {
         std::vector<double> m_nodePressures_;
         double              m_pressureWindow_;
         std::size_t         m_minPoints_;
-        double              m_loessFrac_;
         mutable DebugData   m_debugData_;
 
         mutable std::vector<NodeResult> m_results_;

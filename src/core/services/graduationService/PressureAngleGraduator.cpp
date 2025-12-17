@@ -11,7 +11,6 @@ PressureAngleGraduator::PressureAngleGraduator(const std::vector<std::pair<doubl
     : m_pressureSeries_(pressureSeries)
     , m_pressureWindow_(5.0)
     , m_minPoints_(7)
-    , m_loessFrac_(0.3)
 {
 }
 
@@ -31,10 +30,6 @@ void PressureAngleGraduator::setPressureWindow(double window) {
 
 void PressureAngleGraduator::setMinPoints(std::size_t minPoints) {
     m_minPoints_ = minPoints;
-}
-
-void PressureAngleGraduator::setLoessFrac(double frac) {
-    m_loessFrac_ = frac;
 }
 
 const std::vector<NodeResult>& PressureAngleGraduator::graduate() const {
