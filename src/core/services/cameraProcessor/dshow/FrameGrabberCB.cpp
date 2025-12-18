@@ -3,6 +3,11 @@
 #include "core/services/ServiceLocator.h"
 #include <iostream>
 #include <QDebug>
+#include <QImage>
+#include <QDir>
+#include <QAtomicInteger>
+
+
 
 FrameGrabberCB::FrameGrabberCB(qint32 camIdx, qint32 imgWidth, qint32 imgHeight, QObject *parent)
     : QObject(parent)
@@ -51,13 +56,22 @@ HRESULT FrameGrabberCB::SampleCB(double SampleTime, IMediaSample *pSample) {
 HRESULT FrameGrabberCB::BufferCB(double SampleTime, BYTE *pBuffer, const long BufferLen) {
     if (!pBuffer) return E_POINTER;
 
-    int capIdx = 0;
+    static bool dirReady = false;
+    if (!dirReady) {
+        QDir().mkpath("frames");
+        dirReady = true;
+    }
+
+    const int width  = 640;
+    const int height = 480;
+
+    const quint64 frameIdx = m_frameCounter.fetchAndAddRelaxed(1);
 
     // -------------------------
     // Захватываем изображение
     // -------------------------
     if (s_isCapturing) {
-        if (capIdx % s_capRate == 0) {
+        if (true) {
             const BYTE *pixelData = pBuffer;
             const qreal timestampSec = ServiceLocator::instance().graduationService()->getElapsedTimeSeconds();
 
@@ -71,13 +85,69 @@ HRESULT FrameGrabberCB::BufferCB(double SampleTime, BYTE *pBuffer, const long Bu
             }
 
         }
-        capIdx++;
     }
+
+    if (frameIdx % 5 == 0 && s_isFramesRecording) {
+        QImage img(
+            pBuffer,
+            width,
+            height,
+            width * 3,
+            QImage::Format_BGR888
+        );
+
+        const QString fileName = QString("frames/cam%1_frame%2.png")
+            .arg(m_camIdx)
+            .arg(frameIdx, 6, 10, QChar('0'));
+
+        img.save(fileName, "PNG");
+    }
+
+
+
+
+    // -------------------------
+    // Рисуем границы (красные крестики)
+    // -------------------------
+    if (s_isEdgeVisible) {
+        const int bytesPerPixel = 3;
+        const int stride = width * bytesPerPixel;
+
+        auto drawCross = [&](int x, int y) {
+            auto drawPixel = [&](int px, int py) {
+                if (px < 0 || px >= width || py < 0 || py >= height)
+                    return;
+
+                BYTE* pixel = pBuffer + py * stride + px * bytesPerPixel;
+                pixel[0] = 0;    // B
+                pixel[1] = 0;    // G
+                pixel[2] = 255;  // R
+            };
+
+            drawPixel(x,     y);
+            drawPixel(x - 1, y);
+            drawPixel(x + 1, y);
+            drawPixel(x, y - 1);
+            drawPixel(x, y + 1);
+            drawPixel(x - 1, y + 1);
+            drawPixel(x + 1, y - 1);
+            drawPixel(x + 1, y + 1);
+            drawPixel(x - 1, y - 1);
+        };
+
+        for (const auto& p : m_am->points_1)
+            drawCross(p.x, p.y);
+
+        for (const auto& p : m_am->points_2)
+            drawCross(p.x, p.y);
+    }
+
+
 
     // -------------------------
     // Рисуем прицел
     // -------------------------
-    if (s_aimIsVisible) {
+    if (s_isAimVisible) {
         RGBImage image(pBuffer, BufferLen);
 
         const int cx = image.getWidth() / 2;

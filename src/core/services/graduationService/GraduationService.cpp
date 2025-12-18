@@ -131,7 +131,6 @@ bool GraduationService::start()
     m_graduator.setNodePressures(m_gaugeModel.pressureValues());
     m_graduator.setPressureWindow(m_gaugeModel.pressureValues()[1] * 0.075);
     m_graduator.setMinPoints(7);
-    m_graduator.setLoessFrac(0.3);
     m_graduator.switchToForward();
 
     QMetaObject::invokeMethod(

@@ -42,6 +42,8 @@ private:
     class ICreateDevEnum *m_pDevEnum;
     class IAMCameraControl *m_pCameraControl;
     class IAMVideoProcAmp *m_pVideoProcAmp;
+
+
     // Window handle
     void *m_hwnd;
     // Camera index

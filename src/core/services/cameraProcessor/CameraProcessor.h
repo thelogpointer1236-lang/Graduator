@@ -27,6 +27,7 @@ public:
     static void setCapturingRate(int rate);
     static void setAimColor(const QColor &color);
     static void setAimRadius(int radius);
+    static void setFramesRecording(bool enabled);
 
     static int availableCameraCount();
     static QString cameraStr();

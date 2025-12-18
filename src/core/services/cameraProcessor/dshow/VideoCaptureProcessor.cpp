@@ -201,16 +201,8 @@ void VideoCaptureProcessor::init(void *hwnd, int cameraIndex) {
     hr = m_pGraph->AddFilter(m_pVideoRenderer, reinterpret_cast<LPCWSTR>(tr("Video Renderer").utf16()));
     if (FAILED(hr)) { checkHR(hr, "AddFilter VideoRenderer failed"); cleanup();}
 
-    hr = m_pCapture->RenderStream(&PIN_CATEGORY_CAPTURE, &MEDIATYPE_Video,
-                                  m_pSrcFilter, m_pSampleGrabberFilter, m_pVideoRenderer);
-    if (FAILED(hr)) {
-        hr = m_pCapture->RenderStream(&PIN_CATEGORY_PREVIEW, &MEDIATYPE_Video,
-                                      m_pSrcFilter, m_pSampleGrabberFilter, m_pVideoRenderer);
-        if (FAILED(hr)) {
-            checkHR(hr, "RenderStream failed");
-            cleanup();
-        }
-    }
+    hr = m_pCapture->RenderStream(&PIN_CATEGORY_CAPTURE, &MEDIATYPE_Video, m_pSrcFilter, m_pSampleGrabberFilter, m_pVideoRenderer);
+    if (FAILED(hr)) { checkHR(hr, "RenderStream failed"); cleanup(); }
 
     hr = m_pGraph->QueryInterface(IID_PPV_ARGS(&m_pMediaControl));
     if (FAILED(hr)) { checkHR(hr, "QueryInterface MediaControl failed"); cleanup();}

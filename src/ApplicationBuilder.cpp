@@ -1,7 +1,8 @@
-#include "ApplicationBuilder.h"
+﻿#include "ApplicationBuilder.h"
 #include "core/services/ServiceLocator.h"
 #include "core/services/UserDialogService.h"
 #include "core/services/pressureController/impl/PressureControllerStand4.h"
+#include "core/services/pressureController/impl/PressureControllerStand3.h"
 #include "defines.h"
 #include <QApplication>
 #include <QMessageBox>
@@ -163,6 +164,7 @@ void ApplicationBuilder::initPressureController()
     PressureControllerBase* controller = nullptr;
 
     switch (cfg->get<int>(CFG_KEY_STAND_NUMBER, 0)) {
+        case 3: controller = new PressureControllerStand3(); break;
         case 4: controller = new PressureControllerStand4(); break;
         // case 5: controller = new PressureControllerStand5(); break;
         default:

@@ -4,7 +4,6 @@
 #include "gui/widgets/MainWidget.h"
 #include "gui/widgets/notifications/NotificationArea.h"
 
-#include <QNetworkAccessManager>
 #include <QCloseEvent>
 #include <QResizeEvent>
 #include <QVBoxLayout>

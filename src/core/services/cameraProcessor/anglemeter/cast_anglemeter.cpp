@@ -1,4 +1,4 @@
-#ifndef USE_STUB_IMPLEMENTATIONS
+#ifndef USE_STUB_ANGLEMETER_IMPLEMENTATIONS
 
 #include "cast_anglemeter.h"
 #include <algorithm>
@@ -11,21 +11,8 @@
 
 #define M_PI 3.141592f
 
-// ------------------------------------
-// Простейшие структуры координат
-// ------------------------------------
-struct pos_t {
-    uint16_t x;
-    uint16_t y;
-};
+constexpr int offsets[] = {0, -8, +8, -16, +16, -24, +24, -36, +36, -48, +48, -56, +56, -64, +64, -82, +82, -96, +96};
 
-// ------------------------------------
-// Координата в виде float для точной геометрии
-// ------------------------------------
-struct posf_t {
-    float x;
-    float y;
-};
 
 // ------------------------------------
 // Удобный переход из целочисленных координат в вещественные
@@ -34,13 +21,7 @@ inline posf_t pos2f(const pos_t p) {
     return posf_t{ static_cast<float>(p.x), static_cast<float>(p.y) };
 }
 
-// ------------------------------------
-// Результаты поиска перепадов яркости по линии сканирования
-// ------------------------------------
-struct scan_t {
-    pos_t posDifMin;
-    pos_t posDifMax;
-};
+
 
 // ------------------------------------
 // Цвет пикселя в формате RGB
@@ -82,25 +63,7 @@ namespace {
     };
 }
 
-// ------------------------------------
-// Основное состояние алгоритма измерения угла
-// ------------------------------------
-struct anglemeter_t {
-    int img_width{};
-    int img_height{};
 
-    int bright_lim{};
-    int max_pairs{};
-
-    std::vector<scan_t> x_scans{};
-    std::vector<scan_t> y_scans{};
-
-    std::vector<posf_t> points_1{};
-    std::vector<posf_t> points_2{};
-
-    float last_angle_deg{};
-    float (*transform_angle)(float) = nullptr;
-};
 
 // ------------------------------------
 // Проверка валидности результата сканирования
@@ -123,8 +86,9 @@ void anglemeterCreate(anglemeter_t** am_ptr) {
     auto *am = new anglemeter_t();
     am->img_width = 0;
     am->img_height = 0;
-    am->bright_lim = 100;
-    am->max_pairs = 4;
+    am->bright_lim = 150;
+    am->max_pairs = 8;
+    am->scan_step = 3;
     am->last_angle_deg = 0.0f;
     am->transform_angle = nullptr;
     *am_ptr = am;
@@ -194,13 +158,13 @@ inline void scanCol(anglemeter_t* am, const rgb_t* img, const int x, const int y
 
     // 1. Поиск локальных минимумов/максимумов
     for (int y = y_from; y < y_to; ++y) {
-        const rgb_t& p1 = img[(static_cast<size_t>(y) - 2u) * width + x];
+        const rgb_t& p1 = img[(static_cast<size_t>(y) - am->scan_step * 2) * width + x];
         const rgb_t& p2 = img[static_cast<size_t>(y) * width + x];
 
         const int br1 = brightness(p1.r, p1.g, p1.b);
         const int br2 = brightness(p2.r, p2.g, p2.b);
         const int dBr = br2 - br1;
-        const int yEdge = y - 1;
+        const int yEdge = y - am->scan_step;
 
         if (dBr < -static_cast<int>(bright_lim)) {
             if (mins.size() < static_cast<size_t>(max_pairs))
@@ -265,7 +229,7 @@ inline void scanCol(anglemeter_t* am, const rgb_t* img, const int x, const int y
                 const float avgUp = avgRegion(minE.y - 16, minE.y - 1);
                 const float avgDown = avgRegion(maxE.y + 1, maxE.y + 16);
 
-                if (avgUp < 200.0f || avgDown < 200.0f)
+                if (avgUp < 160.0f || avgDown < 160.0f)
                     continue;
                 // if (std::abs(avgUp - avgDown) > 30.0f)
                 //     continue;
@@ -315,13 +279,13 @@ inline void scanRow(anglemeter_t* am, const rgb_t* img, const int y, const int x
 
     // 1. Поиск локальных минимумов/максимумов вдоль строки
     for (int x = x_from; x < x_to; ++x) {
-        const rgb_t& p1 = img[y * width + (static_cast<size_t>(x) - 2u)];
+        const rgb_t& p1 = img[y * width + (static_cast<size_t>(x) - am->scan_step * 2)];
         const rgb_t& p2 = img[y * width + static_cast<size_t>(x)];
 
         const int br1 = brightness(p1.r, p1.g, p1.b);
         const int br2 = brightness(p2.r, p2.g, p2.b);
         const int dBr = br2 - br1;
-        const int xEdge = x - 1;
+        const int xEdge = x - am->scan_step;
 
         if (dBr < -bright_lim) {
             if (mins.size() < static_cast<size_t>(max_pairs))
@@ -386,7 +350,7 @@ inline void scanRow(anglemeter_t* am, const rgb_t* img, const int y, const int x
                 const float avgLeft  = avgRegion(minE.x - 16, minE.x - 1);
                 const float avgRight = avgRegion(maxE.x + 1, maxE.x + 16);
 
-                if (avgLeft < 200.0f || avgRight < 200.0f)
+                if (avgLeft < 160.0f || avgRight < 160.0f)
                     continue;
 
                 candidates.push_back({
@@ -445,8 +409,8 @@ inline bool scanColsDirectional(
     if (!isValidScan(&scans[x_start]))
         return false;
 
-    int last_y_from = std::max(2, static_cast<int>(scans[x_start].posDifMin.y) - 8);
-    int last_y_to   = std::min(height - 2, static_cast<int>(scans[x_start].posDifMax.y) + 8);
+    int last_y_from = std::max(am->scan_step * 2, static_cast<int>(scans[x_start].posDifMin.y) - 8);
+    int last_y_to   = std::min(height - am->scan_step * 2, static_cast<int>(scans[x_start].posDifMax.y) + 8);
 
     // --- Аккумуляторы статистики ---
     double sumX = 0;
@@ -475,8 +439,8 @@ inline bool scanColsDirectional(
          (x_step < 0 ? x >= x_stop : x <= x_stop);
          x += x_step)
     {
-        const int y_from = std::max(2, last_y_from - 8);
-        const int y_to   = std::min(height - 2, last_y_to + 8);
+        const int y_from = std::max(am->scan_step * 2, last_y_from - 8);
+        const int y_to   = std::min(height - am->scan_step * 2, last_y_to + 8);
 
         scanCol(am, img, x, y_from, y_to);
 
@@ -518,8 +482,8 @@ inline bool scanColsDirectional(
         // Валидное сканирование
         stableFailCount = 0;
 
-        last_y_from = std::clamp(static_cast<int>(scans[x].posDifMin.y), 2, height - 2);
-        last_y_to   = std::clamp(static_cast<int>(scans[x].posDifMax.y), 2, height - 2);
+        last_y_from = std::clamp(static_cast<int>(scans[x].posDifMin.y), am->scan_step * 2, height - am->scan_step * 2);
+        last_y_to   = std::clamp(static_cast<int>(scans[x].posDifMax.y), am->scan_step * 2, height - am->scan_step * 2);
 
         // Аккумуляция статистики
         int y = last_y_from;
@@ -547,7 +511,6 @@ inline bool scanRowsDirectional(
     int y_start, int y_stop, int y_step,
     int x_from_init, int x_to_init
 ) {
-
     const int width  = am->img_width;
     const int height = am->img_height;
     scan_t* scans = am->y_scans.data();
@@ -568,20 +531,24 @@ inline bool scanRowsDirectional(
     if (!isValidScan(&scans[y_start]))
         return false;
 
-    int last_x_from = scans[y_start].posDifMin.x - 8;
-    if (last_x_from < 2) last_x_from = 2;
-    int last_x_to   = scans[y_start].posDifMax.x + 8;
-    if (last_x_to >= width) last_x_to = width - 2;
+    int last_x_from = std::max(
+        am->scan_step * 2,
+        static_cast<int>(scans[y_start].posDifMin.x) - 8
+    );
+    int last_x_to = std::min(
+        width - am->scan_step * 2,
+        static_cast<int>(scans[y_start].posDifMax.x) + 8
+    );
 
     // --- Аккумуляторы статистики ---
-    double sumY = 0;
-    double sumX = 0;
+    double sumY  = 0;
+    double sumX  = 0;
     double sumXY = 0;
     double sumYY = 0;
     double sumX2 = 0;
     int n = 0;
 
-    // Добавляем первую точку
+    // Первая точка
     {
         const int y = y_start;
         const int x = last_x_from;
@@ -600,8 +567,14 @@ inline bool scanRowsDirectional(
          (y_step < 0 ? y >= y_stop : y <= y_stop);
          y += y_step)
     {
-        int x_from = last_x_from > 11 ? last_x_from - 8 : 2;
-        int x_to   = last_x_to < width - 11 ? last_x_to + 8 : width - 2;
+        const int x_from = std::max(
+            am->scan_step * 2,
+            last_x_from - 8
+        );
+        const int x_to = std::min(
+            width - am->scan_step * 2,
+            last_x_to + 8
+        );
 
         scanRow(am, img, y, x_from, x_to);
 
@@ -610,11 +583,10 @@ inline bool scanRowsDirectional(
 
             if (stableFailCount >= 6) {
 
-                // А) Должно быть ≥ 20 валидных точек
                 if (n < 20)
                     return false;
 
-                // Б) Линейная регрессия по накопленным суммам
+                // Линейная регрессия: x = a*y + b
                 double denom = n * sumYY - sumY * sumY;
                 if (denom == 0)
                     return false;
@@ -622,7 +594,7 @@ inline bool scanRowsDirectional(
                 double a = (n * sumXY - sumY * sumX) / denom;
                 double b = (sumX - a * sumY) / n;
 
-                // Вычисление MSE без хранения точек
+                // MSE
                 double mse =
                     ( sumX2
                     + a * a * sumYY
@@ -643,12 +615,20 @@ inline bool scanRowsDirectional(
         // --- Валидное сканирование ---
         stableFailCount = 0;
 
-        last_x_from = scans[y].posDifMin.x;
-        last_x_to   = scans[y].posDifMax.x;
+        last_x_from = std::clamp(
+            static_cast<int>(scans[y].posDifMin.x),
+            am->scan_step * 2,
+            width - am->scan_step * 2
+        );
+        last_x_to = std::clamp(
+            static_cast<int>(scans[y].posDifMax.x),
+            am->scan_step * 2,
+            width - am->scan_step * 2
+        );
 
         // Аккумуляция статистики
-        int x = last_x_from;
-        int yy = y;
+        const int x = last_x_from;
+        const int yy = y;
 
         sumY  += yy;
         sumX  += x;
@@ -658,10 +638,10 @@ inline bool scanRowsDirectional(
         n++;
     }
 
-    // Если дошли до конца без >=6 фейлов
     *count = n;
     return true;
 }
+
 
 
 // ------------------------------------
@@ -673,26 +653,36 @@ inline bool scanCols(anglemeter_t* am, const rgb_t* img, int* dir)
     const int height = am->img_height;
     scan_t* scans = am->x_scans.data();
 
+    const int margin = am->scan_step * 2;
+
     const int center_left  = width / 4;
     const int center_right = (3 * width) / 4;
 
-    auto findStart = [&](int x, uint16_t& ys, uint16_t& ye)->bool {
-        if (x < 2 || x >= width - 2)
+    auto findStart = [&](int x, uint16_t& ys, uint16_t& ye) -> bool {
+        if (x < margin || x >= width - margin)
             return false;
 
-        scanCol(am, img, x, 2, height - 2);
+        scanCol(am, img, x, margin, height - margin);
         if (!isValidScan(&scans[x]))
             return false;
 
-        ys = scans[x].posDifMin.y - 8;
-        if (ys < 2) ys = 2;
-        ye = scans[x].posDifMax.y + 8;
-        if (ye >= height) ye = height - 2;
-        return true;
+        ys = std::clamp(
+            scans[x].posDifMin.y - 8,
+            margin,
+            height - margin
+        );
+
+        ye = std::clamp(
+            scans[x].posDifMax.y + 8,
+            margin,
+            height - margin
+        );
+
+        return ys < ye;
     };
 
-    auto tryHalf = [&](int x_start, int x_min, int x_max, int* count)->bool {
-        uint16_t ys, ye;
+    auto tryHalf = [&](int x_start, int x_min, int x_max, int* count) -> bool {
+        uint16_t ys = 0, ye = 0;
         if (!findStart(x_start, ys, ye))
             return false;
 
@@ -707,17 +697,16 @@ inline bool scanCols(anglemeter_t* am, const rgb_t* img, int* dir)
         return true;
     };
 
-    constexpr int offsets[] = {0, -10, +10};
-
-    for (const int dx : offsets) {
+    for (int dx : offsets) {
 
         const int x_left  = center_left  + dx;
         const int x_right = center_right + dx;
 
-        int left_cnt = 0, right_cnt = 0;
+        int left_cnt  = 0;
+        int right_cnt = 0;
 
-        const bool left  = tryHalf(x_left,  0,       width/2,   &left_cnt);
-        const bool right = tryHalf(x_right, width/2, width - 1, &right_cnt);
+        const bool left  = tryHalf(x_left,  0,         width / 2,   &left_cnt);
+        const bool right = tryHalf(x_right, width / 2, width - 1,   &right_cnt);
 
         if (left && right) {
             *dir = (left_cnt >= right_cnt) ? -1 : +1;
@@ -732,6 +721,7 @@ inline bool scanCols(anglemeter_t* am, const rgb_t* img, int* dir)
 
 
 
+
 // ------------------------------------
 // Попытка найти границы через горизонтальные сканы
 // ------------------------------------
@@ -741,24 +731,36 @@ inline bool scanRows(anglemeter_t* am, const rgb_t* img, int* dir)
     const int height = am->img_height;
     scan_t* scans = am->y_scans.data();
 
+    const int margin = am->scan_step * 2;
+
     const int center_top = height / 4;
     const int center_bot = (3 * height) / 4;
 
-    auto findStart = [&](int y, uint16_t& xs, uint16_t& xe)->bool {
-        if (y < 2 || y >= height - 2) return false;
+    auto findStart = [&](int y, uint16_t& xs, uint16_t& xe) -> bool {
+        if (y < margin || y >= height - margin)
+            return false;
 
-        scanRow(am, img, y, 2, width - 2);
-        if (!isValidScan(&scans[y])) return false;
+        scanRow(am, img, y, margin, width - margin);
+        if (!isValidScan(&scans[y]))
+            return false;
 
-        xs = scans[y].posDifMin.x - 8;
-        if (xs < 2) xs = 2;
-        xe = scans[y].posDifMax.x + 8;
-        if (xe >= width) xe = width - 2;
-        return true;
+        xs = std::clamp(
+            scans[y].posDifMin.x - 8,
+            margin,
+            width - margin
+        );
+
+        xe = std::clamp(
+            scans[y].posDifMax.x + 8,
+            margin,
+            width - margin
+        );
+
+        return xs < xe;
     };
 
-    auto tryHalf = [&](int y_start, int y_min, int y_max, int* count)->bool {
-        uint16_t xs, xe;
+    auto tryHalf = [&](int y_start, int y_min, int y_max, int* count) -> bool {
+        uint16_t xs = 0, xe = 0;
         if (!findStart(y_start, xs, xe))
             return false;
 
@@ -773,16 +775,16 @@ inline bool scanRows(anglemeter_t* am, const rgb_t* img, int* dir)
         return true;
     };
 
-    constexpr int offsets[] = {0, -10, +10};
-
-    for (const int dy : offsets) {
+    for (int dy : offsets) {
 
         const int y_top = center_top + dy;
         const int y_bot = center_bot + dy;
 
-        int up_cnt = 0, down_cnt = 0;
-        const bool up   = tryHalf(y_top, 0, height/2, &up_cnt);
-        const bool down = tryHalf(y_bot, height/2, height-1, &down_cnt);
+        int up_cnt   = 0;
+        int down_cnt = 0;
+
+        const bool up   = tryHalf(y_top,  0,          height / 2, &up_cnt);
+        const bool down = tryHalf(y_bot,  height / 2, height - 1, &down_cnt);
 
         if (up && down) {
             *dir = (up_cnt >= down_cnt) ? -1 : +1;
@@ -794,6 +796,7 @@ inline bool scanRows(anglemeter_t* am, const rgb_t* img, int* dir)
 
     return false;
 }
+
 
 // dir: 1 - left, 2 - right, 3 - up, 4 - down
 // ------------------------------------

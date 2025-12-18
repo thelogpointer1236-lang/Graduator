@@ -41,14 +41,17 @@ signals:
 public:
     static inline auto s_aimColor = RGBPixel(0, 0, 0);
     static inline auto s_aimRadius = 30;
-    static inline bool s_aimIsVisible = false;
+    static inline bool s_isAimVisible = false;
     static inline bool s_isCapturing = true;
     static inline int s_capRate = 4; // каждый N-й кадр
+    static inline bool s_isFramesRecording = false;
+    static inline bool s_isEdgeVisible = true;
 
 private:
     LONG m_refCount;
     qint32 m_camIdx;
     struct anglemeter_t* m_am;
+    QAtomicInteger<quint64> m_frameCounter {0};
 };
 
 #endif //FRAMEGRABBERCB_H

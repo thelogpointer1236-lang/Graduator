@@ -1,4 +1,4 @@
-#include "BatchGraduator.h"
+﻿#include "BatchGraduator.h"
 #include <stdexcept>
 
 using namespace grad;
@@ -44,11 +44,6 @@ void BatchGraduator::setMinPoints(std::size_t minPoints) {
     }
 }
 
-void BatchGraduator::setLoessFrac(double frac) {
-    for (auto& calib : m_calibrators) {
-        calib.setLoessFrac(frac);
-    }
-}
 
 std::vector<std::vector<NodeResult>> BatchGraduator::graduate() const {
     std::vector<std::vector<NodeResult>> out;

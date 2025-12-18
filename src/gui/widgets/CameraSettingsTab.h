@@ -16,6 +16,7 @@ public:
 private slots:
     void rebuildCameraSettings();
     void onCamerasChanged();
+    void onRecordToggled(bool checked);
 
 private:
     void setupUi();

@@ -17,7 +17,8 @@ set(CMAKE_PREFIX_PATH "D:/Qt/Qt5.14.2/5.14.2/msvc2017_64")
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/src)
 #include_directories(${CMAKE_CURRENT_SOURCE_DIR}/third-party)
 
-add_definitions(-DUSE_STUB_IMPLEMENTATIONS)
+add_definitions(-DUSE_STUB_PRESSURE_IMPLEMENTATIONS)
+#add_definitions(-DUSE_STUB_ANGLEMETER_IMPLEMENTATIONS)
 
 find_package(Qt5 COMPONENTS
         Core
@@ -42,6 +43,7 @@ set(SRC_FILES
         src/core/services/pressureController/drivers/G540Driver.cpp
         src/core/services/pressureController/drivers/LPTDriver.cpp
         src/core/services/pressureController/impl/PressureControllerStand4.cpp
+        src/core/services/pressureController/impl/PressureControllerStand3.cpp
         src/core/services/pressureController/impl/utils.cpp
         src/gui/widgets/cameraGrid/AspectRatioLabel.cpp
         src/gui/widgets/cameraGrid/CameraGridWidget.cpp
@@ -95,6 +97,7 @@ set(HEADER_FILES
         src/core/services/pressureController/drivers/G540Driver.h
         src/core/services/pressureController/drivers/LPTDriver.h
         src/core/services/pressureController/impl/PressureControllerStand4.h
+        src/core/services/pressureController/impl/PressureControllerStand3.h
         src/core/services/pressureController/impl/utils.h
         src/gui/widgets/cameraGrid/AspectRatioLabel.h
         src/gui/widgets/cameraGrid/CameraGridWidget.h

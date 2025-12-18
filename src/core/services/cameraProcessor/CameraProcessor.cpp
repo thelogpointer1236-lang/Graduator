@@ -88,7 +88,7 @@ int CameraProcessor::availableCameraCount() {
 }
 
 void CameraProcessor::setAimEnabled(bool enabled) {
-    FrameGrabberCB::s_aimIsVisible = enabled;
+    FrameGrabberCB::s_isAimVisible = enabled;
 }
 
 void CameraProcessor::setCapturingRate(int rate) {
@@ -104,6 +104,10 @@ void CameraProcessor::setAimColor(const QColor &color) {
 
 void CameraProcessor::setAimRadius(int radius) {
     FrameGrabberCB::s_aimRadius = radius;
+}
+
+void CameraProcessor::setFramesRecording(bool enabled) {
+    FrameGrabberCB::s_isFramesRecording = enabled;
 }
 
 QString CameraProcessor::cameraStr() {

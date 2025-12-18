@@ -1,4 +1,4 @@
-#ifdef USE_STUB_IMPLEMENTATIONS
+#ifdef USE_STUB_ANGLEMETER_IMPLEMENTATIONS
 
 #include "core/services/cameraProcessor/anglemeter/cast_anglemeter.h"
 #include "core/services/ServiceLocator.h"

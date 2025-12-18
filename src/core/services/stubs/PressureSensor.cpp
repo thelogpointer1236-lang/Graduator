@@ -1,4 +1,4 @@
-#ifdef USE_STUB_IMPLEMENTATIONS
+#ifdef USE_STUB_PRESSURE_IMPLEMENTATIONS
 
 #include "core/services/PressureSensor.h"
 #include "core/services/ServiceLocator.h"

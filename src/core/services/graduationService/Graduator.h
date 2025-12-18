@@ -1,4 +1,4 @@
-#ifndef GRADUATORTEST_CALIBRATOR_H
+﻿#ifndef GRADUATORTEST_CALIBRATOR_H
 #define GRADUATORTEST_CALIBRATOR_H
 #include "BatchGraduator.h"
 
@@ -18,7 +18,6 @@ namespace grad {
         void setNodePressures(const std::vector<double>& pressures);
         void setPressureWindow(double window);
         void setMinPoints(std::size_t minPoints);
-        void setLoessFrac(double frac);
 
         // --------- Разделённый API ---------
         std::vector<std::vector<NodeResult>> graduateForward() const;

@@ -1,5 +1,8 @@
 #include "CameraSettingsTab.h"
 
+#include <QCheckBox>
+#include <QComboBox>
+
 #include "core/services/ServiceLocator.h"
 #include "core/services/cameraProcessor/CameraProcessor.h"
 #include "core/services/cameraProcessor/Camera.h"
@@ -12,6 +15,7 @@
 #include <QScrollArea>
 #include <QSlider>
 #include <QVBoxLayout>
+#include <QCheckBox>
 
 namespace {
 constexpr int DefaultMinValue = 0;
@@ -45,12 +49,16 @@ void CameraSettingsTab::setupUi()
 
     scrollArea->setWidget(scrollWidget);
 
+    auto* recordFramesCB = new QCheckBox("Record");
+    connect(recordFramesCB, &QCheckBox::toggled, this, &CameraSettingsTab::onRecordToggled);
+
     // Панель кнопок (теперь только одна)
     auto *buttonsWidget = new QWidget(this);
     auto *buttonsLayout = new QHBoxLayout(buttonsWidget);
     buttonsLayout->setContentsMargins(0, 0, 0, 0);
 
     auto *mainLayout = new QVBoxLayout(this);
+    mainLayout->addWidget(recordFramesCB);
     mainLayout->addWidget(buttonsWidget);
     mainLayout->addWidget(scrollArea);
     setLayout(mainLayout);
@@ -104,6 +112,9 @@ void CameraSettingsTab::onCamerasChanged()
     rebuildCameraSettings();
 }
 
+void CameraSettingsTab::onRecordToggled(bool checked) {
+    ServiceLocator::instance().cameraProcessor()->setFramesRecording(checked);
+}
 
 QGroupBox *CameraSettingsTab::createCameraGroup(int cameraIndex)
 {

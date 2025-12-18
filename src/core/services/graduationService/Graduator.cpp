@@ -1,4 +1,4 @@
-#include "Graduator.h"
+﻿#include "Graduator.h"
 
 using namespace grad;
 
@@ -55,11 +55,6 @@ void Graduator::setPressureWindow(double window) {
 void Graduator::setMinPoints(std::size_t minPoints) {
     m_forward.setMinPoints(minPoints);
     m_backward.setMinPoints(minPoints);
-}
-
-void Graduator::setLoessFrac(double frac) {
-    m_forward.setLoessFrac(frac);
-    m_backward.setLoessFrac(frac);
 }
 
 std::vector<std::vector<NodeResult>> Graduator::graduateForward() const {

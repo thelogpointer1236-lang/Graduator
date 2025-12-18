@@ -1,4 +1,4 @@
-﻿#ifndef USE_STUB_IMPLEMENTATIONS
+﻿#ifndef USE_STUB_PRESSURE_IMPLEMENTATIONS
 
 #include <Windows.h>
 #include <algorithm>
@@ -199,23 +199,15 @@ bool PressureSensor::pollOnce(QString &error) {
     const quint8 unitByte = m_responseBuffer[m_unitByteIndex];
     PressureUnit unit;
     switch (unitByte) {
-        case 1: unit = PressureUnit::Kgf;
+        case 1: unit = PressureUnit::kgf;
             break;
-        case 2: unit = PressureUnit::MPa;
+        case 2: unit = PressureUnit::mpa;
             break;
-        case 3: unit = PressureUnit::kPa;
+        case 3: unit = PressureUnit::kpa;
             break;
-        case 4: unit = PressureUnit::Pa;
+        case 6: unit = PressureUnit::atm;
             break;
-        case 5: unit = PressureUnit::KgfM2;
-            break;
-        case 6: unit = PressureUnit::Atm;
-            break;
-        case 7: unit = PressureUnit::mmHg;
-            break;
-        case 8: unit = PressureUnit::mmH2O;
-            break;
-        case 9: unit = PressureUnit::Bar;
+        case 9: unit = PressureUnit::bar;
             break;
         default:
             ServiceLocator::instance().logger()->debug(
